@@ -142,9 +142,13 @@ We benchmarked **Claude Opus 4.5** (one of the world's best LLMs) on 215 critica
 ### The QWED Difference
 
 **With QWED verification:**
-- ✅ 100% detection of errors
+- ✅ 100% detection of errors*
 - ✅ Caught all 22 failures before production
 - ✅ Mathematical proof of correctness
+
+> **\*Important Note:** 100% detection applies to mathematically verifiable domains 
+> (math, logic, code syntax, SQL validation). Subjective tasks like creative writing 
+> or opinions cannot be verified using symbolic methods and remain probabilistic.
 
 📄 **[Read Full Benchmark Report](https://github.com/QWED-AI/qwed-verification/blob/main/BENCHMARKS.md)**
 
