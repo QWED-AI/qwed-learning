@@ -186,7 +186,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 - **QWED Main Repo:** [qwed-verification](https://github.com/QWED-AI/qwed-verification)
 - **Documentation:** [docs.qwedai.com](https://docs.qwedai.com)
-- **Research Paper:** [Neurosymbolic Verification](https://github.com/QWED-AI/qwed-verification/tree/main/research)
+- **Technical Paper:** [Neurosymbolic Verification](https://github.com/QWED-AI/qwed-verification/tree/main/research)
 
 ---
 
