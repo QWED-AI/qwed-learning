@@ -52,6 +52,8 @@
 
 **Prerequisites:** Basic Python, understanding of what LLMs are
 
+**Cost:** FREE - Use QWEDLocal with Ollama (runs on your machine, no API fees!)
+
 ---
 
 ## 📖 New to AI Verification?
