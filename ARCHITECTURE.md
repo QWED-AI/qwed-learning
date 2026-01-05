@@ -81,10 +81,10 @@ sequenceDiagram
     participant LLM
     participant SymEngine
     
-    User->>QWED: Query with PII<br/>"Calculate for SSN: 123-45-6789"
+    User->>QWED: Query with PII<br/>Calculate for SSN: 123-45-6789
     QWED->>PIIDetector: Detect PII
     PIIDetector-->>QWED: Found: [US_SSN]
-    QWED->>QWED: Mask PII<br/>"Calculate for SSN: <US_SSN>"
+    QWED->>QWED: Mask PII<br/>Calculate for SSN: US_SSN
     QWED->>LLM: Send masked query
     LLM-->>QWED: Translation (DSL)
     QWED->>SymEngine: Execute DSL
@@ -106,7 +106,7 @@ sequenceDiagram
 
 ```mermaid
 graph TB
-    A[User: "Calculate 2+2 and verify"] --> B[LangChain Agent]
+    A[User: Calculate 2+2 and verify] --> B[LangChain Agent]
     B --> C{Choose Tool}
     C -->|Math Query| D[QWEDTool]
     C -->|Search| E[DuckDuckGo]

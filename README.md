@@ -23,6 +23,26 @@
 
 ---
 
+## 💡 The Core Concept: Artist vs. Accountant
+
+**Think of it this way:**
+
+🎨 **LLMs are Artists**
+- Creative and convincing
+-  Great at poetry, brainstorming, conversation
+- Bad at precise details
+- **Don't ask an artist to do your taxes!**
+
+🧮 **QWED is the Accountant**
+- Boring and strict
+- Terrible at creativity
+- Never makes a math mistake
+- **This is who you want handling your money!**
+
+**In Production:** Artist writes the report → Accountant verifies the numbers ✅
+
+---
+
 ## Who Is This For?
 
 ✅ Backend developers integrating LLMs  
@@ -31,6 +51,14 @@
 ✅ Anyone shipping LLM-powered features
 
 **Prerequisites:** Basic Python, understanding of what LLMs are
+
+---
+
+## 📖 New to AI Verification?
+
+**Start here:**
+- 📚 **[Glossary](GLOSSARY.md)** - Learn the jargon (AST, Z3, deterministic, etc.) in plain English
+- 🛡️ **[Guardrails vs Verification](GUARDRAILS_VS_VERIFICATION.md)** - Safety ≠ Correctness (Artist vs Accountant)
 
 ---
 

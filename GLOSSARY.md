@@ -1,0 +1,206 @@
+# 📖 Glossary: AI Verification for Humans
+
+**Before diving into the course, let's learn the language of verification - without the PhD jargon!**
+
+This glossary translates scary technical terms into plain English with real-world analogies.
+
+---
+
+## Core Concepts
+
+### Deterministic
+
+**Scary Definition:** A system that always produces the same output for the same input.
+
+**Simple Meaning:** Always gives the same answer (2+2=4, every single time).
+
+**Real-World Analogy:** 
+- **Calculator** 🧮 - Press "2+2" and you always get "4"
+- **Traffic Light Rules** - Red always means stop, green always means go
+- **Recipe with Measurements** - 1 cup flour is always 1 cup, not "about a cup"
+
+**Why It Matters:** Bank transfers, medical dosages, and tax calculations need determinism!
+
+---
+
+### Probabilistic
+
+**Scary Definition:** A system that uses statistical patterns to generate outputs.
+
+**Simple Meaning:** Probably gives the right answer, but it can change.
+
+**Real-World Analogy:**
+- **Human Guess** 🤔 - "I think 2+2 is... 4? Yeah, probably."
+- **Weather Forecast** - "70% chance of rain" (might or might not rain)
+- **Autocorrect** - Sometimes fixes "teh" to "the", sometimes doesn't
+
+**Why LLMs are Probabilistic:** They predict the next word based on patterns, not facts!
+
+---
+
+### Hallucination
+
+**Scary Definition:** When an AI generates plausible but incorrect information.
+
+**Simple Meaning:** When AI lies confidently.
+
+**Real-World Analogy:**
+- **Student Making Up Answers** - Sounds smart, totally wrong
+- **Confident Liar** - Says "Trust me" but has no idea
+- **Dream Logic** - Feels real while happening, nonsense when you wake up
+
+**Example:**
+```
+User: "Who was the first person on Mars?"
+LLM: "Neil Armstrong, in 1969." ❌ (Sounds plausible, completely false)
+```
+
+---
+
+## Technical Terms (Simplified)
+
+### AST (Abstract Syntax Tree)
+
+**Scary Definition:** A tree representation of code structure.
+
+**Simple Meaning:** Looking at code structure without running it.
+
+**Real-World Analogy:**
+- **Grammar Check** - Spell-check finds "their/they're" errors without understanding the essay
+- **Blueprint** - See building structure before construction
+- **X-Ray** - See bones without surgery
+
+**What QWED Does:** Checks if code has `eval()` or `exec()` by reading its structure.
+
+---
+
+### Solver (Z3 / SymPy)
+
+**Scary Definition:** Automated theorem prover using satisfiability modulo theories.
+
+**Simple Meaning:** A tool that proves logic/math is correct, mathematically.
+
+**Real-World Analogy:**
+- **Impartial Judge** 👨‍⚖️ - Checks if arguments follow the rules
+- **Fact Checker** - Verifies claims against evidence
+- **Referee** - Ensures players follow game rules
+
+**What It Does:**
+```python
+# You say: "If all A are B, and x is A, is x B?"
+# Z3 proves: YES (always, mathematically certain)
+```
+
+---
+
+### LLM-as-a-Judge
+
+**Scary Definition:** Using one language model to evaluate another's outputs.
+
+**Simple Meaning:** Asking an AI to check another AI.
+
+**Real-World Analogy:**
+- **Grading Your Own Homework** - Obviously flawed
+- **Fox Guarding Henhouse** - Conflict of interest
+- **Two Drunk Friends** - "Are you sober?" "Yeah, you?"
+
+**Why It Fails:** Both LLMs trained on same (wrong) internet data!
+
+---
+
+## Verification Concepts
+
+### Symbolic Reasoning
+
+**Scary Definition:** Manipulation of mathematical symbols according to formal rules.
+
+**Simple Meaning:** Using math rules (not guessing) to get answers.
+
+**Real-World Analogy:**
+- **Following a Recipe Exactly** - Not "eyeballing" ingredients
+- **Solving Algebra** - Step-by-step, provable
+- **Chess Computer** - Calculates all moves, doesn't "feel" the best one
+
+**Example:**
+```python
+# Symbolic (SymPy):
+derivative = sp.diff(x**2, x)  # Always: 2*x (proven)
+
+# Probabilistic (LLM):
+"The derivative is probably... 2x? Or maybe x^2..." ❌
+```
+
+---
+
+### Neurosymbolic AI
+
+**Scary Definition:** Integration of neural networks with symbolic AI.
+
+**Simple Meaning:** Combining "creative AI" with "precise math."
+
+**Real-World Analogy:**
+- **Artist + Accountant** - Artist creates, accountant verifies the numbers
+- **Chef + Nutritionist** - Chef makes food, nutritionist checks calories
+- **Poet + Spell Checker** - Poet writes, spell checker fixes grammar
+
+**How QWED Uses It:**
+1. **Neural (LLM):** Translates "Calculate interest" → Math formula
+2. **Symbolic (SymPy):** Proves formula is correct
+
+---
+
+## Common Misconceptions
+
+### "LLMs can do math if I prompt well"
+
+**Reality:** No. LLMs predict text patterns, not calculate.
+
+**Analogy:** Teaching a parrot to say "2+2=4" doesn't mean it understands math.
+
+---
+
+### "100% accuracy is impossible"
+
+**Reality:** It IS possible in mathematically verifiable domains!
+
+**Analogy:** Calculators have 100% accuracy for arithmetic. We can too (for math/logic/code).
+
+**Caveat:** QWED can't verify creative writing or subjective opinions - only things with "correct answers."
+
+---
+
+### "More AI = Better Verification"
+
+**Reality:** More AI = More probabilistic uncertainty.
+
+**Analogy:** Asking 10 people who are all wrong doesn't make them right.
+
+**Better:** Use deterministic tools (calculators, solvers) - not more AI.
+
+---
+
+## Quick Reference Table
+
+| Term | Translation | Emoji |
+|------|-------------|-------|
+| Deterministic | Always same answer | 🧮 |
+| Probabilistic | Maybe right | 🎲 |
+| Hallucination | AI lying | 🤥 |
+| Symbolic | Math proof | ✅ |
+| LLM-as-Judge | AI checks AI | 🤔 |
+| Verification | Proof of correctness | 🛡️ |
+| DSL (Domain-Specific Language) | Special code for one task | 🔧 |
+
+---
+
+## Still Confused?
+
+**That's okay!** The course uses these terms in context with examples.
+
+**Tip:** Bookmark this page and come back whenever you see a scary word!
+
+---
+
+**Ready to start?**
+
+→ [Module 1: The Crisis](../module-1-the-crisis/README.md)
