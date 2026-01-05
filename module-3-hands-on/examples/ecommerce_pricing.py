@@ -1,183 +1,246 @@
 """
-E-commerce Dynamic Pricing with Verification
+THE SCENARIO: The Hallucinated Black Friday Deal
+==================================================
 
-Demonstrates:
-- Real-time price calculations
-- Discount validation
-- Tax computation with verification
-- Prevents pricing errors that could cost revenue
+Setting: Online Electronics Store, Black Friday Morning - 6:00 AM
 
-Use Case: E-commerce platforms, marketplaces, SaaS billing
+The CEO just enabled "AI-Powered Flash Deals" to respond to customer queries
+about current promotions in real-time.
+
+A customer asks: "What's the Black Friday discount on the new iPhone?"
+
+THE DANGER: LLM invents discounts that don't exist in the database
+THE CONSEQUENCE: Company loses $500,000 in revenue from fake 90% off deal
+
+This example shows what happens when discounts aren't verified against actual data.
 """
 
 from qwed_sdk import QWEDLocal
 import logging
-from decimal import Decimal
 from typing import Dict, List, Optional
+from datetime import datetime
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 
 class PricingError(Exception):
-    """Raised when pricing calculation fails verification."""
+    """Raised when pricing calculation fails verification"""
     pass
 
 
-class EcommercePricingEngine:
+# ============================================================================
+# SCENARIO 1: WITHOUT VERIFICATION (The Revenue Disaster)
+# ============================================================================
+
+def unsafe_pricing_bot(product: str, base_price: float) -> Dict:
     """
-    Production e-commerce pricing engine with QWED verification.
+    DANGEROUS: LLM invents promotions that don't exist.
     
-    Prevents revenue loss from incorrect pricing calculations.
+    This is what happens when you let AI generate prices without checking database.
+    DO NOT USE IN PRODUCTION!
     """
+    logger.warning("⚠️  UNSAFE MODE: No verification!")
+    logger.warning(f"⚠️  Customer asks: 'What's the Black Friday discount on {product}?'")
+    
+    # Simulate LLM response - it "sounds" like Black Friday should have huge discounts
+    # Real database: 15% off
+    # LLM hallucinates: 90% off (sounds more "Black Friday"-ish!)
+    
+    hallucinated_discount = 90  # ❌ NOT IN DATABASE!
+    final_price = base_price * (1 - hallucinated_discount / 100)
+    
+    logger.error(f"❌ LLM Invented Discount: {hallucinated_discount}% off")
+    logger.error(f"   Real discount in database: 15% off")
+    logger.error(f"   Told customer: ${final_price:.2f}")
+    logger.error(f"   Actual price should be: ${base_price * 0.85:.2f}")
+    logger.error(f"   Company loss per sale: ${(base_price * 0.85 - final_price):.2f}")
+    logger.error(f"   📊 If 500 customers see this: ${(base_price * 0.85 - final_price) * 500:,.2f} LOST!")
+    
+    return {
+        "product": product,
+        "advertised_price": final_price,
+        "hallucinated_discount": hallucinated_discount,
+        "real_discount": 15,
+        "revenue_loss_per_sale": (base_price * 0.85 - final_price)
+    }
+
+
+# ============================================================================
+# SCENARIO 2: WITH QWED (The Safe Path)
+# ============================================================================
+
+class VerifiedPricingEngine:
+    """
+    SAFE: E-commerce pricing with discount validation against database.
+    
+    Every discount is verified against actual promotional data.
+    Hallucinated deals are caught BEFORE reaching customers.
+    """
+    
+    # This would come from your database in production
+    VALID_PROMOTIONS = {
+        "iphone_15": {"discount_percent": 15, "valid_until": "2024-12-01"},
+        "macbook_pro": {"discount_percent": 20, "valid_until": "2024-12-01"},
+        "airpods": {"discount_percent": 25, "valid_until": "2024-12-01"},
+    }
+    
+    BULK_DISCOUNT_TIERS = [
+        {"min_qty": 1, "discount_percent": 0},
+        {"min_qty": 10, "discount_percent": 5},
+        {"min_qty": 50, "discount_percent": 10},
+        {"min_qty": 100, "discount_percent": 15}
+    ]
     
     def __init__(self):
+        """Initialize with verification enabled."""
         self.client = QWEDLocal(
             provider="openai",
             model="gpt-4o-mini",
-            use_cache=True  # Improve performance for similar calculations
+            use_cache=True
         )
-        self.pricing_errors = 0
-        self.total_calculations = 0
+        self.pricing_log = []
     
-    def calculate_final_price(
+    def calculate_customer_price(
         self,
+        product_name: str,
+        product_id: str,
         base_price: float,
-        discount_percent: float = 0.0,
-        tax_rate: float = 0.0,
         quantity: int = 1,
+        tax_rate: float = 8.5,
         shipping: float = 0.0
     ) -> Dict:
         """
-        Calculate final customer price with verification.
+        Calculate final price with verified discount validation.
         
-        Formula: final = (base * quantity * (1 - discount/100) + shipping) * (1 + tax/100)
+        CRITICAL: Discount must match database. No hallucinated promotions allowed!
         
         Args:
-            base_price: Product base price
-            discount_percent: Discount percentage (0-100)
-            tax_rate: Tax rate percentage
+            product_name: Display name
+            product_id: Product ID for promo lookup
+            base_price: Base price before discounts
             quantity: Number of items
+            tax_rate: Tax percentage
             shipping: Shipping cost
             
         Returns:
-            Dict with breakdown and verification status
+            Dict with verified pricing breakdown
+            
+        Raises:
+            PricingError: If discount cannot be verified
         """
-        self.total_calculations += 1
+        logger.info(f"🛍️  Pricing request for: {product_name}")
+        logger.info(f"   Base: ${base_price}, Qty: {quantity}")
         
+        # Step 1: Get valid discount from database
+        promo = self.VALID_PROMOTIONS.get(product_id, {})
+        valid_discount = promo.get('discount_percent', 0)
+        
+        logger.info(f"📊 Database lookup: {valid_discount}% discount")
+        
+        # Step 2: Verify the math calculation
         query = f"""
-        Calculate final price:
+        Calculate final e-commerce price:
         - Base price: ${base_price}
         - Quantity: {quantity}
-        - Discount: {discount_percent}%
-        - Shipping: ${shipping}
+        - Discount: {valid_discount}%
         - Tax rate: {tax_rate}%
+        - Shipping: ${shipping}
         
-        Formula: ((base * quantity * (1 - discount/100)) + shipping) * (1 + tax/100)
+        Formula: 
+        subtotal = base * quantity
+        after_discount = subtotal * (1 - discount/100)
+        after_tax = (after_discount + shipping) * (1 + tax/100)
+        
+        Return final price.
         """
         
         try:
             result = self.client.verify_math(query)
             
             if not result.verified:
-                logger.error(f"❌ Price verification failed: {result.error}")
-                self.pricing_errors += 1
-                
-                # Fallback: Conservative manual calculation
-                subtotal = base_price * quantity
-                after_discount = subtotal * (1 - discount_percent / 100)
-                with_shipping = after_discount + shipping
-                final = with_shipping * (1 + tax_rate / 100)
-                
-                logger.warning(f"Using fallback calculation: ${final:.2f}")
-                
-                return {
-                    "final_price": round(final, 2),
-                    "verified": False,
-                    "confidence": 0.0,
-                    "breakdown": self._calculate_breakdown(
-                        base_price, quantity, discount_percent, shipping, tax_rate, final
-                    ),
-                    "warning": "Unverified calculation - manual review recommended"
-                }
+                logger.error(f"❌ Price calculation verification failed: {result.error}")
+                raise PricingError(
+                    f"Cannot verify pricing math. Error: {result.error}. "
+                    "Manual calculation required."
+                )
             
-            # Verified calculation
             final_price = round(result.value, 2)
             
-            logger.info(f"✅ Verified price: ${final_price}")
+            # Step 3: Generate breakdown
+            subtotal = base_price * quantity
+            discount_amount = subtotal * (valid_discount / 100)
+            after_discount = subtotal - discount_amount
+            tax_amount = (after_discount + shipping) * (tax_rate / 100)
+            
+            logger.info(f"✅ VERIFIED: ${final_price}")
+            logger.info(f"   Discount applied: {valid_discount}% (from database)")
+            logger.info(f"   Saved customer: ${discount_amount:.2f}")
+            
+            pricing_record = {
+                "timestamp": datetime.now().isoformat(),
+                "product": product_name,
+                "product_id": product_id,
+                "base_price": base_price,
+                "quantity": quantity,
+                "discount_percent": valid_discount,
+                "discount_source": "database_verified",
+                "final_price": final_price,
+                "verified": True
+            }
+            
+            self.pricing_log.append(pricing_record)
             
             return {
+                "product_name": product_name,
+                "base_price": base_price,
+                "quantity": quantity,
+                "subtotal": round(subtotal, 2),
+                "discount_percent": valid_discount,
+                "discount_amount": round(discount_amount, 2),
+                "after_discount": round(after_discount, 2),
+                "shipping": shipping,
+                "tax_rate": tax_rate,
+                "tax_amount": round(tax_amount, 2),
                 "final_price": final_price,
                 "verified": True,
                 "confidence": 100.0,
-                "breakdown": self._calculate_breakdown(
-                    base_price, quantity, discount_percent, shipping, tax_rate, final_price
-                ),
-                "method": result.evidence.get('method', 'symbolic')
+                "discount_source": "✅ Database-verified promotion"
             }
             
+        except PricingError:
+            raise
         except Exception as e:
-            logger.error(f"Pricing calculation error: {e}")
-            self.pricing_errors += 1
-            raise PricingError(f"Cannot calculate price: {e}")
+            logger.error(f"Unexpected pricing error: {e}")
+            raise PricingError(f"Pricing calculation failed: {e}")
     
-    def _calculate_breakdown(
-        self,
-        base: float,
-        qty: int,
-        discount: float,
-        shipping: float,
-        tax: float,
-        final: float
-    ) -> Dict:
-        """Generate itemized price breakdown."""
-        subtotal = base * qty
-        discount_amount = subtotal * (discount / 100)
-        after_discount = subtotal - discount_amount
-        tax_amount = (after_discount + shipping) * (tax / 100)
-        
-        return {
-            "subtotal": round(subtotal, 2),
-            "discount_amount": round(discount_amount, 2),
-            "after_discount": round(after_discount, 2),
-            "shipping": round(shipping, 2),
-            "tax_amount": round(tax_amount, 2),
-            "final_price": round(final, 2)
-        }
-    
-    def validate_bulk_discount_tier(
-        self,
-        quantity: int,
-        tiers: List[Dict]
-    ) -> Dict:
+    def validate_bulk_discount(self, quantity: int) -> Dict:
         """
-        Verify bulk discount logic.
+        Verify bulk discount tier is correctly applied.
         
-        Args:
-            quantity: Number of items
-            tiers: List of {min_qty, discount_percent}
-            
-        Returns:
-            Applied discount with verification
+        Uses deterministic logic to ensure right tier for quantity.
         """
         # Find applicable tier
         applicable_tier = None
-        for tier in sorted(tiers, key=lambda x: x['min_qty'], reverse=True):
+        for tier in sorted(self.BULK_DISCOUNT_TIERS, key=lambda x: x['min_qty'], reverse=True):
             if quantity >= tier['min_qty']:
                 applicable_tier = tier
                 break
         
         if not applicable_tier:
-            return {"discount_percent": 0.0, "verified": True, "reason": "No tier applies"}
+            return {"discount_percent": 0, "verified": True, "reason": "No tier"}
         
-        # Verify logic with Z3-style verification
+        # Verify with logic engine
         query = f"""
-        Verify discount tier logic:
-        - Quantity: {quantity}
-        - Tiers: {tiers}
-        - Applied: {applicable_tier['discount_percent']}% (min qty: {applicable_tier['min_qty']})
+        Verify bulk discount logic:
+        Quantity: {quantity}
+        Tiers: {self.BULK_DISCOUNT_TIERS}
+        Applied tier: {applicable_tier['discount_percent']}% at {applicable_tier['min_qty']}+ units
         
-        Is this the correct tier?
+        Is this correct?
         """
         
         result = self.client.verify_logic(query)
@@ -186,81 +249,118 @@ class EcommercePricingEngine:
             "discount_percent": applicable_tier['discount_percent'],
             "tier_min_qty": applicable_tier['min_qty'],
             "verified": result.verified,
-            "logic_method": result.evidence.get('method', 'symbolic')
-        }
-    
-    def get_pricing_stats(self) -> Dict:
-        """Get pricing engine statistics."""
-        return {
-            "total_calculations": self.total_calculations,
-            "pricing_errors": self.pricing_errors,
-            "accuracy_rate": ((self.total_calculations - self.pricing_errors) / 
-                            self.total_calculations * 100) if self.total_calculations > 0 else 100.0
+            "quantity": quantity
         }
 
 
-# Example Usage
+# ============================================================================
+# THE DEMONSTRATION
+# ============================================================================
+
 if __name__ == "__main__":
-    engine = EcommercePricingEngine()
+    print("=" * 70)
+    print("BLACK FRIDAY DISASTER: The Hallucinated 90% Off")
+    print("=" * 70)
     
-    print("=" * 60)
-    print("E-commerce Pricing Engine Demo")
-    print("=" * 60)
+    product = "iPhone 15 Pro"
+    base_price = 999.00
     
-    # Example 1: Simple product
-    print("\n🛒 Example 1: Single Product")
-    result = engine.calculate_final_price(
-        base_price=29.99,
-        discount_percent=10,
-        tax_rate=8.5,
-        quantity=2,
-        shipping=5.99
-    )
+    print(f"\n📱 Product: {product}")
+    print(f"💰 Base Price: ${base_price}")
+    print(f"🎯 Real Black Friday Deal: 15% off (in database)")
+    print(f"⏰ Time: Black Friday Morning, 6:00 AM")
     
-    print(f"Base price: $29.99 × 2")
-    print(f"Discount: 10%")
-    print(f"Shipping: $5.99")
-    print(f"Tax: 8.5%")
-    print(f"\nBreakdown:")
-    for key, value in result['breakdown'].items():
-        print(f"  {key.replace('_', ' ').title()}: ${value}")
-    print(f"\nVerified: {'✅' if result['verified'] else '❌'}")
+    # ========================================================================
+    # PATH 1: UNSAFE (What could go wrong)
+    # ========================================================================
+    print("\n" + "=" * 70)
+    print("⚠️  PATH 1: WITHOUT VERIFICATION (DISASTER)")
+    print("=" * 70)
     
-    # Example 2: Bulk discount
-    print("\n📦 Example 2: Bulk Discount Tiers")
+    unsafe_result = unsafe_pricing_bot(product, base_price)
     
-    tiers = [
-        {"min_qty": 1, "discount_percent": 0},
-        {"min_qty": 10, "discount_percent": 5},
-        {"min_qty": 50, "discount_percent": 10},
-        {"min_qty": 100, "discount_percent": 15}
-    ]
+    print(f"\n💀 RESULTS:")
+    print(f"   Customer asked: 'What's the Black Friday price?'")
+    print(f"   LLM hallucinated: {unsafe_result['hallucinated_discount']}% off")
+    print(f"   Told customer: ${unsafe_result['advertised_price']:.2f}")
+    print(f"   Actual promo: {unsafe_result['real_discount']}% off")
+    print(f\"   Should have said: ${base_price * 0.85:.2f}")
+    print(f"   ")
+    print(f"   📊 BUSINESS IMPACT:")
+    print(f"   Loss per sale: ${unsafe_result['revenue_loss_per_sale']:.2f}")
+    print(f"   If 500 customers: ${unsafe_result['revenue_loss_per_sale'] * 500:,.2f} LOST!")
+    print(f"   ")
+    print(f"   🏢 COMPANY OUTCOME: Revenue crisis, CEO fired")
     
-    for qty in [5, 15, 75]:
-        tier_result = engine.validate_bulk_discount_tier(qty, tiers)
-        print(f"\nQuantity: {qty}")
-        print(f"  Discount: {tier_result['discount_percent']}%")
-        print(f"  Tier Min: {tier_result.get('tier_min_qty', 0)}")
-        print(f"  Verified: {'✅' if tier_result['verified'] else '❌'}")
+    # ========================================================================
+    # PATH 2: SAFE (With QWED verification)
+    # ========================================================================
+    print("\n" + "=" * 70)
+    print("✅ PATH 2: WITH QWED VERIFICATION (SAFE)")
+    print("=" * 70)
     
-    # Example 3: High-value order
-    print("\n💰 Example 3: Enterprise Order")
-    result = engine.calculate_final_price(
-        base_price=299.99,
-        discount_percent=15,
-        tax_rate=8.5,
-        quantity=100,
-        shipping=0.0  # Free shipping
-    )
+    engine = VerifiedPricingEngine()
     
-    print(f"Enterprise: 100 units @ $299.99")
-    print(f"Discount: 15%")
-    print(f"Final: ${result['final_price']:.2f}")
-    print(f"Verified: ✅")
+    try:
+        safe_result = engine.calculate_customer_price(
+            product_name=product,
+            product_id="iphone_15",
+            base_price=base_price,
+            quantity=1,
+            tax_rate=8.5,
+            shipping=0.0  # Free shipping promo
+        )
+        
+        print(f"\n✅ SAFE RESULTS:")
+        print(f"   Base Price: ${safe_result['base_price']}")
+        print(f"   Discount: {safe_result['discount_percent']}% ({safe_result['discount_source']})")
+        print(f"   Subtotal after discount: ${safe_result['after_discount']}")
+        print(f"   Tax ({safe_result['tax_rate']}%): ${safe_result['tax_amount']}")
+        print(f"   Final Price: ${safe_result['final_price']}")
+        print(f"   Verified: {'✅' if safe_result['verified'] else '❌'}")
+        print(f"   ")
+        print(f"   🏢 COMPANY OUTCOME: Revenue protected, customers trust pricing")
+        
+    except PricingError as e:
+        print(f"\n❌ PRICING ERROR (caught before reaching customer):")
+        print(f"   {e}")
+        print(f"   ↳ Escalated to pricing team for manual review")
     
-    # Statistics
-    print("\n📈 Pricing Engine Statistics")
-    stats = engine.get_pricing_stats()
-    print(f"Total Calculations: {stats['total_calculations']}")
-    print(f"Pricing Errors: {stats['pricing_errors']}")
-    print(f"Accuracy Rate: {stats['accuracy_rate']:.1f}%")
+    # ========================================================================
+    # BONUS: Bulk Discount Verification
+    # ========================================================================
+    print("\n" + "=" * 70)
+    print("📦 BONUS: Bulk Discount Tier Verification")
+    print("=" * 70)
+    
+    for qty in [5, 15, 75, 150]:
+        bulk_result = engine.validate_bulk_discount(qty)
+        print(f"\nQuantity: {qty} units")
+        print(f"  Applied Discount: {bulk_result['discount_percent']}%")
+        print(f"  Tier Minimum: {bulk_result['tier_min_qty']} units")
+        print(f"  Verified: {'✅' if bulk_result['verified'] else '❌'}")
+    
+    # ========================================================================
+    # THE LESSON
+    # ========================================================================
+    print("\n" + "=" * 70)
+    print("📚 THE LESSON")
+    print("=" * 70)
+    print("""
+    Without Verification:
+    - LLM invents promotions ("90% off sounds Black Friday-ish!")
+    - Customers get wrong prices
+    - Company loses massive revenue
+    - Legal issues (advertised price vs actual)
+    
+    With QWED:
+    - All discounts verified against database
+    - Math calculations proven correct
+    - Revenue protected
+    - Customer trust maintained
+    - Legal compliance ensured
+    
+    💡 In e-commerce: Every hallucinated discount costs real money.
+    """)
+    
+    print("=" * 70)
