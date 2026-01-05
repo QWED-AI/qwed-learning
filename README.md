@@ -62,7 +62,22 @@
 
 ---
 
+
 ## 📚 Course Curriculum
+
+### [**Module 0: Prerequisites**](module-0-prerequisites/) _(20 mins)_ ✅
+
+**NEW!** For developers new to LLMs
+
+**You'll learn:**
+- What is an LLM and how does it work?
+- What are hallucinations and why do they happen?
+- Probabilistic vs. Deterministic systems
+- Why verification is critical
+
+**[→ Start Module 0](module-0-prerequisites/README.md)**
+
+---
 
 ### [**Module 1: The Crisis**](module-1-the-crisis/) _(30 mins)_ ✅
 
