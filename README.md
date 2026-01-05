@@ -49,7 +49,7 @@ Why LLMs can't be trusted + Real $12,889 bug
 
 ---
 
-### **Module 2: The Theory** _(45 mins)_ 🚧 Coming Soon
+### [**Module 2: The Theory**](module-2-neurosymbolic-theory/) _(45 mins)_ ✅
 
 Determinism, symbolic reasoning, neurosymbolic approach
 
@@ -58,9 +58,11 @@ Determinism, symbolic reasoning, neurosymbolic approach
 - How symbolic engines provide proofs
 - The "Untrusted Translator" pattern
 
+**[→ Start Module 2](module-2-neurosymbolic-theory/README.md)**
+
 ---
 
-### **Module 3: Hands-On** _(60 mins)_ 🚧 Coming Soon
+### [**Module 3: Hands-On**](module-3-hands-on/) _(60 mins)_ ✅
 
 Build your first verifier with QWED + Production examples
 
@@ -69,9 +71,11 @@ Build your first verifier with QWED + Production examples
 - Build production guardrails
 - Error handling patterns
 
+**[→ Start Module 3](module-3-hands-on/README.md)**
+
 ---
 
-### **Module 4: Advanced** _(45 mins)_ 🚧 Coming Soon
+### [**Module 4: Advanced**](module-4-advanced/) _(45 mins)_ ✅
 
 PII masking, framework integration, enterprise patterns
 
@@ -79,6 +83,8 @@ PII masking, framework integration, enterprise patterns
 - HIPAA/GDPR-compliant verification
 - LangChain & LlamaIndex integration
 - Multi-engine strategies
+
+**[→ Start Module 4](module-4-advanced/README.md)**
 
 ---
 
