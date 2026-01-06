@@ -1,6 +1,6 @@
 # Master AI Verification: Stop LLM Hallucinations in Production
 
-🎓 **Free, open-source course on neurosymbolic AI verification**
+🎓 **Free, open-source course on deterministic AI verification**
 
 [![CC0 License](https://img.shields.io/badge/license-CC0--1.0-green)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/QWED-AI/qwed-learning?style=social)](https://github.com/QWED-AI/qwed-learning/stargazers)
@@ -94,7 +94,7 @@ Why LLMs can't be trusted + Real $12,889 bug
 
 ### [**Module 2: The Theory**](module-2-neurosymbolic-theory/) _(45 mins)_ ✅
 
-Determinism, symbolic reasoning, neurosymbolic approach
+Determinism, symbolic reasoning, verification approach
 
 **You'll learn:**
 - What makes systems deterministic
@@ -111,7 +111,7 @@ Build your first verifier with QWED + Production examples
 
 **You'll learn:**
 - Install & use QWED
-- Build production guardrails
+- Build verification workflows
 - Error handling patterns
 
 **[→ Start Module 3](module-3-hands-on/README.md)**
@@ -155,8 +155,8 @@ cd module-1-the-crisis
 
 By the end, you'll have:
 - ✅ Working verification system
-- ✅ Guardrails for production
-- ✅ Deep understanding of neurosymbolic AI
+- ✅ Production verification workflows
+- ✅ Understanding of formal verification methods
 - ✅ LangChain/LlamaIndex integration examples
 
 ---
