@@ -56,7 +56,36 @@ compound = 100000 * (1 + 0.05)**10      # $162,889.46
 - Destroyed trust
 - Business shut down
 
-> **Key Insight:** LLMs are confident liars. High confidence ≠ correctness.
+> **The Pattern:** LLMs predict plausible text, not provably correct text.
+
+**What QWED Can and Cannot Do:**
+
+```mermaid
+graph TB
+    A[LLM Output] --> B{Is it<br/>Verifiable?}
+    
+    B -->|Yes - Deterministic| C[QWED can verify]
+    B -->|No - Subjective| D[QWED cannot help]
+    
+    C --> E[Math<br/>✅ SymPy proves it]
+    C --> F[Logic<br/>✅ Z3 proves it]
+    C --> G[Code Syntax<br/>✅ AST validates it]
+    
+    D --> H[Creative Writing<br/>❌ No proof possible]
+    D --> I[Opinions<br/>❌ Subjective]
+    D --> J[Casual Chat<br/>❌ No rules to verify]
+    
+    style C fill:#4caf50
+    style D fill:#ff9800
+    style E fill:#4caf50
+    style F fill:#4caf50
+    style G fill:#4caf50
+    style H fill:#607d8b
+    style I fill:#607d8b
+    style J fill:#607d8b
+```
+
+**Key takeaway:** QWED catches 100% of errors in verifiable domains. For creative tasks, you still need human judgment.
 
 ---
 

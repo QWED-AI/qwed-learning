@@ -14,6 +14,40 @@ By the end of this module, you will:
 
 ---
 
+## Production Verification Pipeline
+
+**How verification works in practice:**
+
+```mermaid
+graph TB
+    A[User Request] --> B[LLM Response]
+    B --> C[QWED Client]
+    
+    C --> D{Domain?}
+    
+    D -->|Math| E[client.verify_math<br/>→ SymPy Engine]
+    D -->|Logic| F[client.verify_logic<br/>→ Z3 Solver]
+    D -->|Code| G[client.verify_code<br/>→ AST Parser]
+    
+    E --> H{Result}
+    F --> H
+    G --> H
+    
+    H -->|✅ Verified| I[Return to User<br/>With Proof]
+    H -->|❌ Error| J[Log & Alert<br/>Fallback Value]
+    
+    style C fill:#2196f3
+    style E fill:#4caf50
+    style F fill:#9c27b0
+    style G fill:#f44336
+    style I fill:#4caf50
+    style J fill:#ff9800
+```
+
+**This is what you'll build in this module!**
+
+---
+
 ## ⚙️ 3.1 Installation & Setup
 
 ### Prerequisites

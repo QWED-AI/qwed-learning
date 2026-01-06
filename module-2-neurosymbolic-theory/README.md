@@ -207,6 +207,36 @@ result = sp.diff(x**2, x)
 - LLM might hallucinate result → QWED proves correct answer
 - Even if LLM is 100% wrong, symbolic engine gives truth
 
+**The QWED approach:** LLM = Translator, Symbolic Engine = Judge
+
+**Untrusted Translator Workflow:**
+
+```mermaid
+graph LR
+    A[User Query<br/>English] --> B[LLM Translator<br/>⚠️ Untrusted]
+    B --> C[Domain-Specific Language<br/>SymPy/Z3/AST]
+    C --> D[Symbolic Engine<br/>✅ Trusted Judge]
+    D --> E{Proof<br/>Valid?}
+    E -->|Yes| F[Return Verified Result<br/>100% Confidence]
+    E -->|No| G[Return Error<br/>+ Explanation]
+    
+    style B fill:#ffc107
+    style D fill:#2196f3
+    style F fill:#4caf50
+    style G fill:#f44336
+    
+    classDef dashed stroke-dasharray: 5 5
+    class B dashed
+```
+
+**Key Point:** We never trust the LLM to compute. We only trust it to translate human language into something a deterministic engine can verify.
+
+**Example:**
+- User: "What's 15% of $200?"
+- LLM translates to: `0.15 * 200`
+- SymPy computes: `30`
+- Result: $30 ✅ (proven by SymPy, not guessed by LLM)
+
 ---
 
 ## 🔍 2.4 Verification vs Detection
