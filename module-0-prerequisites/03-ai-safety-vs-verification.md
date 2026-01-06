@@ -173,7 +173,9 @@ graph TB
 
 ---
 
-## Common Misconceptions (Reddit Edition)
+## Common Misconceptions
+
+**Addressing frequent developer questions**
 
 ### ❌ "Verification is just fancy testing"
 **Truth:** Testing checks samples. Verification proves all cases mathematically.
@@ -192,11 +194,7 @@ graph TB
 
 ---
 
-## Common Misconceptions About Verification
-
-**Addressing frequent developer questions**
-
-### Misconception 1: "TF-IDF is old/basic, therefore bad"
+### Misconception: "TF-IDF is old/basic, therefore bad"
 
 **The Reality:** TF-IDF is deterministic and perfect for evidence retrieval.
 
@@ -212,7 +210,7 @@ graph TB
 
 ---
 
-### Misconception 2: "Knowledge Graphs solve hallucinations"
+### Misconception: "Knowledge Graphs solve hallucinations"
 
 **The Reality:** Knowledge graphs also hallucinate.
 
@@ -224,7 +222,7 @@ graph TB
 
 ---
 
-### Misconception 3: "No novelty = Not valuable"
+### Misconception: "No novelty = Not valuable"
 
 **The Reality:** QWED never claimed novelty - it's production engineering.
 
@@ -237,7 +235,7 @@ graph TB
 
 ---
 
-### Misconception 4: "Just another RAG tool"
+### Misconception: "Just another RAG tool"
 
 **The Difference:**
 
@@ -261,7 +259,6 @@ graph TB
 **The Bottom Line:** QWED is reliable, deterministic, and production-ready. And we can prove it.
 
 ---
-
 
 ## Real-World Example: Healthcare Chatbot
 
@@ -312,4 +309,3 @@ graph TB
 ---
 
 **Questions?** Ask in [GitHub Discussions](https://github.com/QWED-AI/qwed-learning/discussions)
-
