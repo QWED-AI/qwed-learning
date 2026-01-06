@@ -8,7 +8,7 @@
 By the end of this module, you will:
 - Install and configure QWED
 - Run your first verification
-- Build a production guardrail
+- Build a Production Verification
 - Handle errors gracefully
 - Optimize for performance
 
@@ -152,9 +152,9 @@ print(result.value)  # $16,288.95
 
 ---
 
-## 🛡️ 3.3 Production Guardrail
+## 🛡️ 3.3 Production Verification
 
-### Notebook: [02-production-guardrail.ipynb](notebooks/02-production-guardrail.ipynb)
+### Notebook: [02-production-patterns.ipynb](notebooks/02-production-patterns.ipynb)
 
 **Time:** 20 minutes
 
