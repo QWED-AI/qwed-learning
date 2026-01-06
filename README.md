@@ -11,14 +11,12 @@
 
 **The Problem:**
 - Developers ship LLM-powered apps without verification
-- 73% accuracy on finance tasks (Claude Opus 4.5 benchmark)
-- $12,889 production bug from unverified calculation
 - No one teaches verification fundamentals
 
 **After This Course:**
 - ✅ Understand determinism vs probabilistic systems
-- ✅ Implement neurosymbolic verification in production
-- ✅ Use formal methods to catch hallucinations
+- ✅ Implement formal verification in production
+- ✅ Use mathematical proofs to catch hallucinations
 - ✅ Ship provably correct AI outputs
 
 ---
