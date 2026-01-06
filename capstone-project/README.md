@@ -19,6 +19,37 @@ Create a **verified RAG chatbot** that students can add to their portfolio and s
 
 ---
 
+## Architecture Overview
+
+**How RAG + QWED works together:**
+
+```mermaid
+graph TB
+    A[User Query] --> B[Vector DB<br/>Similarity Search]
+    B --> C[Retrieved Context<br/>Top-K relevant docs]
+    C --> D[LLM<br/>Generate Answer]
+    D --> E[QWED Verifier]
+    
+    E --> F{Contains<br/>Verifiable Claims?}
+    
+    F -->|Yes| G[Extract Claims<br/>Math/Logic/Facts]
+    F -->|No| H[Return Answer<br/>With Confidence]
+    
+    G --> I[Verify Each Claim<br/>SymPy/Z3/NLI]
+    I --> J{All Verified?}
+    
+    J -->|✅ Yes| K[Return Verified Answer<br/>100% Confidence]
+    J -->|❌ No| L[Flag Unverified Claims<br/>+ Explanation]
+    
+    style B fill:#9c27b0
+    style D fill:#ffc107
+    style E fill:#2196f3
+    style K fill:#4caf50
+    style L fill:#ff9800
+```
+
+---
+
 ## 📋 Requirements Checklist
 
 Your chatbot must have:

@@ -190,6 +190,43 @@ How many years did it last?
 """)
 ```
 
+### Integration Architecture
+
+LangChain provides powerful agentic workflows. QWED adds verification to ensure agent decisions are correct.
+
+**How QWED works as a LangChain Tool:**
+
+```mermaid
+graph TB
+    A[User Request] --> B[LangChain Agent]
+    B --> C{Needs<br/>Verification?}
+    
+    C -->|Yes| D[Call QWED Tool]
+    C -->|No| E[Standard LangChain Tools<br/>Web Search, Calculator, etc.]
+    
+    D --> F[QWEDTool.run<br/>Query]
+    F --> G[QWED Verifier<br/>SymPy/Z3/AST]
+    G --> H{Verified?}
+    
+    H -->|✅ Yes| I[Return Proof<br/>to Agent]
+    H -->|❌ No| J[Return Error<br/>to Agent]
+    
+    E --> K[Tool Results]
+    I --> K
+    J --> K
+    
+    K --> L[Agent Decision<br/>With Verified Facts]
+    L --> M[Final Response]
+    
+    style B fill:#2196f3
+    style D fill:#4caf50
+    style G fill:#9c27b0
+    style M fill:#4caf50
+```
+
+### Implementation
+
+**Step 1: Install**
 ### With Chains
 
 ```python
