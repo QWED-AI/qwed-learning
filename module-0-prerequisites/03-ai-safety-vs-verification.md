@@ -228,7 +228,7 @@ graph TB
 
 **What QWED Is:**
 - ✅ Engineering tool (combines SymPy, Z3, AST)
-- ✅ Production-ready (7M+ PyPI downloads)
+- ✅ Production-ready (JOSS published)
 - ✅ JOSS published (peer-reviewed)
 
 **Value: Reliability > Novelty**
