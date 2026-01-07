@@ -68,6 +68,30 @@ Formal methods in practice often use **structured rules, constraints, and determ
 Intern (LLM) writes answer → Auditor (QWED) checks proof → User gets verified result
 ```
 
+**Visual Model:**
+
+```mermaid
+graph TB
+    subgraph "LLM - The Smart Intern"
+        A[User Question] --> B[Generate Answer<br/>Fast & Creative]
+        B --> C[Draft Response<br/>⚠️ May be wrong]
+    end
+    
+    subgraph "QWED - The Strict Auditor"
+        C --> D[Extract Claims]
+        D --> E[Mathematical Proof<br/>SymPy/Z3]
+        E --> F{Proven<br/>Correct?}
+    end
+    
+    F -->|✅ Yes| G[Approved Answer<br/>100% Confidence]
+    F -->|❌ No| H[Rejected<br/>+ Error Details]
+    
+    style B fill:#ffc107
+    style E fill:#2196f3
+    style G fill:#4caf50
+    style H fill:#f44336
+```
+
 ---
 
 ## What QWED Is (And Isn't)

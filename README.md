@@ -39,6 +39,25 @@
 
 **In Production:** Artist writes the report → Accountant verifies the numbers ✅
 
+**Visual Workflow:**
+
+```mermaid
+graph LR
+    A[User Query<br/>Natural Language] --> B[LLM Artist<br/>Creative & Fast]
+    B --> C[Draft Answer<br/>May contain errors]
+    C --> D[QWED Accountant<br/>Strict & Deterministic]
+    D --> E{Mathematically<br/>Proven?}
+    E -->|✅ Yes| F[Verified Output<br/>100% Confidence]
+    E -->|❌ No| G[Error Report<br/>+ Explanation]
+    
+    style B fill:#ffc107
+    style D fill:#4caf50
+    style F fill:#4caf50
+    style G fill:#f44336
+```
+
+**Key Insight:** LLM generates, QWED verifies. Never trust creativity with correctness!
+
 ---
 
 ## Who Is This For?
