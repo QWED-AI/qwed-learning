@@ -9,7 +9,7 @@
 
 <div align="center">
 
-[![Watch the Course Intro](https://img.youtube.com/vi/DjFOviJMMWY/hqdefault.jpg)](https://youtu.be/DjFOviJMMWY)
+[![Watch the Course Intro](./assets/video-thumbnail.png)](https://youtu.be/DjFOviJMMWY)
 
 **▶️ [Watch Course Introduction](https://youtu.be/DjFOviJMMWY)** *(5 min)*
 
