@@ -7,6 +7,14 @@
 
 *Part of [QWED-AI](https://github.com/QWED-AI/qwed-verification) • Member of [NVIDIA Inception Program](https://www.nvidia.com/en-us/startups/)*
 
+<div align="center">
+
+[![Watch the Course Intro](https://img.youtube.com/vi/DjFOviJMMWY/maxresdefault.jpg)](https://youtu.be/DjFOviJMMWY)
+
+**▶️ [Watch Course Introduction](https://youtu.be/DjFOviJMMWY)** *(5 min)*
+
+</div>
+
 ---
 
 ## Why This Course?
