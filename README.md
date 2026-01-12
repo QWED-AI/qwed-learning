@@ -5,6 +5,8 @@
 [![CC0 License](https://img.shields.io/badge/license-CC0--1.0-green)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/QWED-AI/qwed-learning?style=social)](https://github.com/QWED-AI/qwed-learning/stargazers)
 
+*Part of [QWED-AI](https://github.com/QWED-AI/qwed-verification) • Member of [NVIDIA Inception Program](https://www.nvidia.com/en-us/startups/)*
+
 ---
 
 ## Why This Course?
