@@ -160,7 +160,7 @@ PII masking, framework integration, enterprise patterns
 
 ---
 
-### [**Module X: The Physics of Failure**](module-x-physics-of-failure/) _(45 mins)_ 🆕
+### [**Module 1.5: The Physics of Failure**](module-1.5-physics-of-failure/) _(45 mins)_ ✅
 
 Deep dive: Why LLMs hallucinate and why verification is NECESSARY
 
@@ -171,11 +171,11 @@ Deep dive: Why LLMs hallucinate and why verification is NECESSARY
 - Real failures: Air Canada, Package Hallucination, $12K Bug
 - Why QWED is physics, not preference
 
-**[→ Start Module X](module-x-physics-of-failure/README.md)**
+**[→ Start Module 1.5](module-1.5-physics-of-failure/README.md)**
 
 ---
 
-### [**Module 5: The Verification Landscape**](module-5-verification-landscape/) _(45 mins)_ 🆕
+### [**Module 5: The Verification Landscape**](module-5-verification-landscape/) _(45 mins)_ ✅
 
 QWED vs The Alternatives: Guardrails, LLM-as-Judge, Beaver
 
@@ -190,7 +190,7 @@ QWED vs The Alternatives: Guardrails, LLM-as-Judge, Beaver
 
 ---
 
-### [**Module 6: Domain-Specific Verification**](module-6-domains/) _(60 mins)_ 🆕
+### [**Module 6: Domain-Specific Verification**](module-6-domains/) _(60 mins)_ ✅
 
 Verification Across Industries: Finance, Healthcare, Legal, Code, Data
 

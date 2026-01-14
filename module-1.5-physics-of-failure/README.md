@@ -1,4 +1,4 @@
-# Module X: The Physics of Failure
+# Module 1.5: The Physics of Failure
 
 > **"LLMs are a blurry JPEG of the web."** — Ted Chiang
 

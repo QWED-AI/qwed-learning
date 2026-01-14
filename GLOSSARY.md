@@ -108,6 +108,79 @@ LLM: "Neil Armstrong, in 1969." ❌ (Sounds plausible, completely false)
 
 ---
 
+### Solver-as-a-Judge (QWED)
+
+**Scary Definition:** Using mathematical solvers instead of LLMs to verify correctness.
+
+**Simple Meaning:** Math proving answers, not AI guessing.
+
+**Real-World Analogy:**
+- **Calculator vs Human** - Calculator always right for math
+- **Breathalyzer vs Asking** - Scientific test, not opinion
+- **GPS vs Directions** - Satellite precision, not memory
+
+**Why It Works:** SymPy and Z3 are deterministic - they compute, not guess.
+
+---
+
+### Lossy Compression (The JPEG Analogy)
+
+**Scary Definition:** Data compression that discards some information.
+
+**Simple Meaning:** Making things smaller by throwing away details.
+
+**Real-World Analogy:**
+- **JPEG vs RAW Photo** - JPEG loses pixels, RAW keeps them all
+- **Summary vs Book** - Summary loses details
+- **LLM vs Internet** - LLM "compresses" knowledge, loses precision
+
+**Why It Matters:** LLMs are lossy compression of the web - they lose facts!
+
+---
+
+### Probabilistic Gap
+
+**Scary Definition:** The asymptotic limit of accuracy in gradient-based learning.
+
+**Simple Meaning:** AI can never reach 100% accuracy, no matter how much training.
+
+**Real-World Analogy:**
+- **Diminishing Returns** - More training = smaller gains
+- **Asymptote** - Gets closer but never touches the line
+- **"Good Enough"** - 99.9% sounds great until it's 1 error per 1000
+
+**Key Insight:** You can't fine-tune your way to determinism!
+
+---
+
+### Beaver (Probabilistic Verifier)
+
+**Scary Definition:** Framework for computing probability bounds on LLM constraint satisfaction.
+
+**Simple Meaning:** Tool that tells you "how likely" output is correct.
+
+**Comparison with QWED:**
+- **Beaver:** "87% likely correct"
+- **QWED:** "100% proven correct"
+
+**When to Use:** Risk assessment, not production verification.
+
+---
+
+### Guardrails
+
+**Scary Definition:** Rule-based filters that block unsafe AI outputs.
+
+**Simple Meaning:** Safety filters that say "STOP" or "GO".
+
+**Comparison with QWED:**
+- **Guardrails:** Safety (is it harmful?)
+- **QWED:** Correctness (is it right?)
+
+**Analogy:** Guardrails = Seatbelts, QWED = Crash Test.
+
+---
+
 ## Verification Concepts
 
 ### Symbolic Reasoning
