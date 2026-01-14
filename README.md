@@ -121,6 +121,21 @@ Why LLMs can't be trusted + Real $12,889 bug
 
 ---
 
+### [**Module 1.5: The Physics of Failure**](module-1.5-physics-of-failure/) _(45 mins)_ ✅
+
+Deep dive: Why LLMs hallucinate and why verification is NECESSARY
+
+**You'll learn:**
+- LLMs as "Lossy Compression" (The JPEG Analogy)
+- Why RAG provides context, not reasoning
+- The Probabilistic Gap (can't fine-tune to 100%)
+- Real failures: Air Canada, Package Hallucination, $12K Bug
+- Why QWED is physics, not preference
+
+**[→ Start Module 1.5](module-1.5-physics-of-failure/README.md)**
+
+---
+
 ### [**Module 2: The Theory**](module-2-neurosymbolic-theory/) _(45 mins)_ ✅
 
 Determinism, symbolic reasoning, verification approach
@@ -157,21 +172,6 @@ PII masking, framework integration, enterprise patterns
 - Multi-engine strategies
 
 **[→ Start Module 4](module-4-advanced/README.md)**
-
----
-
-### [**Module 1.5: The Physics of Failure**](module-1.5-physics-of-failure/) _(45 mins)_ ✅
-
-Deep dive: Why LLMs hallucinate and why verification is NECESSARY
-
-**You'll learn:**
-- LLMs as "Lossy Compression" (The JPEG Analogy)
-- Why RAG provides context, not reasoning
-- The Probabilistic Gap (can't fine-tune to 100%)
-- Real failures: Air Canada, Package Hallucination, $12K Bug
-- Why QWED is physics, not preference
-
-**[→ Start Module 1.5](module-1.5-physics-of-failure/README.md)**
 
 ---
 
