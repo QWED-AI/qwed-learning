@@ -175,6 +175,21 @@ Deep dive: Why LLMs hallucinate and why verification is NECESSARY
 
 ---
 
+### [**Module 5: The Verification Landscape**](module-5-verification-landscape/) _(45 mins)_ 🆕
+
+QWED vs The Alternatives: Guardrails, LLM-as-Judge, Beaver
+
+**You'll learn:**
+- The verification "zoo" - different approaches
+- Why LLM-as-Judge fails (5 critical biases)
+- Beaver's probabilistic bounds vs QWED's proofs
+- QWED's "Solver-as-a-Judge" philosophy
+- Decision flowchart: when to use what
+
+**[→ Start Module 5](module-5-verification-landscape/README.md)**
+
+---
+
 ## 🚀 How to Take This Course
 
 ```bash
