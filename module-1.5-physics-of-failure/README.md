@@ -353,6 +353,51 @@ print(f"Verified: {result.computed_value}")  # 1224
 
 ---
 
+## 📋 Self-Assessment Quiz
+
+Test your understanding with these questions!
+
+<details>
+<summary><strong>Q1: Why can't you train an LLM to 100% accuracy?</strong></summary>
+
+**Answer:** Because gradient descent has asymptotic limits. The loss function approaches but never reaches zero due to:
+- Lossy compression (finite parameters, infinite facts)
+- Ambiguity in language
+- Distribution shift after training cutoff
+- Noise in training data
+
+</details>
+
+<details>
+<summary><strong>Q2: What does the JPEG analogy teach us about LLMs?</strong></summary>
+
+**Answer:** LLMs are like heavily compressed JPEGs—they "fill in gaps" by interpolating (guessing) based on patterns. Just as JPEG creates visual artifacts, LLMs create knowledge artifacts (hallucinations) where precision is lost.
+
+</details>
+
+<details>
+<summary><strong>Q3: Why doesn't RAG solve hallucinations?</strong></summary>
+
+**Answer:** RAG provides CONTEXT, not REASONING. The LLM still has to reason over the retrieved content, and that reasoning engine is still probabilistic. "Giving a drunk person a library book doesn't make them a sober scholar."
+
+</details>
+
+<details>
+<summary><strong>Q4: What is the "Reversal Curse"?</strong></summary>
+
+**Answer:** LLMs can know that A→B but NOT that B→A. For example, trained on "Tom Cruise's mother is Mary Lee Pfeiffer", the LLM knows who Tom's mother is but doesn't know Mary's son is Tom. This shows LLMs don't understand relationships—they memorize patterns.
+
+</details>
+
+<details>
+<summary><strong>Q5: Why is QWED described as "physics, not preference"?</strong></summary>
+
+**Answer:** Because the limitations of LLMs are fundamental to how they work (compression, pattern matching). You can't patch physics with prompt engineering. External verification using deterministic solvers is the only solution—it's a physical necessity.
+
+</details>
+
+---
+
 ## 📝 Summary
 
 | Concept | Key Point |

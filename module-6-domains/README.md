@@ -554,6 +554,45 @@ def verify_deadlines(contract_text):
 
 ---
 
+## 📋 Self-Assessment Quiz
+
+<details>
+<summary><strong>Q1: What's the difference between simple and compound interest?</strong></summary>
+
+**Answer:** Simple interest: calculated only on principal (P × r × t). Compound interest: calculated on principal + accumulated interest (P × (1+r)^t). The $12,889 bug happened because the LLM used simple instead of compound.
+
+</details>
+
+<details>
+<summary><strong>Q2: How does QWED handle HIPAA compliance?</strong></summary>
+
+**Answer:** Through PII masking (auto-masks patient data before LLM sees it), local processing (QWEDLocal + Ollama keeps data on-premise), and audit trails (verification logs for compliance).
+
+</details>
+
+<details>
+<summary><strong>Q3: What percentage of LLM-suggested packages don't exist?</strong></summary>
+
+**Answer:** 22%! This is a security risk because attackers can register these non-existent package names and add malware.
+
+</details>
+
+<details>
+<summary><strong>Q4: Name 3 things the Code Security Engine detects.</strong></summary>
+
+**Answer:** Any 3 of: SQL injection, command injection, unsafe deserialization (pickle), exposed secrets/API keys, XSS vulnerabilities, weak cryptography.
+
+</details>
+
+<details>
+<summary><strong>Q5: Which QWED engine would you use to verify a legal contract has no contradictory clauses?</strong></summary>
+
+**Answer:** The Logic Engine (Z3). It can formally prove whether clauses are logically consistent or find contradictions.
+
+</details>
+
+---
+
 ## 📝 Summary
 
 | Domain | Key Verification | QWED Engine |

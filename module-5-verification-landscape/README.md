@@ -400,6 +400,45 @@ print(result.computed_value) # 157.625 (close enough with rounding)
 
 ---
 
+## 📋 Self-Assessment Quiz
+
+<details>
+<summary><strong>Q1: What are the 4 categories in the verification "zoo"?</strong></summary>
+
+**Answer:** Guardrails (safety filters), LLM-as-Judge (quality scoring), Beaver (probability bounds), and QWED (mathematical proof).
+
+</details>
+
+<details>
+<summary><strong>Q2: Name 3 biases that make LLM-as-Judge unreliable.</strong></summary>
+
+**Answer:** Any 3 of: Position bias, verbosity bias, self-enhancement bias, recursive hallucination, non-determinism.
+
+</details>
+
+<details>
+<summary><strong>Q3: What's the difference between Beaver and QWED?</strong></summary>
+
+**Answer:** Beaver tells you PROBABILITY ("87% likely correct") while QWED tells you TRUTH ("100% proven correct"). Beaver verifies format/structure, QWED verifies content/correctness.
+
+</details>
+
+<details>
+<summary><strong>Q4: What is "Solver-as-a-Judge"?</strong></summary>
+
+**Answer:** QWED's philosophy of using mathematical solvers (SymPy, Z3, AST) instead of LLMs to verify correctness. Math proves answers, AI doesn't judge.
+
+</details>
+
+<details>
+<summary><strong>Q5: When should you use LLM-as-Judge vs QWED?</strong></summary>
+
+**Answer:** Use LLM-as-Judge for subjective quality ratings (essay quality, creativity). Use QWED for objective correctness (math, logic, code, facts, SQL).
+
+</details>
+
+---
+
 ## 📝 Summary
 
 | Tool | Method | Output | Trustworthiness |
@@ -415,7 +454,7 @@ print(result.computed_value) # 157.625 (close enough with rounding)
 
 Now that you understand the landscape, learn how to apply verification to specific industries:
 
-**[→ Module 6: Domain-Specific Verification](../module-6-domains/README.md)** *(Coming Soon)*
+**[→ Module 6: Domain-Specific Verification](../module-6-domains/README.md)**
 
 ---
 
