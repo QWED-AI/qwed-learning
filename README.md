@@ -160,6 +160,21 @@ PII masking, framework integration, enterprise patterns
 
 ---
 
+### [**Module X: The Physics of Failure**](module-x-physics-of-failure/) _(45 mins)_ 🆕
+
+Deep dive: Why LLMs hallucinate and why verification is NECESSARY
+
+**You'll learn:**
+- LLMs as "Lossy Compression" (The JPEG Analogy)
+- Why RAG provides context, not reasoning
+- The Probabilistic Gap (can't fine-tune to 100%)
+- Real failures: Air Canada, Package Hallucination, $12K Bug
+- Why QWED is physics, not preference
+
+**[→ Start Module X](module-x-physics-of-failure/README.md)**
+
+---
+
 ## 🚀 How to Take This Course
 
 ```bash
