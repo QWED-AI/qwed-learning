@@ -190,6 +190,21 @@ QWED vs The Alternatives: Guardrails, LLM-as-Judge, Beaver
 
 ---
 
+### [**Module 6: Domain-Specific Verification**](module-6-domains/) _(60 mins)_ 🆕
+
+Verification Across Industries: Finance, Healthcare, Legal, Code, Data
+
+**You'll learn:**
+- Financial calculations (NPV, IRR, compound interest)
+- HIPAA-compliant verification with PII masking
+- Legal contract and deadline verification
+- Secure code review automation
+- Statistical claim verification
+
+**[→ Start Module 6](module-6-domains/README.md)**
+
+---
+
 ## 🚀 How to Take This Course
 
 ```bash
