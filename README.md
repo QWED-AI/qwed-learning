@@ -205,6 +205,20 @@ Verification Across Industries: Finance, Healthcare, Legal, Code, Data
 
 ---
 
+### [**Module 7: Context Engineering & Its Limits**](module-7-context-engineering/) _(60 mins)_ ✅
+
+**NEW!** Context Engineering: Promise, Paradox, and the Bypass
+
+**You'll learn:**
+- What is Context Engineering (RAG, Tools, Memory)
+- The Layered Compression Paradox (JPEG analogy)
+- 5 failure modes including Contextual Sycophancy
+- Why neurosymbolic bypass is architecturally superior
+
+**[→ Start Module 7](module-7-context-engineering/README.md)**
+
+---
+
 ## 🚀 How to Take This Course
 
 ```bash
@@ -261,6 +275,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 - **QWED Main Repo:** [qwed-verification](https://github.com/QWED-AI/qwed-verification)
 - **Documentation:** [docs.qwedai.com](https://docs.qwedai.com)
 - **Technical Paper:** [Neurosymbolic Verification](https://github.com/QWED-AI/qwed-verification/tree/main/research)
+- **Research Paper:** [The Layered Compression Paradox](https://doi.org/10.5281/zenodo.18256295) - Dass, R. (2026)
 
 ---
 
