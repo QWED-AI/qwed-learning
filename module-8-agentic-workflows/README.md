@@ -2,7 +2,7 @@
 
 > **"The agent doesn't make the decision. It executes verified decisions."**
 
-⏱️ **Duration:** 60 minutes  
+⏱️ **Duration:** 70 minutes  
 📊 **Level:** Advanced  
 🎯 **Goal:** Learn to verify AI agent tool calls in real-time streaming workflows.
 
@@ -15,6 +15,7 @@ After this module, you'll understand:
 - ✅ The Interceptor Pattern for tool call verification
 - ✅ Commerce safety with UCP (Universal Commerce Protocol)
 - ✅ Using TypeScript SDK for Node.js agents
+- ✅ Dynamic Discovery with `ucp.json`
 - ✅ Streaming verification in agentic loops
 
 ---
@@ -26,6 +27,7 @@ After this module, you'll understand:
 | 8.1 | [The Interceptor Pattern](#81-the-interceptor-pattern) | 20 min |
 | 8.2 | [Commerce Safety (UCP)](#82-commerce-safety-ucp) | 20 min |
 | 8.3 | [The Polyglot Agent](#83-the-polyglot-agent-typescript) | 20 min |
+| 8.4 | [The Discovery Pattern](#84-the-discovery-pattern) | 10 min |
 
 ---
 
@@ -281,6 +283,57 @@ const { text, toolCalls } = await generateText({
 ### 🎯 Key Takeaway
 
 > **"Your agent's language doesn't matter. Verification is universal."**
+
+---
+
+## 8.4: The Discovery Pattern
+
+### The Problem
+
+Enterprise agents don't live in isolation. They need to be **discovered** by other systems (e.g., a payment gateway finding a verification agent).
+
+Hardcoding URLs (e.g., `http://localhost:8000/verify`) is brittle.
+
+### The Solution: Capability Declaration (`ucp.json`)
+
+UCP uses a manifest file to declare what an agent can do. This allows platforms to automatically route requests to the right verifier.
+
+### Implementation
+
+Create a `ucp.json` in your project root:
+
+```json
+{
+  "id": "my-banking-agent",
+  "name": "Verified Banking Assistant",
+  "version": "1.0.0",
+  "capabilities": {
+    "checkout": {
+      "type": "transaction",
+      "supported_currencies": ["USD", "EUR"]
+    },
+    "verification": {
+      "provider": "qwed-finance",
+      "level": "deterministic",
+      "endpoints": {
+        "verify_transfer": "/api/verify/transfer",
+        "verify_sanctions": "/api/verify/sanctions"
+      }
+    }
+  }
+}
+```
+
+### How It Works
+
+1. **Deploy:** You push your agent with this file.
+2. **Register:** The UCP Registry reads `ucp.json`.
+3. **Discover:** A commerce platform asks: *"Who can verify a USD transfer?"*
+4. **Route:** The Registry points to your agent's `/api/verify/transfer` endpoint.
+
+### 🎯 Key Takeaway
+
+> **"Don't just build an agent. Build a discoverable service."**
 
 ---
 
