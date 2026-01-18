@@ -247,6 +247,19 @@ Verification Across Industries: Finance, Healthcare, Legal, Code, Data
 
 ---
 
+### [**Module 10: Advanced Patterns**](module-10-advanced-patterns/) _(45 mins)_ ✅
+
+**NEW!** RAG Verification & Multi-Model Consensus
+
+**You'll learn:**
+- The Fact Guard (NLI Verification for RAG)
+- The Consensus Engine (Council of Verifiers)
+- Why Consensus is Deterministic (The "Switch" Analogy)
+
+**[→ Start Module 10](module-10-advanced-patterns/README.md)**
+
+---
+
 ## 🚀 How to Take This Course
 
 ```bash

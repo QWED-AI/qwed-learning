@@ -105,6 +105,31 @@ def verified_transfer(amount, to_account, expected_amount):
         raise VerificationError("Amount mismatch detected")
 ```
 
+### 🔍 Enterprise Pattern: Visual Debugging
+
+When building intercepts, it's hard to see what's happening. Use "Debug Mode" to print the raw Open Responses stream:
+
+```python
+# Debugging the Agentic Loop
+async for event in client.responses.create_stream(...):
+    # Print the raw atomic event
+    print(f"DEBUG: [{event.type}] {event.data}")
+    
+    if event.type == "tool_call":
+        # ... verify ...
+```
+
+**What you'll see:**
+```json
+DEBUG: [response.content.delta] {"delta": "I will"}
+DEBUG: [response.content.delta] {"delta": " transfer"}
+DEBUG: [response.tool_call] {"name": "transfer", "arguments": "{\"amount\": 5000}"}
+```
+
+This confirms that QWED sees the **atomic tool call** before it executes.
+
+---
+
 ### 🎯 Key Takeaway
 
 > **"Intercept before you execute. Log everything."**
