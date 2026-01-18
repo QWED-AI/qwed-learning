@@ -228,12 +228,12 @@ We prove correctness by execution, not by checking text.
 
 ```mermaid
 graph LR
-    A[User Query] --> B[LLM Translator<br/>⚠️ Untrusted]
-    B -->|Generates DSL| C[Intermediate Code<br/>(SymPy/Z3)]
-    C -->|Executes| D[Symbolic Engine<br/>✅ Trusted]
-    D --> E{Result}
-    E -->|Success| F[Verified Proof]
-    E -->|Error| G[Syntax/Logic Error]
+    A["User Query"] --> B["LLM Translator<br/>⚠️ Untrusted"]
+    B -->|Generates DSL| C["Intermediate Code<br/>(SymPy/Z3)"]
+    C -->|Executes| D["Symbolic Engine<br/>✅ Trusted"]
+    D --> E{"Result"}
+    E -->|Success| F["Verified Proof"]
+    E -->|Error| G["Syntax/Logic Error"]
 
     style B fill:#ffc107
     style D fill:#2196f3
