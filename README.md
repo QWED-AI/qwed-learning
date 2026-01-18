@@ -219,6 +219,34 @@ Verification Across Industries: Finance, Healthcare, Legal, Code, Data
 
 ---
 
+### [**Module 8: Agentic Integration**](module-8-agentic-workflows/) _(60 mins)_ ✅
+
+**NEW!** Verify AI Agent Tool Calls in Real-Time
+
+**You'll learn:**
+- The Interceptor Pattern for tool call verification
+- Commerce safety with UCP (Universal Commerce Protocol)
+- Using TypeScript SDK for Node.js agents
+- Streaming verification in agentic loops
+
+**[→ Start Module 8](module-8-agentic-workflows/README.md)**
+
+---
+
+### [**Module 9: DevSecOps**](module-9-devsecops/) _(45 mins)_ ✅
+
+**NEW!** Automate AI Verification in CI/CD
+
+**You'll learn:**
+- Shift-Left Verification philosophy
+- Setting up QWED GitHub Action
+- Blocking PRs that fail verification
+- Generating verification artifacts
+
+**[→ Start Module 9](module-9-devsecops/README.md)**
+
+---
+
 ## 🚀 How to Take This Course
 
 ```bash
@@ -241,11 +269,13 @@ cd module-1-the-crisis
 
 ## 🎯 What You'll Build
 
+## 🎯 What You'll Build
+
 By the end, you'll have:
-- ✅ Working verification system
-- ✅ Production verification workflows
-- ✅ Understanding of formal verification methods
-- ✅ LangChain/LlamaIndex integration examples
+- ✅ **Verified Banking Agent** that refuses to steal
+- ✅ **CI/CD Pipeline** that blocks hallucinating PRs
+- ✅ **Cryptographic Audit Trail** for compliance
+- ✅ **Production Workflows** using UCP and Interceptors
 
 ---
 

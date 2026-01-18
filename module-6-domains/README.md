@@ -2,7 +2,7 @@
 
 > **"In God we trust. All others must bring data—verified data."** — W. Edwards Deming (adapted)
 
-⏱️ **Duration:** 60 minutes  
+⏱️ **Duration:** 75 minutes  
 📊 **Level:** Advanced  
 🎯 **Goal:** Apply QWED verification to real industry use cases.
 
@@ -29,6 +29,7 @@ After this module, you'll understand:
 | 6.3 | [Legal & Contracts](#63-legal--contracts) | 10 min |
 | 6.4 | [Code & Security](#64-code--security) | 13 min |
 | 6.5 | [Data & Analytics](#65-data--analytics) | 10 min |
+| 6.6 | [The Compliance Loop](#66-the-compliance-loop-enterprise) | 15 min |
 
 ---
 
@@ -521,6 +522,131 @@ Calculation: Q4_2023 = Q4_2024 / 1.23
 ### 🎯 Key Takeaway
 
 > **"Data drives decisions. Verified data drives good decisions."**
+
+---
+
+## 6.6: The Compliance Loop (Enterprise)
+
+### The Stakes
+
+Getting the **right answer** isn't enough in regulated industries. You need **proof**.
+
+| Requirement | Why |
+|-------------|-----|
+| Audit Trail | Regulators need logs |
+| Cryptographic Proof | Tamper-evident records |
+| Timestamped Receipts | Legal evidence |
+| Input Hashing | Prove what was verified |
+
+### The Pattern: From Correctness to Proof
+
+```
+Traditional: LLM → Verify → ✅/❌ → Done
+Enterprise:  LLM → Verify → Receipt → Audit Log → Archive
+```
+
+### QWED Solution: Verification Receipts
+
+```python
+from qwed_finance import ComplianceGuard
+from qwed_finance.models import ReceiptGenerator, VerificationEngine
+
+# Step 1: Verify the transaction
+guard = ComplianceGuard()
+result = guard.verify_aml_flag(
+    amount=15000,        # Over $10k threshold
+    country_code="US",
+    llm_flagged=True     # LLM correctly flagged it
+)
+
+# Step 2: Generate cryptographic receipt
+receipt = ReceiptGenerator.create(
+    engine=VerificationEngine.COMPLIANCE,
+    input_data={"amount": 15000, "country": "US"},
+    result=result,
+    metadata={"transaction_id": "TXN-12345"}
+)
+
+print(f"✅ Compliant: {result.compliant}")
+print(f"📝 Receipt ID: {receipt.receipt_id}")
+print(f"🔐 Input Hash: {receipt.input_hash}")
+print(f"⏰ Timestamp: {receipt.timestamp}")
+```
+
+**Output:**
+```
+✅ Compliant: True
+📝 Receipt ID: RCP-a1b2c3d4
+🔐 Input Hash: sha256:8f14e...
+⏰ Timestamp: 2026-01-19T01:30:00Z
+```
+
+### Enterprise Pattern: Cross-Guard
+
+When a single check isn't enough, use Cross-Guard for **multi-layer verification**:
+
+```python
+from qwed_finance import CrossGuard
+
+guard = CrossGuard()
+
+# Verify SWIFT message + Sanctions check in one call
+result = guard.verify_swift_with_sanctions(
+    swift_message="""
+    :20:TXN-2024-001
+    :32A:240119USD15000,00
+    :50K:/1234567890
+    JOHN DOE
+    :59:/9876543210
+    ACME CORP
+    :71A:SHA
+    """,
+    sanctions_list=["ACME CORP", "BAD ACTOR INC"]  # OFAC list
+)
+
+print(f"SWIFT Valid: {result.swift_result.valid}")
+print(f"Sanctions Clear: {result.sanctions_result.cleared}")
+print(f"Overall: {'🚫 BLOCKED' if not result.cleared else '✅ APPROVED'}")
+```
+
+**Output:**
+```
+SWIFT Valid: True
+Sanctions Clear: False  # ACME CORP is on sanctions list!
+Overall: 🚫 BLOCKED
+```
+
+### Audit Log Integration
+
+Every verification generates an audit entry:
+
+```python
+from qwed_finance.models import AuditLog
+
+# View audit trail
+log = AuditLog()
+
+for entry in log.get_entries(transaction_id="TXN-12345"):
+    print(f"{entry.timestamp} | {entry.action} | {entry.status}")
+
+# Output:
+# 2026-01-19T01:30:00Z | AML_CHECK | PASSED
+# 2026-01-19T01:30:01Z | SANCTIONS_SCREEN | BLOCKED
+# 2026-01-19T01:30:01Z | RECEIPT_GENERATED | ARCHIVED
+```
+
+### 🏦 Banking Compliance Checklist
+
+| Regulation | QWED Feature |
+|------------|--------------|
+| BSA/FinCEN CTR ($10k+) | ComplianceGuard.verify_aml_flag() |
+| OFAC Sanctions | CrossGuard.verify_swift_with_sanctions() |
+| SOX Audit Trail | ReceiptGenerator + AuditLog |
+| ISO 20022 Messages | MessageGuard.verify_iso20022_xml() |
+
+### 🎯 Key Takeaway
+
+> **"In banking, correctness without proof is useless. QWED provides both."**
 
 ---
 
