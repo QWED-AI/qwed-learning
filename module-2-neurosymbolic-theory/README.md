@@ -158,84 +158,91 @@ detector.visit(tree)  # Output: DANGER: Found eval()
 
 ## 🎭 2.3 The "Untrusted Translator" Pattern
 
-### The Core Concept
+### The Core Concept: LLM as a Compiler
 
 **Don't trust LLMs to compute. Trust them only to translate.**
 
-### Architecture
+Think of the LLM not as a "Genius Mathematician" (it isn't), but as a **Compiler** that translates Human Language into Verified Code.
+
+### The "Translation" Workflow
+
+The LLM's only job is **Semantic Translation**.
+
+*   **Wrong Way (LLM as Computer):**
+    *   User: "Is 10 greater than 5?"
+    *   LLM: "Yes." (Untrusted boolean - might hallucinate)
+*   **Right Way (Untrusted Translator):**
+    *   User: "Is 10 greater than 5?"
+    *   LLM: `x > 5` (Translation to Z3 DSL)
+    *   **QWED:** Executes `x > 5`. (Trusted verification)
+
+### Architecture: The "Sandwich" Pattern
 
 ```
 User Question (Natural Language)
     ↓
 ┌────────────────────────┐
-│ LLM (Translator)       │  ← Probabilistic, might make mistakes
+│ LLM (Translator)       │  ← Probabilistic Layer
 │ "Translate to DSL"     │
 └───────────┬────────────┘
-            │ Unverified DSL
+            │ Unverified DSL (Code)
             ▼
 ┌────────────────────────┐
-│ Symbolic Engine (Judge)│  ← Deterministic, mathematical proof
+│ Symbolic Engine (Judge)│  ← Deterministic Layer
 │ SymPy / Z3 / AST       │
 └───────────┬────────────┘
-            │
-       ┌────┴────┐
-       ▼         ▼
-    ❌ Error   ✅ Proof
+            │ Verified Result
+            ▼
+          Answer
 ```
 
-### Example Flow
+### Detailed Flow: From Text to Proof
 
 **User Query:** "What is the derivative of x²?"
 
-**Step 1: LLM Translation**
+#### ❌ The Guardrails Way (Probabilistic)
+1. LLM answers "2x".
+2. Guardrail LLM asks "Is 2x correct?"
+3. Guardrail says "Yes" (but it's just guessing).
+
+#### ✅ The QWED Way (Deterministic)
+**Step 1: LLM Translation (The Compiler)**
+The LLM converts natural language into a Domain Specific Language (DSL):
 ```python
-# LLM converts natural language → SymPy DSL
-llm_output = "sp.diff(x**2, x)"
+# LLM Output (Code, not Answer)
+sp.diff(x**2, x)
 ```
 
-**Step 2: Symbolic Verification**
+**Step 2: Symbolic Execution (The CPU)**
+QWED executes the code in a deterministic sandbox:
 ```python
-# SymPy executes (deterministically)
-import sympy as sp
-x = sp.Symbol('x')
-result = sp.diff(x**2, x)
-# Result: 2*x (PROVEN mathematically)
+# SymPy executes this. 
+# It doesn't "guess" the derivative; it computes it.
+result = 2*x 
 ```
 
-**Step 3: QWED's Role**
-- LLM might translate to wrong DSL → QWED catches it
-- LLM might hallucinate result → QWED proves correct answer
-- Even if LLM is 100% wrong, symbolic engine gives truth
+**Step 3: Verification**
+We prove correctness by execution, not by checking text.
 
-**The QWED approach:** LLM = Translator, Symbolic Engine = Judge
-
-**Untrusted Translator Workflow:**
+### Workflow Diagram
 
 ```mermaid
 graph LR
-    A[User Query<br/>English] --> B[LLM Translator<br/>⚠️ Untrusted]
-    B --> C[Domain-Specific Language<br/>SymPy/Z3/AST]
-    C --> D[Symbolic Engine<br/>✅ Trusted Judge]
-    D --> E{Proof<br/>Valid?}
-    E -->|Yes| F[Return Verified Result<br/>100% Confidence]
-    E -->|No| G[Return Error<br/>+ Explanation]
-    
+    A[User Query] --> B[LLM Translator<br/>⚠️ Untrusted]
+    B -->|Generates DSL| C[Intermediate Code<br/>(SymPy/Z3)]
+    C -->|Executes| D[Symbolic Engine<br/>✅ Trusted]
+    D --> E{Result}
+    E -->|Success| F[Verified Proof]
+    E -->|Error| G[Syntax/Logic Error]
+
     style B fill:#ffc107
     style D fill:#2196f3
     style F fill:#4caf50
     style G fill:#f44336
-    
-    classDef dashed stroke-dasharray: 5 5
-    class B dashed
 ```
 
-**Key Point:** We never trust the LLM to compute. We only trust it to translate human language into something a deterministic engine can verify.
-
-**Example:**
-- User: "What's 15% of $200?"
-- LLM translates to: `0.15 * 200`
-- SymPy computes: `30`
-- Result: $30 ✅ (proven by SymPy, not guessed by LLM)
+**Key Insight:**
+> If the LLM generates the wrong DSL (e.g., `diff(x**3)`), the user gets the wrong answer for the *right reason* (bad translation), not a hallucination (bad logic). This is debuggable. Hallucinations are not.
 
 ---
 
