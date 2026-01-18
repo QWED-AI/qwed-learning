@@ -282,7 +282,9 @@ cd module-1-the-crisis
 
 ## 🎯 What You'll Build
 
-## 🎯 What You'll Build
+By the end of this course, you will be able to add this seal of trust to your own AI agents:
+
+[![Verified by QWED](https://img.shields.io/badge/Verified_by-QWED-00C853?style=flat&logo=checkmarx)](https://github.com/QWED-AI/qwed-verification#%EF%B8%8F-what-does-verified-by-qwed-mean)
 
 By the end, you'll have:
 - ✅ **Verified Banking Agent** that refuses to steal
