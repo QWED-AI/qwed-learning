@@ -104,67 +104,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - uses: QWED-AI/qwed-finance@v1.1.4
+      - uses: QWED-AI/qwed-finance@v1.2.0
         with:
-          test-script: tests/verify_agent.py
+          file-path: 'tests/transactions.csv'
 ```
 
-#### Step 2: Create Test Script
+#### Step 2: Create Test CSV
 
-Create `tests/verify_agent.py`:
+Create `tests/transactions.csv` (Simulate a "Bad Data" trap):
 
-```python
-"""
-QWED Verification Tests for Your Banking Agent
-"""
-from qwed_finance import ComplianceGuard, FinanceVerifier
+```csv
+transaction_id,amount,customer_region,llm_flagged
+TXN_001,500,US,False
+TXN_002,15000,US,False
+```
 
-def test_aml_compliance():
-    """Test that AML flagging works correctly"""
-    guard = ComplianceGuard()
-    
-    # Test: Large transaction should be flagged
-    result = guard.verify_aml_flag(
-        amount=15000,  # Over $10k threshold
-        country_code="US",
-        llm_flagged=True
-    )
-    
-    assert result.compliant, "AML verification failed!"
-    print("✅ AML compliance test passed")
+> ⚠️ **Note:** `TXN_002` is $15,000 but NOT flagged. This is an AML violation.
 
-def test_npv_calculation():
-    """Test that NPV calculations are correct"""
-    verifier = FinanceVerifier()
-    
-    result = verifier.verify_npv(
-        cashflows=[-1000, 300, 400, 400, 300],
-        rate=0.10,
-        llm_output="$180.42"
-    )
-    
-    assert result.verified, f"NPV mismatch: expected {result.computed_value}"
-    print("✅ NPV calculation test passed")
+#### Step 3: Push and Watch
 
-def test_loan_calculation():
-    """Test monthly payment calculation"""
-    verifier = FinanceVerifier()
-    
-    result = verifier.verify_monthly_payment(
-        principal=500000,
-        annual_rate=0.065,
-        months=360,
-        llm_output="$3160.34"
-    )
-    
-    assert result.verified, f"Loan calculation wrong: {result.computed_value}"
-    print("✅ Loan calculation test passed")
-
-if __name__ == "__main__":
-    test_aml_compliance()
-    test_npv_calculation()
-    test_loan_calculation()
-    print("\n🎉 All verification tests passed!")
+```bash
+git add .
+git commit -m "Add QWED verification to CI/CD"
+git push
 ```
 
 #### Step 3: Push and Watch
@@ -179,7 +141,7 @@ git push
 
 | Input | Description | Default |
 |-------|-------------|---------|
-| `test-script` | Path to your Python test script | Required |
+| `file-path` | Path to your CSV/JSON file to verify | Required |
 | `python-version` | Python version to use | `3.11` |
 | `fail-on-violation` | Fail workflow if verification fails | `true` |
 
@@ -227,81 +189,53 @@ Once your workflow passes, add the badge to your README:
 
 ---
 
-## 🧪 Hands-On Lab: Watch a PR Fail Then Pass
+## 🧪 Hands-On Lab: The "Senior Citizen" Trap
+
+**Scenario:** Ideally, Senior Citizens get +0.50% interest. Claude 4.5 hallucinates the math.
 
 ### Lab Goal
+Blocking a "Bad PR" that would underpay customers.
 
-1. Create a "bad" test that fails
-2. See the PR blocked
-3. Fix the test
-4. See the PR pass
+### Step 1: Create The Trap
 
-### Step 1: Create Bad Test
+Create a file `rates_update.csv`:
 
-```python
-# tests/verify_agent.py
-from qwed_finance import ComplianceGuard
-
-def test_bad_aml():
-    """This test should FAIL - wrong value"""
-    guard = ComplianceGuard()
-    
-    # ❌ BUG: llm_flagged=False but amount is over $10k!
-    result = guard.verify_aml_flag(
-        amount=15000,
-        country_code="US",
-        llm_flagged=False  # Wrong! Should be True
-    )
-    
-    assert result.compliant, "AML check failed"
-
-if __name__ == "__main__":
-    test_bad_aml()
+```csv
+product,base_rate,senior_margin,claude_output
+Senior_FD,7.00,0.50,7.035
 ```
+
+> **The Error:** Claude did `7.00 * 1.005 = 7.035`.
+> **The Truth:** `7.00 + 0.50 = 7.50`.
 
 ### Step 2: Push and Watch Fail
 
-```bash
-git add .
-git commit -m "Add AML test (has bug)"
-git push
-```
+Your pipeline will fail because QWED calculates `7.50` but sees `7.035`.
 
 **Result in Actions tab:**
 ```
-❌ Error: AML check failed
-    Amount $15,000 requires flagging but LLM said False
+❌ Verification Failed: Interest Rate Mismatch
+   Expected: 7.50%
+   Found: 7.035%
+   Error: Multiplicative logic applied to additive spread.
 ```
 
 ### Step 3: Fix the Bug
 
-```python
-def test_bad_aml():
-    guard = ComplianceGuard()
-    
-    # ✅ FIXED: Correctly flagged
-    result = guard.verify_aml_flag(
-        amount=15000,
-        country_code="US",
-        llm_flagged=True  # Fixed!
-    )
-    
-    assert result.compliant, "AML check failed"
+Update `rates_update.csv`:
+
+```diff
+- Senior_FD,7.00,0.50,7.035
++ Senior_FD,7.00,0.50,7.50
 ```
 
 ### Step 4: Push and Watch Pass
-
-```bash
-git add .
-git commit -m "Fix AML test - correct flagging"
-git push
-```
 
 **Result:**
 ```
 ✅ QWED Finance Verification
    └── verify: Passed
-   └── Receipts: 1 generated
+   └── Audited 1 row(s). No hallucinations found.
    
 🟢 Ready to merge!
 ```
@@ -325,7 +259,7 @@ git push
 | Concept | Implementation |
 |---------|----------------|
 | **Shift-Left** | Catch errors in PRs, not production |
-| **GitHub Action** | `QWED-AI/qwed-finance@v1.1.4` |
+| **GitHub Action** | `QWED-AI/qwed-finance@v1.2.0` |
 | **Branch Protection** | Require "verify" status to merge |
 | **Artifacts** | Verification receipts uploaded |
 
