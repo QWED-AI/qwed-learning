@@ -1,342 +1,105 @@
-# Module 9: DevSecOps - CI/CD Verification
+# Module 9: DevSecOps & The CI/CD Gatekeeper 🛡️
 
-> **"Shift left. Catch hallucinations in the PR, not in production."**
-
-⏱️ **Duration:** 45 minutes  
-📊 **Level:** Advanced  
-🎯 **Goal:** Automate AI verification in your CI/CD pipeline using GitHub Actions.
+**"The Accountant stops the Artist from bankrupting the company."**
 
 ---
 
-## 🧠 What You'll Learn
+## 🎯 The Goal
 
-After this module, you'll understand:
+In this module, you will stop running verification manually. You will build a **CI/CD Gatekeeper** that automatically blocks any Pull Request (PR) containing hallucinated financial data.
 
-- ✅ Shift-Left Verification philosophy
-- ✅ Setting up QWED GitHub Action
-- ✅ Blocking PRs that fail verification
-- ✅ Generating verification artifacts
+You will use the official **[QWED Finance Guard Action](https://github.com/marketplace/actions/qwed-finance-guard)** which we released in `v1.2.0`.
 
 ---
 
-## 📚 Table of Contents
+## 📖 The Story: "The 0.50% Premium Error"
 
-| Lesson | Topic | Time |
-|--------|-------|------|
-| 9.1 | [Shift-Left Philosophy](#91-shift-left-verification) | 10 min |
-| 9.2 | [GitHub Action Setup](#92-github-action-setup) | 20 min |
-| 9.3 | [Branch Protection](#93-branch-protection) | 15 min |
+You are the Lead Engineer at **Hypothetical Bank**.
+Your Junior Developer (using Claude 4.5) just pushed a CSV file updating the interest rates for "Senior Citizen Fixed Deposits".
 
----
+**The Policy:** Senior Citizens get **0.50% extra** interest.
+**The Context:**
+*   Base Rate: 7.00%
+*   Expected Senior Rate: 7.50%
 
-## 9.1: Shift-Left Verification
+**The AI's Mistake:**
+Claude saw "0.50% premium" and calculated: `7.00 * 1.005 = 7.035%`.
+It failed to understand that "premium" in banking means **additive** (+0.50%), not multiplicative.
 
-### The Problem
-
-Most teams catch AI errors in production:
-
-```
-Developer → Code → Deploy → Production → 🔥 Error → Hotfix
-                                              ↑
-                                        Too late!
-```
-
-### The Solution: Shift Left
-
-Move verification earlier in the pipeline:
-
-```
-Developer → Code → PR → CI/CD Verification → ✅ Merge
-                              ↑
-                        Caught early!
-```
-
-### Why This Matters
-
-| When Caught | Cost to Fix |
-|-------------|-------------|
-| During coding | $1 |
-| In PR review | $10 |
-| In staging | $100 |
-| In production | $1,000+ |
-| After customer impact | $10,000+ |
-
-### The QWED Approach
-
-```mermaid
-graph LR
-    A[Developer Push] --> B[GitHub Action]
-    B --> C[QWED Verification]
-    C --> D{All Tests Pass?}
-    D -->|✅ Yes| E[Allow Merge]
-    D -->|❌ No| F[Block PR]
-    F --> G[Developer Fixes]
-    G --> A
-    
-    style C fill:#4caf50
-    style F fill:#f44336
-```
+If this code merges, your bank will underpay grandmothers by 0.465%. **This is a lawsuit waiting to happen.**
 
 ---
 
-## 9.2: GitHub Action Setup
+## 🛠️ The Lab: Build the Wall
 
-### The QWED Finance Action
+### Step 1: The Trap (Simulate the Error)
 
-QWED provides a ready-to-use GitHub Action for financial AI verification.
+Create a file named `rates_update.csv` in your repository:
 
-**Marketplace:** [QWED Finance Verify](https://github.com/marketplace/actions/qwed-finance-verify)
+```csv
+product_name,base_rate,senior_margin,claude_generated_final_rate
+Standard FD,7.00,0.00,7.00
+Senior FD,7.00,0.50,7.035
+```
 
-### Quick Setup
+> ⚠️ **Note:** `7.035` is WRONG. It should be `7.50`.
 
-#### Step 1: Create Workflow File
+### Step 2: The Gatekeeper (Deploy the Action)
 
-Create `.github/workflows/qwed-verify.yml`:
+Create a workflow file at `.github/workflows/financial_audit.yml`:
 
 ```yaml
-name: QWED Finance Verification
+name: Financial Compliance Audit
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
-  verify:
+  audit_numbers:
     runs-on: ubuntu-latest
+    name: 🛡️ QWED Accountant
     steps:
-      - uses: actions/checkout@v4
-      
-      - uses: QWED-AI/qwed-finance@v1.1.4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Finance Guard
+        uses: QWED-AI/qwed-finance@v1.2.0
         with:
-          test-script: tests/verify_agent.py
+          file-path: 'rates_update.csv'
 ```
 
-#### Step 2: Create Test Script
+### Step 3: The Block
 
-Create `tests/verify_agent.py`:
+Commit and push these files. Open a Pull Request.
 
-```python
-"""
-QWED Verification Tests for Your Banking Agent
-"""
-from qwed_finance import ComplianceGuard, FinanceVerifier
+**What happens?**
+1.  GitHub Actions triggers.
+2.  QWED downloads the Docker container.
+3.  It recalculates the math deterministically.
+4.  It finds the error: `Expected 7.50, Found 7.035`.
+5.  **THE PIPELINE FAILS ❌.**
 
-def test_aml_compliance():
-    """Test that AML flagging works correctly"""
-    guard = ComplianceGuard()
-    
-    # Test: Large transaction should be flagged
-    result = guard.verify_aml_flag(
-        amount=15000,  # Over $10k threshold
-        country_code="US",
-        llm_flagged=True
-    )
-    
-    assert result.compliant, "AML verification failed!"
-    print("✅ AML compliance test passed")
+GitHub will turn red. The "Merge" button will be blocked (if you have branch protection).
 
-def test_npv_calculation():
-    """Test that NPV calculations are correct"""
-    verifier = FinanceVerifier()
-    
-    result = verifier.verify_npv(
-        cashflows=[-1000, 300, 400, 400, 300],
-        rate=0.10,
-        llm_output="$180.42"
-    )
-    
-    assert result.verified, f"NPV mismatch: expected {result.computed_value}"
-    print("✅ NPV calculation test passed")
+### Step 4: The Fix
 
-def test_loan_calculation():
-    """Test monthly payment calculation"""
-    verifier = FinanceVerifier()
-    
-    result = verifier.verify_monthly_payment(
-        principal=500000,
-        annual_rate=0.065,
-        months=360,
-        llm_output="$3160.34"
-    )
-    
-    assert result.verified, f"Loan calculation wrong: {result.computed_value}"
-    print("✅ Loan calculation test passed")
+Update `rates_update.csv` with the correct value:
 
-if __name__ == "__main__":
-    test_aml_compliance()
-    test_npv_calculation()
-    test_loan_calculation()
-    print("\n🎉 All verification tests passed!")
+```diff
+- Senior FD,7.00,0.50,7.035
++ Senior FD,7.00,0.50,7.50
 ```
 
-#### Step 3: Push and Watch
-
-```bash
-git add .
-git commit -m "Add QWED verification to CI/CD"
-git push
-```
-
-### Action Inputs
-
-| Input | Description | Default |
-|-------|-------------|---------|
-| `test-script` | Path to your Python test script | Required |
-| `python-version` | Python version to use | `3.11` |
-| `fail-on-violation` | Fail workflow if verification fails | `true` |
-
-### Action Outputs
-
-| Output | Description |
-|--------|-------------|
-| `verified` | Whether all verifications passed |
-| `receipt-count` | Number of verification receipts generated |
-| `violations` | JSON array of violations found |
+Push the change.
+**Result:** The pipeline turns **Green ✅**.
 
 ---
 
-## 9.3: Branch Protection
+## 🧠 Why This Matters
 
-### Block Failing PRs
+This is **Shift-Left Verification**.
+Instead of finding errors in production (expensive), you find them in the Pull Request (cheap).
 
-Configure GitHub to require QWED verification before merge:
+**Homework:**
+Apply this to your own project. Never let an LLM merge code without an Accountant checking it first.
 
-1. Go to **Settings → Branches → Add Rule**
-2. Enter branch name pattern: `main`
-3. Enable **"Require status checks to pass before merging"**
-4. Select **"verify"** from the list
-5. Save changes
-
-### Result
-
-Now when a PR fails QWED verification:
-
-```
-❌ QWED Finance Verification
-   └── verify: Failed
-       └── Error: AML verification failed!
-       
-🚫 Merge blocked - Fix required
-```
-
-### Verified Badge
-
-Once your workflow passes, add the badge to your README:
-
-```markdown
-[![Verified by QWED](https://img.shields.io/badge/Verified_by-QWED-00C853?style=flat&logo=checkmarx)](https://github.com/QWED-AI/qwed-finance)
-```
-
----
-
-## 🧪 Hands-On Lab: Watch a PR Fail Then Pass
-
-### Lab Goal
-
-1. Create a "bad" test that fails
-2. See the PR blocked
-3. Fix the test
-4. See the PR pass
-
-### Step 1: Create Bad Test
-
-```python
-# tests/verify_agent.py
-from qwed_finance import ComplianceGuard
-
-def test_bad_aml():
-    """This test should FAIL - wrong value"""
-    guard = ComplianceGuard()
-    
-    # ❌ BUG: llm_flagged=False but amount is over $10k!
-    result = guard.verify_aml_flag(
-        amount=15000,
-        country_code="US",
-        llm_flagged=False  # Wrong! Should be True
-    )
-    
-    assert result.compliant, "AML check failed"
-
-if __name__ == "__main__":
-    test_bad_aml()
-```
-
-### Step 2: Push and Watch Fail
-
-```bash
-git add .
-git commit -m "Add AML test (has bug)"
-git push
-```
-
-**Result in Actions tab:**
-```
-❌ Error: AML check failed
-    Amount $15,000 requires flagging but LLM said False
-```
-
-### Step 3: Fix the Bug
-
-```python
-def test_bad_aml():
-    guard = ComplianceGuard()
-    
-    # ✅ FIXED: Correctly flagged
-    result = guard.verify_aml_flag(
-        amount=15000,
-        country_code="US",
-        llm_flagged=True  # Fixed!
-    )
-    
-    assert result.compliant, "AML check failed"
-```
-
-### Step 4: Push and Watch Pass
-
-```bash
-git add .
-git commit -m "Fix AML test - correct flagging"
-git push
-```
-
-**Result:**
-```
-✅ QWED Finance Verification
-   └── verify: Passed
-   └── Receipts: 1 generated
-   
-🟢 Ready to merge!
-```
-
----
-
-## 📋 DevSecOps Checklist
-
-| Item | Status |
-|------|--------|
-| Workflow file created | ☐ |
-| Test script written | ☐ |
-| Branch protection enabled | ☐ |
-| Badge added to README | ☐ |
-| Team trained on fixing failures | ☐ |
-
----
-
-## 📝 Summary
-
-| Concept | Implementation |
-|---------|----------------|
-| **Shift-Left** | Catch errors in PRs, not production |
-| **GitHub Action** | `QWED-AI/qwed-finance@v1.1.4` |
-| **Branch Protection** | Require "verify" status to merge |
-| **Artifacts** | Verification receipts uploaded |
-
----
-
-## ➡️ Next: Capstone Project
-
-You've completed all the modules! Now put it all together:
-
-**[→ Start the Capstone Project](../capstone-project/README.md)**
-
----
-
-*"Production is not a test environment. Verify before you ship."*
+[← Previous Module](../module-8-agentic-workflows/README.md) | [Next Module (Advanced Patterns) →](../module-10-advanced-patterns/README.md)

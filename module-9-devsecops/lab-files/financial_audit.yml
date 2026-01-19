@@ -1,0 +1,16 @@
+name: Financial Compliance Audit
+
+on: [pull_request]
+
+jobs:
+  audit_numbers:
+    runs-on: ubuntu-latest
+    name: 🛡️ QWED Accountant
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Finance Guard
+        uses: QWED-AI/qwed-finance@v1.2.0
+        with:
+          file-path: 'lab-files/rates_update.csv'
