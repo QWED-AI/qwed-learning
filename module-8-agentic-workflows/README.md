@@ -28,6 +28,7 @@ After this module, you'll understand:
 | 8.2 | [Commerce Safety (UCP)](#82-commerce-safety-ucp) | 20 min |
 | 8.3 | [The Polyglot Agent](#83-the-polyglot-agent-typescript) | 20 min |
 | 8.4 | [The Discovery Pattern](#84-the-discovery-pattern) | 10 min |
+| 8.5 | [Framework Integrations](#85-framework-integrations) | 15 min |
 
 ---
 
@@ -160,12 +161,15 @@ Actual system: $12,000 (bug: applied 20% MARKUP instead)
 Result: Customer charged 10x more!
 ```
 
-### QWED Solution: UCP Integration
+### QWED Solution: UCP Integration (Code & Action)
+
+#### 1. Runtime Guard (Python)
+Use the `qwed-ucp` library to catch errors *before* the agent commits the transaction:
 
 ```python
-from qwed_finance.integrations import UCPIntegration
+from qwed_ucp import UCPVerifier
 
-ucp = UCPIntegration()
+verifier = UCPVerifier()
 
 # Before checkout, verify everything
 payment_token = {
@@ -176,17 +180,38 @@ payment_token = {
     "customer_id": "CUST-12345"
 }
 
-result = ucp.verify_payment_token(payment_token)
+# The Verifier checks Money, State, and Structure
+result = verifier.verify_checkout(payment_token)
 
 if result.verified:
     # Safe to proceed
     process_payment(payment_token)
-    print(f"✅ Payment verified: ${result.verified_amount}")
+    print(f"✅ Payment verified")
 else:
     # Block the transaction
-    print(f"🚫 Verification failed: {result.errors}")
-    # Errors: ["Discount calculation mismatch: expected $1200, got $12000"]
+    print(f"🚫 Verification failed: {result.error}")
+    # Error: "Money Guard: Total mismatch..."
 ```
+
+#### 2. Pipeline Audit (GitHub Action)
+For enterprise safety, audit your transaction logs in CI/CD using our **new GitHub Action**:
+
+```yaml
+# .github/workflows/audit_commerce.yml
+name: Audit Commerce Logs
+on: [push]
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run QWED Commerce Auditor
+        uses: QWED-AI/qwed-ucp@v0.2.0
+        with:
+          transaction-file: 'logs/transactions.json'
+```
+
+This ensures that even if an agent bypasses the runtime check, the **Audit Log** will catch the illegal transaction.
 
 ### UCP Capability Discovery
 
@@ -436,6 +461,75 @@ result = verify_checkout(
 | **Interceptor** | Tool call verification | OpenResponsesIntegration |
 | **UCP** | E-commerce safety | UCPIntegration |
 | **TypeScript** | Node.js agents | @qwed-ai/finance |
+
+---
+
+## 8.5: Framework Integrations
+
+Enterprise developers often define agents using frameworks like LangChain or CrewAI. QWED drops directly into these definitions.
+
+### 🦜 LangChain (Native Tool)
+
+Give your LangChain agent the ability to "ask" for verification:
+
+```python
+from qwed_sdk.integrations.langchain import QWEDTool
+from langchain.agents import initialize_agent, AgentType
+from langchain_openai import ChatOpenAI
+
+# 1. Initialize the Tool
+qwed_tool = QWEDTool(provider="openai", model="gpt-4", verify_math=True)
+
+# 2. Add to Agent
+llm = ChatOpenAI(temperature=0)
+agent = initialize_agent(
+    tools=[qwed_tool], 
+    llm=llm, 
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True
+)
+
+# 3. Agent now uses QWED automatically
+agent.run("Calculate the compound interest on $10k at 5% for 10 years.")
+# Agent: "I will use QWED to verify the math..."
+```
+
+### 🤖 CrewAI (Verified Role)
+
+Enforce safety constraints on specific agents using the `QWEDVerifiedAgent` class:
+
+```python
+from qwed_sdk.integrations.crewai import QWEDVerifiedAgent
+from crewai import Task, Crew
+
+# An Analyst that CANNOT hallucinate numbers
+analyst = QWEDVerifiedAgent(
+    role="Financial Analyst",
+    goal="Analyze loan applications",
+    backstory="You are a strict compliance officer.",
+    allow_dangerous_code=False,  # QWED Code Guard
+    verify_math=True             # QWED Math Guard
+)
+
+task = Task(description="Analyze this loan...", agent=analyst)
+```
+
+### 🦙 LlamaIndex (Query Engine)
+
+Wrap your RAG engine to verify every response against the retrieved context:
+
+```python
+from qwed_sdk.integrations.llamaindex import QWEDQueryEngine
+
+# Wrap existing engine
+verified_engine = QWEDQueryEngine(
+    original_engine,
+    verify_facts=True  # RAG Fact Check
+)
+
+response = verified_engine.query("What are the payment terms?")
+# Returns verified response or raises VerificationError
+```
 
 ---
 

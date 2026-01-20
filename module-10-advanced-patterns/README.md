@@ -24,6 +24,7 @@ After this module, you'll understand:
 |--------|-------|------|
 | 10.1 | [The Fact Guard (RAG)](#101-the-fact-guard-rag) | 20 min |
 | 10.2 | [The Consensus Engine](#102-the-consensus-engine) | 25 min |
+| 10.3 | [The Reasoning Engine](#103-the-reasoning-engine) | 20 min |
 
 ---
 
@@ -167,6 +168,67 @@ In a nuclear silo, two officers must turn keys. The officers are human (probabil
 
 ---
 
+10.3: The Reasoning Engine
+
+### Beyond Correctness: Optimization & Sanity
+
+Sometimes an answer can be "correct" but still wrong for the business (`profit = $0` is valid math, but bad business).
+Or an answer can be "logically valid" but vacuous (`if False: do_anything()` is always true).
+
+### 1. Optimization Engine (`verify_optimization`)
+
+Don't just ask "Is this portfolio valid?" Ask "What is the **optimal** portfolio?"
+
+```python
+from qwed_sdk import LogicVerifier
+
+verifier = LogicVerifier()
+
+# Constraints: Risk < 5%, ROI > 10%
+# Objective: Maximize ROI
+solution = verifier.verify_optimization(
+    variables={"risk": "Real", "roi": "Real", "allocation": "Real"},
+    constraints=[
+        "risk == allocation * 0.05",
+        "roi == allocation * 0.15",
+        "risk < 5",
+        "allocation <= 100"
+    ],
+    objective="maximize(roi)"
+)
+
+print(f"Optimal Allocation: {solution.model['allocation']}") 
+# -> 99.99 (Maximized within constraints)
+```
+
+**Use Case:** Supply Chain Routing, Ad Spend Allocation, Loan Structuring.
+
+### 2. Vacuity Checker (`check_vacuity`)
+
+Detect "Lazy AI". If an LLM writes code or logic that is **Technically True but Practically Useless**, this engine catches it.
+
+**The "Vacuous Truth" Bug:**
+```python
+# LLM generated policy:
+def approve_loan(age):
+    if age > 150:
+        return False  # This rule NEVER triggers. It is "vacuously true" that it's safe.
+    return True
+```
+
+**Verification:**
+```python
+result = verifier.check_vacuity(
+    rule="Implies(age > 150, deny_loan)",
+    domain_constraints=["0 <= age <= 120"]
+)
+
+if result.is_vacuous:
+    print("⚠️ VACUOUS RULE DETECTED: The condition 'age > 150' is impossible given domain constraints.")
+```
+
+---
+
 ## 📝 Summary
 
 You have now mastered all **8 Verification Engines**:
@@ -177,8 +239,9 @@ You have now mastered all **8 Verification Engines**:
 4.  **Facts** (Exact Match)
 5.  **Code** (AST)
 6.  **Image** (Vision)
-7.  **Fact Checker** (NLI) - *Module 10*
+7.  **Fact Checker** (RAG/NLI) - *Module 10*
 8.  **Consensus** (Multi-Model) - *Module 10*
+9.  **Reasoning** (Optimization/Vacuity) - *Module 10 (Bonus)*
 
 ---
 
