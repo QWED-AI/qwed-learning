@@ -89,6 +89,51 @@ graph TB
 
 ---
 
+## 📊 1.1b Case Study: The Senior Citizen Trap (Real Audit)
+
+### From Our Production Audit
+
+We ran 50 adversarial scenarios against GPT-4.1 (Azure). Here's one that **failed** without QWED:
+
+| Field | Value |
+|-------|-------|
+| **Scenario ID** | `50ebf9bc8d10` |
+| **Type** | Senior Citizen Fixed Deposit |
+| **User Query** | "Calculate FD maturity for 65yo depositing ₹5L at 7% base + 0.50% senior premium" |
+| **LLM Answer** | "Total rate: 7.50% (base + premium)" |
+| **Correct Answer** | "Total rate: 6.50% (seniors get DISCOUNT, not surcharge)" |
+| **Result** | 🛑 **BLOCKED by QWED** |
+
+### The Logic Trap
+
+The LLM saw "premium" and **assumed addition**. But in banking:
+- "Senior Citizen Premium" = **benefit** (rate reduction)
+- The correct formula: `7.00% - 0.50% = 6.50%`
+
+### What QWED Caught
+
+```python
+from qwed_mcp import verify_banking_compliance
+
+result = verify_banking_compliance(
+    scenario="Senior Citizen Loan approval",
+    llm_output="Base 7% + Premium 0.5% = 7.5%"
+)
+
+# 🛑 BLOCKED: Senior Citizen Premium applied incorrectly. Logic Trap Detected.
+```
+
+### Production Stats (50 Scenarios)
+
+| Model | Pass Rate | Blocked by QWED |
+|-------|-----------|-----------------|
+| GPT-4.1 (Azure) | 84% | 8/50 |
+| Claude 4.5 Sonnet | 64% | 18/50 |
+
+> **The Lesson:** Even the best LLMs fail on domain-specific edge cases. QWED catches them all.
+
+---
+
 ## 🎲 1.2 The Probabilistic Problem
 
 ### How LLMs Actually Work

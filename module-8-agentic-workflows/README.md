@@ -29,6 +29,7 @@ After this module, you'll understand:
 | 8.3 | [The Polyglot Agent](#83-the-polyglot-agent-typescript) | 20 min |
 | 8.4 | [The Discovery Pattern](#84-the-discovery-pattern) | 10 min |
 | 8.5 | [Framework Integrations](#85-framework-integrations) | 15 min |
+| 8.6 | [The Compliance Officer (MCP Demo)](#86-the-compliance-officer-mcp-demo) | 10 min |
 
 ---
 
@@ -530,6 +531,61 @@ verified_engine = QWEDQueryEngine(
 response = verified_engine.query("What are the payment terms?")
 # Returns verified response or raises VerificationError
 ```
+
+---
+
+## 8.6: The Compliance Officer (MCP Demo)
+
+### Turn Claude into a Banking Compliance Officer
+
+Using `qwed-mcp`, you can install QWED verification **directly into Claude Desktop**.
+
+### Step 1: Install MCP Server
+
+```bash
+pip install qwed-mcp
+```
+
+### Step 2: Configure Claude Desktop
+
+Add to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "qwed": {
+      "command": "uvx",
+      "args": ["qwed-mcp"]
+    }
+  }
+}
+```
+
+### Step 3: Restart Claude Desktop
+
+Close and reopen Claude Desktop to load the new tools.
+
+### Step 4: Test the "Senior Citizen Trap"
+
+Type this prompt in Claude:
+
+> "I am approving a Senior Citizen Loan (65yo). Base rate 7%, Premium 0.5%. Verify compliance using qwed-finance and calculate total."
+
+### What You'll See
+
+```
+🛠️ verify_banking_compliance
+Request: { "scenario": "Senior Citizen Loan approval", "llm_output": "..." }
+
+🛑 BLOCKED by QWED Finance: Senior Citizen Premium (0.50%) applied incorrectly.
+   Logic Trap Detected.
+
+⚠️ Claude pivots: "The correct rate is 6.5%, not 7.5%. Seniors receive discounts."
+```
+
+### 🎯 Key Takeaway
+
+> "You didn't just verify code in CI. You **patched Claude's brain** in real-time."
 
 ---
 
