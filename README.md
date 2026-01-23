@@ -260,6 +260,20 @@ Verification Across Industries: Finance, Healthcare, Legal, Code, Data
 
 ---
 
+### [**Module 11: The Legal Auditor**](module-11-legal-auditor/) _(60 mins)_ ✅
+
+**NEW!** Build a Deterministic AI Paralegal with qwed-legal
+
+**You'll learn:**
+- **DeadlineGuard**: Verify dates with jurisdiction-specific holidays
+- **LiabilityGuard**: Audit indemnification caps against policy
+- **ClauseGuard**: Find logical contradictions with Z3
+- **CitationGuard**: Stop fake case citations (Avianca Effect)
+
+**[→ Start Module 11](module-11-legal-auditor/README.md)**
+
+---
+
 ## 🚀 How to Take This Course
 
 ```bash
