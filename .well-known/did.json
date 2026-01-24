@@ -1,0 +1,18 @@
+{
+    "@context": "https://w3id.org/did/v1",
+    "id": "did:web:qwed-ai.com",
+    "publicKey": [
+        {
+            "id": "did:web:qwed-ai.com#key-1",
+            "type": "RsaVerificationKey2018",
+            "controller": "did:web:qwed-ai.com",
+            "publicKeyPem": "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
+        }
+    ],
+    "authentication": [
+        "did:web:qwed-ai.com#key-1"
+    ],
+    "assertionMethod": [
+        "did:web:qwed-ai.com#key-1"
+    ]
+}
