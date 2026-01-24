@@ -7,13 +7,101 @@
 
 *Part of [QWED-AI](https://github.com/QWED-AI/qwed-verification) • Member of [NVIDIA Inception Program](https://www.nvidia.com/en-us/startups/)*
 
-<div align="center">
+---
+
+🎯 **Jump to:**
+[📺 Video Intro](#-video-intro) | [📈 Your Progress](#-your-learning-progress) | [🚀 Choose Your Path](#-choose-your-path) | [🗺️ Course Map](#️-course-map-at-a-glance) | [❓ FAQ](#-quick-questions-before-you-start)
+
+---
+
+<div align="center" id="video-intro">
 
 [![Watch the Course Intro](./assets/video-thumbnail.png)](https://youtu.be/DjFOviJMMWY)
 
 **▶️ [Watch Course Introduction](https://youtu.be/DjFOviJMMWY)** *(5 min)*
 
 </div>
+
+---
+
+## 📊 Your Learning Progress
+
+<details open>
+<summary><strong>📈 Track Your Progress (Click to Expand)</strong></summary>
+
+**Module Completion:**
+- [ ] [Module 0: Prerequisites](module-0-prerequisites/README.md) _(20 min)_
+- [ ] [Module 1: The Crisis](module-1-the-crisis/README.md) _(30 min)_ 
+- [ ] [Module 1.5: Physics of Failure](module-1.5-physics-of-failure/README.md) _(45 min)_
+- [ ] [Module 2: The Theory](module-2-neurosymbolic-theory/README.md) _(45 min)_
+- [ ] [Module 3: Hands-On](module-3-hands-on/README.md) _(60 min)_
+- [ ] [Module 4: Advanced](module-4-advanced/README.md) _(45 min)_
+- [ ] [Module 5: Verification Landscape](module-5-verification-landscape/README.md) _(45 min)_
+- [ ] [Module 6: Domains](module-6-domains/README.md) _(60 min)_
+- [ ] [Module 7: Context Engineering](module-7-context-engineering/README.md) _(60 min)_
+- [ ] [Module 8: Agentic Integration](module-8-agentic-workflows/README.md) _(60 min)_
+- [ ] [Module 9: DevSecOps](module-9-devsecops/README.md) _(45 min)_
+- [ ] [Module 10: Advanced Patterns](module-10-advanced-patterns/README.md) _(45 min)_
+- [ ] [Module 11: Legal Auditor](module-11-legal-auditor/README.md) _(60 min)_
+
+💡 **Pro Tip:** Save this page (bookmark) or fork the repo to track your checkboxes!
+
+</details>
+
+---
+
+## 🚀 Choose Your Path
+
+<details open>
+<summary><strong>Which role matches you? (Click to Expand)</strong></summary>
+
+#### 👨‍💻 **Backend Developer** _(90 mins)_
+Learning to integrate LLM verification into APIs
+```
+Module 0 → Module 1 → Module 3 (Hands-On) → Module 9 (DevSecOps)
+```
+→ **[Start Here](module-0-prerequisites/README.md)**
+
+#### 🏦 **Finance/Compliance** _(2 hours)_
+Building verification for regulated workflows
+```
+Module 1 → Module 2 → Module 6 (Finance Domain) → Module 11 (Legal Auditor)
+```
+→ **[Start Here](module-1-the-crisis/README.md)**
+
+#### 🤖 **AI/ML Engineer** _(Full Course)_
+Master verification theory + advanced patterns
+```
+All modules + Capstone Project
+```
+→ **[Start Here](module-0-prerequisites/README.md)**
+
+#### 🎓 **Student/Researcher** _(Theory Focus, 90 mins)_
+Understanding neurosymbolic AI fundamentals
+```
+Module 2 → Module 1.5 → Module 5 → Module 10
+```
+→ **[Start Here](module-2-neurosymbolic-theory/README.md)**
+
+</details>
+
+⏱️ **How Much Time Do You Have?**
+- ⚡ **30 mins:** [Module 1 (The Crisis)](module-1-the-crisis/README.md)
+- 🚀 **2 hours:** [Core Developer Path (Hands-On)](module-3-hands-on/README.md)
+- 🎓 **Full Course:** 8-10 Hours (Spread over 2 weeks)
+
+---
+
+## 🗺️ Course Map at a Glance
+
+| Module | Time | Focus | Best For | Difficulty |
+|--------|------|-------|----------|------------|
+| [0: Prerequisites](module-0-prerequisites/) | 20m | Fundamentals | New to LLMs | ⭐ Easy |
+| [1: The Problem](module-1-the-crisis/) | 30m | The Problem | Everyone | ⭐ Easy |
+| [2: Theory](module-2-neurosymbolic-theory/) | 45m | Logic | Engineers | ⭐⭐⭐ Hard |
+| [3: Hands-On](module-3-hands-on/) | 60m | **Code** | Builders | ⭐⭐ Medium |
+| [6: Domains](module-6-domains/) | 60m | Industry | Business | ⭐ Easy |
+| [11: Legal](module-11-legal-auditor/) | 60m | Law | Legal Tech | ⭐⭐ Medium |
 
 ---
 
@@ -37,17 +125,13 @@
 
 🎨 **LLMs are Artists**
 - Creative and convincing
--  Great at poetry, brainstorming, conversation
 - Bad at precise details
 - **Don't ask an artist to do your taxes!**
 
 🧮 **QWED is the Accountant**
 - Boring and strict
-- Terrible at creativity
 - Never makes a math mistake
 - **This is who you want handling your money!**
-
-**In Production:** Artist writes the report → Accountant verifies the numbers ✅
 
 **Visual Workflow:**
 
@@ -66,231 +150,76 @@ graph LR
     style G fill:#f44336
 ```
 
-**Key Insight:** LLM generates, QWED verifies. Never trust creativity with correctness!
+---
+
+## ❓ Quick Questions Before You Start
+
+<details>
+<summary><strong>Do I need a GPU?</strong></summary>
+
+No! You can run everything locally with:
+- Ollama (free, runs on CPU)
+- Or use OpenAI API (cheap for learning)
+
+[See setup guide →](module-3-hands-on/README.md)
+
+</details>
+
+<details>
+<summary><strong>How long is this really?</strong></summary>
+
+- **Fast track (skipping videos):** 3-4 hours
+- **Full course with videos:** 8-10 hours  
+- **With hands-on capstone:** 12-15 hours
+
+Spread over 2-3 weeks at your pace.
+
+</details>
+
+<details>
+<summary><strong>Will I get certified?</strong></summary>
+
+GitHub doesn't issue certs, but you'll build:
+- A verified banking agent (portfolio piece)
+- Production-ready verification patterns
+- **Cryptographic Audit Trail** for compliance
+
+</details>
 
 ---
 
-## Who Is This For?
-
-✅ Backend developers integrating LLMs  
-✅ ML engineers building AI products  
-✅ Tech leads evaluating AI safety  
-✅ Anyone shipping LLM-powered features
-
-**Prerequisites:** Basic Python, understanding of what LLMs are
-
-**Cost:** FREE - Use QWEDLocal with Ollama (runs on your machine, no API fees!)
-
----
-
-## 📖 New to AI Verification?
-
-**Start here:**
-- 📚 **[Glossary](GLOSSARY.md)** - Learn the jargon (AST, Z3, deterministic, etc.) in plain English
-- 🛡️ **[Guardrails vs Verification](GUARDRAILS_VS_VERIFICATION.md)** - Safety ≠ Correctness (Artist vs Accountant)
-
----
-
-
-## 📚 Course Curriculum
-
-### [**Module 0: Prerequisites**](module-0-prerequisites/) _(20 mins)_ ✅
-
-**NEW!** For developers new to LLMs
-
-**You'll learn:**
-- What is an LLM and how does it work?
-- What are hallucinations and why do they happen?
-- Probabilistic vs. Deterministic systems
-- Why verification is critical
-
-**[→ Start Module 0](module-0-prerequisites/README.md)**
-
----
+## 📚 Course Curriculum (Detailed)
 
 ### [**Module 1: The Crisis**](module-1-the-crisis/) _(30 mins)_ ✅
-
-Why LLMs can't be trusted + Real $12,889 bug
-
-**You'll learn:**
-- How probabilistic systems fail
-- Real production consequences
-- Why RAG/fine-tuning aren't enough
-
-**[→ Start Module 1](module-1-the-crisis/README.md)**
-
----
+Why LLMs can't be trusted + Real $12,889 bug.
 
 ### [**Module 1.5: The Physics of Failure**](module-1.5-physics-of-failure/) _(45 mins)_ ✅
-
-Deep dive: Why LLMs hallucinate and why verification is NECESSARY
-
-**You'll learn:**
-- LLMs as "Lossy Compression" (The JPEG Analogy)
-- Why RAG provides context, not reasoning
-- The Probabilistic Gap (can't fine-tune to 100%)
-- Real failures: Air Canada, Package Hallucination, $12K Bug
-- Why QWED is physics, not preference
-
-**[→ Start Module 1.5](module-1.5-physics-of-failure/README.md)**
-
----
+Deep dive: Why LLMs hallucinate and why verification is NECESSARY.
 
 ### [**Module 2: The Theory**](module-2-neurosymbolic-theory/) _(45 mins)_ ✅
-
-Determinism, symbolic reasoning, verification approach
-
-**You'll learn:**
-- What makes systems deterministic
-- How symbolic engines provide proofs
-- The "Untrusted Translator" pattern
-
-**[→ Start Module 2](module-2-neurosymbolic-theory/README.md)**
-
----
+Determinism, symbolic reasoning, verification approach.
 
 ### [**Module 3: Hands-On**](module-3-hands-on/) _(60 mins)_ ✅
-
-Build your first verifier with QWED + Production examples
-
-**You'll learn:**
-- Install & use QWED
-- Build verification workflows
-- Error handling patterns
-
-**[→ Start Module 3](module-3-hands-on/README.md)**
-
----
-
-### [**Module 4: Advanced**](module-4-advanced/) _(45 mins)_ ✅
-
-PII masking, framework integration, enterprise patterns
-
-**You'll learn:**
-- HIPAA/GDPR-compliant verification
-- LangChain & LlamaIndex integration
-- Multi-engine strategies
-
-**[→ Start Module 4](module-4-advanced/README.md)**
-
----
-
-### [**Module 5: The Verification Landscape**](module-5-verification-landscape/) _(45 mins)_ ✅
-
-QWED vs The Alternatives: Guardrails, LLM-as-Judge, Beaver
-
-**You'll learn:**
-- The verification "zoo" - different approaches
-- Why LLM-as-Judge fails (5 critical biases)
-- Beaver's probabilistic bounds vs QWED's proofs
-- QWED's "Solver-as-a-Judge" philosophy
-- Decision flowchart: when to use what
-
-**[→ Start Module 5](module-5-verification-landscape/README.md)**
-
----
-
-### [**Module 6: Domain-Specific Verification**](module-6-domains/) _(60 mins)_ ✅
-
-Verification Across Industries: Finance, Healthcare, Legal, Code, Data
-
-**You'll learn:**
-- Financial calculations (NPV, IRR, compound interest)
-- HIPAA-compliant verification with PII masking
-- Legal contract and deadline verification
-- Secure code review automation
-- Statistical claim verification
-
-**[→ Start Module 6](module-6-domains/README.md)**
-
----
-
-### [**Module 7: Context Engineering & Its Limits**](module-7-context-engineering/) _(60 mins)_ ✅
-
-**NEW!** Context Engineering: Promise, Paradox, and the Bypass
-
-**You'll learn:**
-- What is Context Engineering (RAG, Tools, Memory)
-- The Layered Compression Paradox (JPEG analogy)
-- 5 failure modes including Contextual Sycophancy
-- Why neurosymbolic bypass is architecturally superior
-
-**[→ Start Module 7](module-7-context-engineering/README.md)**
-
----
-
-### [**Module 8: Agentic Integration**](module-8-agentic-workflows/) _(60 mins)_ ✅
-
-**NEW!** Verify AI Agent Tool Calls in Real-Time
-
-**You'll learn:**
-- The Interceptor Pattern for tool call verification
-- Commerce safety with UCP (Universal Commerce Protocol)
-- Using TypeScript SDK for Node.js agents
-- Streaming verification in agentic loops
-
-**[→ Start Module 8](module-8-agentic-workflows/README.md)**
-
----
-
-### [**Module 9: DevSecOps**](module-9-devsecops/) _(45 mins)_ ✅
-
-**NEW!** Automate AI Verification in CI/CD
-
-**You'll learn:**
-- Shift-Left Verification philosophy
-- Setting up QWED GitHub Action
-- Blocking PRs that fail verification
-- Generating verification artifacts
-
-**[→ Start Module 9](module-9-devsecops/README.md)**
-
----
-
-### [**Module 10: Advanced Patterns**](module-10-advanced-patterns/) _(45 mins)_ ✅
-
-**NEW!** RAG Verification & Multi-Model Consensus
-
-**You'll learn:**
-- The Fact Guard (NLI Verification for RAG)
-- The Consensus Engine (Council of Verifiers)
-- Why Consensus is Deterministic (The "Switch" Analogy)
-
-**[→ Start Module 10](module-10-advanced-patterns/README.md)**
-
----
+Build your first verifier with QWED + Production examples.
 
 ### [**Module 11: The Legal Auditor**](module-11-legal-auditor/) _(60 mins)_ ✅
+Build a Deterministic AI Paralegal with qwed-legal. 
 
-**NEW!** Build a Deterministic AI Paralegal with qwed-legal
-
-**You'll learn:**
-- **DeadlineGuard**: Verify dates with jurisdiction-specific holidays
-- **LiabilityGuard**: Audit indemnification caps against policy
-- **ClauseGuard**: Find logical contradictions with Z3
-- **CitationGuard**: Stop fake case citations (Avianca Effect)
-
-**[→ Start Module 11](module-11-legal-auditor/README.md)**
+*(See "Track Your Progress" at top for full list)*
 
 ---
 
-## 🚀 How to Take This Course
+## 🎯 Quick Check: Did You Understand?
 
-```bash
-# Clone the repo
-git clone https://github.com/QWED-AI/qwed-learning.git
-cd qwed-learning
+<details>
+<summary><strong>Quiz: Why can't RAG alone prevent hallucinations? (Click for Answer)</strong></summary>
 
-# Start with Module 1
-cd module-1-the-crisis
-# Read README.md
-```
+**Answer:**
+RAG provides context, but it doesn't solve reasoning errors. 
+If the retrieved document says "Revenue is $5M" and the LLM calculates "Profit = $5M - $6M = $1M", RAG can't catch that math error. 
+**Verification** (like QWED) checks the logic deterministically.
 
-**Recommended path:**
-1. Read each module sequentially
-2. Complete exercises (solutions provided)
-3. Build hands-on examples (Module 3+)
-4. Share your learnings!
+</details>
 
 ---
 
@@ -304,65 +233,12 @@ By the end, you'll have:
 - ✅ **Verified Banking Agent** that refuses to steal
 - ✅ **CI/CD Pipeline** that blocks hallucinating PRs
 - ✅ **Cryptographic Audit Trail** for compliance
-- ✅ **Production Workflows** using UCP and Interceptors
-
----
-
-## 💬 Community
-
-- **💬 Discussions:** [GitHub Discussions](https://github.com/QWED-AI/qwed-learning/discussions)
-- **🐛 Issues:** Found a bug? [Report it](https://github.com/QWED-AI/qwed-learning/issues)
-- **🌟 Star** this repo to support!
-- **🐦 Twitter:** [@rahuldass29](https://x.com/rahuldass29)
-
----
-
-## 🤝 Contributing
-
-Want to improve this course? We welcome:
-- Typo fixes
-- Additional examples
-- Translations
-- Better explanations
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
----
-
-## 📖 Related Resources
-
-- **QWED Main Repo:** [qwed-verification](https://github.com/QWED-AI/qwed-verification)
-- **Documentation:** [docs.qwedai.com](https://docs.qwedai.com)
-- **Technical Paper:** [Neurosymbolic Verification](https://github.com/QWED-AI/qwed-verification/tree/main/research)
-- **Research Paper:** [The Layered Compression Paradox](https://doi.org/10.5281/zenodo.18256295) - Dass, R. (2026)
-
----
-
-## ⭐ Love This Course?
-
-**Show your support:**
-- ⭐ Star this repo
-- 🐦 Tweet about it
-- 📝 Write a blog post
-- 🗣️ Tell your team
-
-**Share this course:**
-```markdown
-I'm learning AI verification! 🎓
-
-Stop LLM hallucinations with deterministic verification.
-Free course: https://github.com/QWED-AI/qwed-learning
-
-#AI #MachineLearning #Verification
-```
 
 ---
 
 ## 📄 License
 
 CC0-1.0 - Public domain. Free to use, modify, and share!
-
----
 
 <div align="center">
 
