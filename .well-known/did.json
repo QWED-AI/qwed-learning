@@ -6,7 +6,7 @@
             "id": "did:web:qwed-ai.com#key-1",
             "type": "RsaVerificationKey2018",
             "controller": "did:web:qwed-ai.com",
-            "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAi7gMmoP5pJNL7MwqjL5V\ntuxlfrTvAPfH3B05HTOZkw97OdcDsb0POgFlOIv2fW6RAuVfgxybrWix0DuPM3lF\nR4fkrTrAzU7e+rVsj52gWAFQvM4IwcXsZI9rrRmfjFB7ZDZmwNM4XISMGdN1wq2b\n8XRDP6tpE0esW5JuYJIP0tjPQgik94+pNWhXSd7gc+iiMRT7mA/AGtiBsbBxwiG5\ntzFxWH++9t++7Qn7u8jfmpSHqFCifpfgbJDgrV2gon4HmPRYw2x/1kvSTPvqLSL4\n7pgDpQr0puOATNCKxUfG76EZ/FbyFuFx9wFw5+Ph1h71qdQ09BQBfJ+uF6f9oG8v\nowIDAQAB\n-----END PUBLIC KEY-----"
+            "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApvQf6GQRslJGy+dhMGkx\nrztAD/r7nDqZjC3GwAn4oDb7yylTfGggumSJ5/58NBnTOtOZA5SB7qLmk1i5uBLU\nrolpjQacSJb/U3KMPN+augc97AIJUpqbOFipdptCaXRBKse3u8xGTeehoQmv6/6N\nBAb1C3ed8J+zdvTHMc32/96/M2u7cEG4IUHaSvK7bDLBimEuEE1MVNnk/XOf4n1Q\na0SQGd8BpAGBNFAuAA+UDEIrwp97d/whZ//gfrsyfI2VTttFz4cm5VD4hrVuKVOA\nFH6Y9DWN2UEBudhSpdgfHngwb9Oib/mE00k1ebx+UfFVrtvuZj5ohGJF+SejDaef\n1QIDAQAB\n-----END PUBLIC KEY-----"
         }
     ],
     "authentication": [

@@ -265,10 +265,5 @@ CC0-1.0 - Public domain. Free to use, modify, and share!
 
 ---
 
-## 🎖️ Verify a Certificate
 
-Got a certificate from another learner? 
-**[Verify it here →](https://qwed-ai.com/verify)**
-
-All certificates are cryptographically signed and tamper-proof.
 
