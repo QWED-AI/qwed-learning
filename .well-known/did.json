@@ -6,7 +6,7 @@
             "id": "did:web:qwed-ai.com#key-1",
             "type": "RsaVerificationKey2018",
             "controller": "did:web:qwed-ai.com",
-            "publicKeyPem": "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----"
+            "publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAi7gMmoP5pJNL7MwqjL5V\ntuxlfrTvAPfH3B05HTOZkw97OdcDsb0POgFlOIv2fW6RAuVfgxybrWix0DuPM3lF\nR4fkrTrAzU7e+rVsj52gWAFQvM4IwcXsZI9rrRmfjFB7ZDZmwNM4XISMGdN1wq2b\n8XRDP6tpE0esW5JuYJIP0tjPQgik94+pNWhXSd7gc+iiMRT7mA/AGtiBsbBxwiG5\ntzFxWH++9t++7Qn7u8jfmpSHqFCifpfgbJDgrV2gon4HmPRYw2x/1kvSTPvqLSL4\n7pgDpQr0puOATNCKxUfG76EZ/FbyFuFx9wFw5+Ph1h71qdQ09BQBfJ+uF6f9oG8v\nowIDAQAB\n-----END PUBLIC KEY-----"
         }
     ],
     "authentication": [
