@@ -236,6 +236,19 @@ By the end, you'll have:
 
 ---
 
+---
+
+## 🤝 Help Us Improve
+
+- ⭐ [Star the repo](https://github.com/QWED-AI/qwed-learning/stargazers)
+- 🐛 [Report issues](https://github.com/QWED-AI/qwed-learning/issues)
+- 💬 [Join the community](https://github.com/QWED-AI/qwed-learning/discussions)
+- 📝 [Contribute](CONTRIBUTING.md)
+
+**Last Updated:** January 2026 | **11 Modules** | **Growing Community**
+
+---
+
 ## 📄 License
 
 CC0-1.0 - Public domain. Free to use, modify, and share!
