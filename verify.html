@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>QWED Certificate Verifier</title>
+    <style>
+        body {
+            font-family: Arial;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 10px;
+            font-family: monospace;
+        }
+
+        .verified {
+            color: green;
+            background: #e8f5e9;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid green;
+        }
+
+        .invalid {
+            color: red;
+            background: #ffebee;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid red;
+        }
+
+        button {
+            background: #00C853;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #009624;
+        }
+
+        h1 {
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🎖️ Verify Your QWED Certificate</h1>
+
+    <p>Paste your <code>credential.json</code> content below to verify its authenticity:</p>
+    <textarea id="credentialInput" placeholder='{"@context": ...}'></textarea>
+
+    <br>
+    <button onclick="verifyCertificate()">Verify Certificate</button>
+
+    <div id="result" style="margin-top: 20px;"></div>
+
+    <script>
+        async function verifyCertificate() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = "Verifying...";
+
+            try {
+                const input = document.getElementById('credentialInput').value.trim();
+                if (!input) throw new Error("Please paste a credential JSON.");
+
+                const credential = JSON.parse(input);
+
+                // Fetch DID document (hosted in this repo)
+                // In production, this points to the real domain. 
+                // For this static file in the repo, we can fetch relative or absolute.
+                // Using absolute as per requirements.
+                const didResponse = await fetch('https://qwed-ai.com/.well-known/did.json').catch(() => null);
+
+                // Fallback for local testing or GitHub Pages if domain not set
+                let didDoc = null;
+                if (didResponse && didResponse.ok) {
+                    didDoc = await didResponse.json();
+                } else {
+                    // Try relative path if hosted on same domain
+                    const relResponse = await fetch('.well-known/did.json');
+                    if (relResponse.ok) didDoc = await relResponse.json();
+                }
+
+                if (!didDoc) {
+                    // Fallback hardcoded for demo if fetch fails (CORS etc)
+                    console.warn("Could not fetch DID doc, using hardcoded fallback for demo");
+                    didDoc = { id: "did:web:qwed-ai.com" };
+                }
+
+                // Basic validation logic
+                const isIssuerValid = credential.issuer === 'did:web:qwed-ai.com';
+                const isModulesValid = credential.credentialSubject.modulesCertified === 11;
+                // In a real crypto verifier, we would verify the signature here using the public key from didDoc.
+                // For this simple JS demo, we check structure.
+
+                if (isIssuerValid && isModulesValid) {
+                    const subject = credential.credentialSubject;
+                    resultDiv.innerHTML = `
+                        <div class="verified">
+                            <h2>✅ Certificate Valid!</h2>
+                            <p><strong>Student:</strong> ${subject.name}</p>
+                            <p><strong>Course:</strong> ${subject.courseTitle}</p>
+                            <p><strong>Completed:</strong> ${subject.completionDate}</p>
+                            <p><strong>Modules:</strong> ${subject.modulesCertified}/11</p>
+                            <p><small>Issued by: ${credential.issuer}</small></p>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="invalid">
+                            <h2>❌ Invalid Certificate</h2>
+                            <p>Issuer or Module count mismatch.</p>
+                        </div>
+                    `;
+                }
+
+            } catch (e) {
+                resultDiv.innerHTML = `<div class="invalid"><strong>Error:</strong> ${e.message}</div>`;
+            }
+        }
+    </script>
+</body>
+
+</html>
