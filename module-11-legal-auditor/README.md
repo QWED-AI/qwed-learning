@@ -32,9 +32,9 @@ from qwed_sdk.guards import DeadlineGuard
 
 guard = DeadlineGuard(jurisdiction="UK", include_bank_holidays=True)
 result = guard.verify_deadline(
-    start_date="2026-03-25", 
+    start_date="2026-03-31",   # Tuesday before Easter week
     duration_days=3, 
-    ai_calculated_end_date="2026-03-30" # AI forgot the Easter bank holiday
+    ai_calculated_end_date="2026-04-03" # AI ignores Good Friday bank holiday
 )
 
 if not result["verified"]:
