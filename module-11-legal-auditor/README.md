@@ -26,8 +26,34 @@ We will solve this using **QWED-Legal**.
 ### Lesson 1: Precision Date Verification (DeadlineGuard)
 Learn to calculate rigid legal deadlines across different jurisdictions. "3 days" in New York is different from "3 days" in London due to bank holidays.
 
+**Example Implementation:**
+```python
+from qwed_sdk.guards import DeadlineGuard
+
+guard = DeadlineGuard(jurisdiction="UK", include_bank_holidays=True)
+result = guard.verify_deadline(
+    start_date="2026-03-31",   # Tuesday before Easter week
+    duration_days=3, 
+    ai_calculated_end_date="2026-04-03" # AI ignores Good Friday bank holiday
+)
+
+if not result["verified"]:
+    print(f"Hallucination Blocked: {result['irac.issue']}")
+```
+
 ### Lesson 2: Financial Risk Auditing (LiabilityGuard)
 Learn to audit indemnification clauses. If your company policy says *"Max Liability: $1M"*, your AI must flag a contract saying *"Liability limited to 3x contract value ($500k)"* as **SAFE** but *"Unlimited liability"* as **BLOCKED**.
+
+**Example Implementation:**
+```python
+from qwed_sdk.guards import LiabilityGuard
+
+guard = LiabilityGuard(max_liability_usd=1_000_000, block_unlimited=True)
+contract_clause = "The Vendor's total aggregate liability shall be unlimited."
+
+result = guard.verify_liability_clause(contract_clause)
+print(result["irac.conclusion"]) # Outputs: "Blocked: Unlimited liability detected."
+```
 
 ### Lesson 3: Logic & Contradictions (ClauseGuard)
 Use the Z3 Theorem Prover to find logical inconsistencies. 
