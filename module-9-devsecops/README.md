@@ -25,7 +25,8 @@ After this module, you'll understand:
 |--------|-------|------|
 | 9.1 | [Shift-Left Philosophy](#91-shift-left-verification) | 10 min |
 | 9.2 | [GitHub Action Setup](#92-github-action-setup) | 20 min |
-| 9.3 | [Branch Protection](#93-branch-protection) | 15 min |
+| 9.3 | [Branch Protection](#93-branch-protection) | 10 min |
+| 9.4 | [v4.0.0 CI/CD Infrastructure](#94-v400-cicd-infrastructure) | 15 min |
 
 ---
 
@@ -254,6 +255,48 @@ Update `rates_update.csv`:
 
 ---
 
+## 9.4: v4.0.0 CI/CD Infrastructure
+
+🆕 *New in QWED v4.0.0 Sentinel Edition*
+
+v4.0.0 introduced enterprise-grade CI/CD tooling beyond GitHub Actions:
+
+### The Stack
+
+| Tool | Purpose | Integration |
+|------|---------|-------------|
+| **Sentry** | Real-time error tracking | `sentry-sdk` in Python |
+| **CircleCI** | Matrix testing (Python 3.10–3.12) | `.circleci/config.yml` |
+| **SonarCloud** | Code quality + coverage analysis | GitHub App |
+| **Snyk** | Security vulnerability scanning (SARIF) | `snyk test` / `snyk monitor` |
+| **pip-audit** | Python dependency CVE scanning | `pip-audit --strict` |
+| **Docker Scout** | Container vulnerability scanning | Docker Hub integration |
+| **SBOM** | Software Bill of Materials (SPDX) | `anchore/sbom-action` |
+
+### Docker Auto-Publish Pipeline
+
+```yaml
+# Automated on every GitHub Release
+# 1. Build multi-platform image
+# 2. Sign with pinned base image digests
+# 3. Generate SBOM (SPDX format)
+# 4. Push to Docker Hub with version tags
+# 5. Run Docker Scout vulnerability scan
+```
+
+### Key Practices from v4.0.0
+
+1. **pip-audit with exclusions** — Exclude local packages from audit (`--exclude qwed`)
+2. **Non-root Docker** — All containers run as non-root user via `gosu`/`runuser`
+3. **Hash-verified requirements** — `pip install --require-hashes` in Docker builds
+4. **SARIF output** — Snyk results exported as SARIF for GitHub Security tab
+
+### 🎯 Key Takeaway
+
+> **"One scanner is hope. Five scanners in CI/CD is infrastructure."**
+
+---
+
 ## 📝 Summary
 
 | Concept | Implementation |
@@ -262,14 +305,17 @@ Update `rates_update.csv`:
 | **GitHub Action** | `QWED-AI/qwed-finance@v1.2.0` |
 | **Branch Protection** | Require "verify" status to merge |
 | **Artifacts** | Verification receipts uploaded |
+| **Sentry** | Error tracking in production |
+| **Snyk + pip-audit** | Dependency CVE scanning |
+| **SBOM** | Software supply chain transparency |
 
 ---
 
-## ➡️ Next: Capstone Project
+## ➡️ Next: Advanced Patterns
 
-You've completed all the modules! Now put it all together:
+Learn the advanced verification engines — Fact Checker, Consensus, and Reasoning:
 
-**[→ Start the Capstone Project](../capstone-project/README.md)**
+**[→ Continue to Module 10: Advanced Patterns](../module-10-advanced-patterns/README.md)**
 
 ---
 

@@ -43,6 +43,7 @@
 - [ ] [Module 9: DevSecOps](module-9-devsecops/README.md) _(45 min)_
 - [ ] [Module 10: Advanced Patterns](module-10-advanced-patterns/README.md) _(45 min)_
 - [ ] [Module 11: Legal Auditor](module-11-legal-auditor/README.md) _(60 min)_
+- [ ] [Module 12: Agentic Security](module-12-agentic-security/README.md) _(60 min)_ 🆕
 
 💡 **Pro Tip:** Save this page (bookmark) or fork the repo to track your checkboxes!
 
@@ -102,6 +103,7 @@ Module 2 → Module 1.5 → Module 5 → Module 10
 | [3: Hands-On](module-3-hands-on/) | 60m | **Code** | Builders | ⭐⭐ Medium |
 | [6: Domains](module-6-domains/) | 60m | Industry | Business | ⭐ Easy |
 | [11: Legal](module-11-legal-auditor/) | 60m | Law | Legal Tech | ⭐⭐ Medium |
+| [12: Security](module-12-agentic-security/) | 60m | **Agentic AI** | Security | ⭐⭐⭐ Hard | 🆕
 
 ---
 
@@ -245,7 +247,7 @@ By the end, you'll have:
 - 💬 [Join the community](https://github.com/QWED-AI/qwed-learning/discussions)
 - 📝 [Contribute](CONTRIBUTING.md)
 
-**Last Updated:** January 2026 | **11 Modules** | **Growing Community**
+**Last Updated:** March 2026 | **12 Modules** | **Growing Community**
 
 ---
 

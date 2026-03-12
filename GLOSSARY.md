@@ -252,6 +252,64 @@ derivative = sp.diff(x**2, x)  # Always: 2*x (proven)
 
 ---
 
+## Agentic Security (v4.0.0)
+
+### RAGGuard
+
+**Simple Meaning:** Verifies that retrieved chunks in a RAG pipeline came from the correct source document.
+
+**Analogy:** Checking that every page in a contract actually belongs to that contract, not a different one.
+
+---
+
+### ExfiltrationGuard
+
+**Simple Meaning:** Prevents agents from sending sensitive data (PII, credentials) to unauthorized endpoints.
+
+**Analogy:** A bouncer at the exit who checks what you're carrying before you leave the building.
+
+---
+
+### MCPPoisonGuard
+
+**Simple Meaning:** Scans MCP tool descriptions for hidden malicious instructions before the agent loads them.
+
+**Analogy:** A food inspector checking for poison before you serve the meal.
+
+---
+
+### SelfInitiatedCoTGuard (S-CoT)
+
+**Simple Meaning:** Lets the AI reason freely, but verifies it covered all required topics before executing.
+
+**Analogy:** A professor checking that a student's essay covered all required sections, regardless of writing style.
+
+---
+
+### Process Determinism (ProcessVerifier)
+
+**Simple Meaning:** Verifies that AI reasoning follows a proper legal/compliance structure (IRAC).
+
+**Analogy:** Checking that a lawyer's argument has an Issue, Rule, Application, and Conclusion — not just a conclusion.
+
+---
+
+### IRAC
+
+**Simple Meaning:** Issue, Rule, Application, Conclusion — a structured legal reasoning framework.
+
+**Why It Matters:** Every QWED guard produces IRAC audit fields, making blocks legally defensible.
+
+---
+
+### DRM (Document-Level Retrieval Mismatch)
+
+**Simple Meaning:** When a vector database returns chunks from the wrong document because documents look similar.
+
+**Why It's Dangerous:** Legal NDAs, medical records, and financial contracts are structurally similar — embeddings can't tell them apart.
+
+---
+
 ## Quick Reference Table
 
 | Term | Translation | Emoji |

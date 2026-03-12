@@ -231,7 +231,7 @@ if result.is_vacuous:
 
 ## 📝 Summary
 
-You have now mastered all **8 Verification Engines**:
+You have now mastered all **11 Verification Engines**:
 
 1.  **Math** (SymPy)
 2.  **Logic** (Z3)
@@ -239,14 +239,16 @@ You have now mastered all **8 Verification Engines**:
 4.  **Facts** (Exact Match)
 5.  **Code** (AST)
 6.  **Image** (Vision)
-7.  **Fact Checker** (RAG/NLI) - *Module 10*
-8.  **Consensus** (Multi-Model) - *Module 10*
-9.  **Reasoning** (Optimization/Vacuity) - *Module 10 (Bonus)*
+7.  **Stats** (DataFrame Sandbox)
+8.  **Fact Checker** (RAG/NLI) — *Module 10*
+9.  **Consensus** (Multi-Model) — *Module 10*
+10. **Reasoning** (Optimization/Vacuity) — *Module 10*
+11. **Process Determinism** (IRAC/Milestone) — *Module 12*
 
 ---
 
-## 🎓 The Neurosymbolic University: Graduated!
+## ➡️ Next: Agentic Security Guards
 
-You have completed the full **QWED Enterprise Curriculum**.
+Now learn to **protect** your agents from attacks:
 
-**[→ Back to Main Menu](../README.md)**
+**[→ Continue to Module 12: Agentic Security Guards](../module-12-agentic-security/README.md)**
