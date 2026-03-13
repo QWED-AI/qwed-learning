@@ -105,10 +105,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - uses: QWED-AI/qwed-finance@v1.2.0
+      - uses: QWED-AI/qwed-verification@v3
         with:
-          file-path: 'tests/transactions.csv'
+          action: scan-npv
+          data_file: tests/transactions.csv
+          output_format: sarif
+          fail_on_error: true
 ```
+
+*Note: The `sarif` output format integrates financial hallucinations perfectly into the GitHub Security Dashboard alongside your CVEs.*
 
 #### Step 2: Create Test CSV
 
@@ -142,9 +147,10 @@ git push
 
 | Input | Description | Default |
 |-------|-------------|---------|
-| `file-path` | Path to your CSV/JSON file to verify | Required |
-| `python-version` | Python version to use | `3.11` |
-| `fail-on-violation` | Fail workflow if verification fails | `true` |
+| `action` | The verification action (`scan-npv`, `verify`, etc) | Required |
+| `data_file` | Path to your CSV/JSON file to verify | Required |
+| `output_format` | Format for results (`json`, `sarif`, `text`) | `text` |
+| `fail_on_error` | Fail workflow if verification fails | `true` |
 
 ### Action Outputs
 

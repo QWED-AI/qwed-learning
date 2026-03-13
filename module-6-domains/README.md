@@ -126,6 +126,19 @@ Expected final USD amount
 # Catches arbitrage calculation errors
 ```
 
+#### Pattern 4: ISO 20022 Message Validation (ISOGuard)
+
+```python
+# Verify banking payment message compliance
+from qwed_finance import ISOGuard
+
+guard = ISOGuard()
+result = guard.verify_iso20022_xml(xml_payload)
+
+# QWED validates against the official pacs.008 schema
+# Blocks non-compliant SWIFT/ISO messages before transmission
+```
+
 ### 🎯 Key Takeaway
 
 > **"Never trust an LLM with money. Verify every calculation."**

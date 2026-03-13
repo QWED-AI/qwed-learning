@@ -55,14 +55,23 @@ result = guard.verify_liability_clause(contract_clause)
 print(result["irac.conclusion"]) # Outputs: "Blocked: Unlimited liability detected."
 ```
 
-### Lesson 3: Logic & Contradictions (ClauseGuard)
-Use the Z3 Theorem Prover to find logical inconsistencies. 
+### Lesson 3: Logic & Contradictions (ContradictionGuard)
+Use the Z3 Theorem Prover to formally prove logical inconsistencies in contracts. 
 *   *Clause A:* "Termination notice: 30 days."
 *   *Clause B:* "Termination notice: 90 days."
 *   **Result:** Logical Contradiction found.
 
 ### Lesson 4: The Fact Shield (CitationGuard)
 Prevent the *Avianca* problem. We will build a guard that verifies every legal citation against a trusted allow-list or regex pattern before it goes into a brief.
+
+### Lesson 5: Bias & Counterfactual Testing (FairnessGuard)
+Teach your AI to detect implicit bias. If an AI generates a legal decision, `FairnessGuard` automatically swaps protected attributes (e.g., gender, race) and checks if the outcome changes. If it diverges, the decision is blocked.
+
+### Lesson 6: Structuring Legal Reasoning (IRACGuard)
+Enforce predictable outputs by requiring the AI's Chain-of-Thought (CoT) to strictly follow the IRAC (Issue, Rule, Application, Conclusion) legal structure.
+
+### Lesson 7: Architecture Compliance (SACProcessor)
+Integrate the `SACProcessor` to manage context windows. Learn how to map chunks to specific legal contexts securely before passing them to the AI for evaluation.
 
 ---
 
@@ -72,7 +81,9 @@ Prevent the *Avianca* problem. We will build a guard that verifies every legal c
 2.  **Deadline Verifier**: Build a script that handles "London Business Days".
 3.  **Liability Auditor**: Audit 5 contract clauses for financial risk.
 4.  **Contradiction Hunter**: Use Logic to find conflicting terms.
-5.  **Capstone**: Build `verify_contract.py` using **Claude Desktop** to audit a PDF in real-time.
+5.  **Bias Detection**: Use `FairnessGuard` to evaluate a settlement offer.
+6.  **IRAC Audit**: Verify that an AI-generated memo follows IRAC structure.
+7.  **Capstone**: Build `verify_contract.py` using **Claude Desktop** to audit a PDF in real-time.
 
 ---
 
