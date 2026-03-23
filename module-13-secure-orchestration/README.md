@@ -206,6 +206,9 @@ class FolderBusOrchestrator:
         logic_check = self.qwed.verify(
             f"Does this plan logically achieve: {plan['objective']}?"
         )
+        if not logic_check.verified:
+            self._reject(task_file, plan, f"Logic verification failed for objective: {plan['objective']}")
+            return False
         
         # 2. Verify no unauthorized file paths
         for step in plan.get("steps", []):
@@ -239,9 +242,12 @@ class FolderBusOrchestrator:
     
     def _log_audit(self, plan: dict, status: str, detail: str):
         import datetime
+        import re
+        safe_task_id = re.sub(r"[^A-Za-z0-9._-]", "_", plan.get("task_id", "unknown"))
+        
         log_entry = {
             "timestamp": datetime.datetime.utcnow().isoformat(),
-            "task_id": plan.get("task_id", "unknown"),
+            "task_id": safe_task_id,
             "status": status,
             "detail": detail,
             "irac": {
@@ -251,7 +257,7 @@ class FolderBusOrchestrator:
                 "conclusion": f"Task {status.lower()}"
             }
         }
-        log_file = self.workspace / "logs/audit" / f"{plan.get('task_id', 'unknown')}.json"
+        log_file = self.workspace / "logs/audit" / f"{safe_task_id}.json"
         with open(log_file, "w") as f:
             json.dump(log_entry, f, indent=2)
 ```
@@ -281,9 +287,9 @@ The single biggest security mistake in agent systems:
 // ❌ NEVER DO THIS — agent can read and exfiltrate these
 // auth-profiles.json
 {
-  "openai": {"api_key": "sk-proj-abc123..."},
-  "stripe": {"api_key": "sk_live_xyz789..."},
-  "database": {"password": "prod-db-password"}
+  "openai": {"api_key": "<OPENAI_API_KEY_FROM_VAULT>"},
+  "stripe": {"api_key": "<STRIPE_API_KEY_FROM_VAULT>"},
+  "database": {"password": "<DB_PASSWORD_FROM_VAULT>"}
 }
 ```
 
