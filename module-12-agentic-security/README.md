@@ -619,9 +619,11 @@ Try modifying the inputs to trigger each guard:
 
 ## ➡️ What's Next?
 
-You've now completed the full QWED curriculum — from theory to production to security.
+Now that you understand how to guard individual agents, learn how to **orchestrate multi-agent systems securely**:
 
-**Ready to test your skills?**
+**[→ Module 13: Secure Agent Orchestration](../module-13-secure-orchestration/README.md)**
+
+Or jump straight to the capstone:
 
 **[→ Start the Capstone Project](../capstone-project/README.md)**
 
