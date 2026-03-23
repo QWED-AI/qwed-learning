@@ -42,7 +42,7 @@ After this module, you'll understand:
 
 The most common agent pattern in early 2026 looks like this:
 
-```
+```text
 User → Single LLM Agent → Tools (file system, APIs, databases, shell)
 ```
 
@@ -158,7 +158,7 @@ brain_output = {
 
 Instead of passing messages through memory (which can be manipulated), the two layers communicate through a **shared filesystem directory** — the "Folder Bus":
 
-```
+```text
 workspace/
 ├── tasks/
 │   ├── new/          ← Brain writes new task plans here
@@ -243,7 +243,8 @@ class FolderBusOrchestrator:
     def _log_audit(self, plan: dict, status: str, detail: str):
         import datetime
         import re
-        safe_task_id = re.sub(r"[^A-Za-z0-9._-]", "_", plan.get("task_id", "unknown"))
+        raw_task_id = plan.get("task_id")
+        safe_task_id = re.sub(r"[^A-Za-z0-9._-]", "_", str(raw_task_id or "unknown"))
         
         log_entry = {
             "timestamp": datetime.datetime.utcnow().isoformat(),
@@ -457,6 +458,7 @@ class QWEDVerificationLayer:
     
     def verify_final_report(self, report_text: str) -> dict:
         """Checkpoint 3: Verify the final output has IRAC structure."""
+        # ProcessVerifier lives in qwed_new (not qwed_sdk) as it's part of the core engine
         from qwed_new.guards.process_guard import ProcessVerifier
         
         verifier = ProcessVerifier()
@@ -474,7 +476,7 @@ class QWEDVerificationLayer:
 
 ---
 
-## 13.6: Lab — Build a Governed Agent Pipeline
+## 13.6: Lab: Build a Governed Agent Pipeline
 
 ### Exercise: End-to-End Secure Orchestration
 
