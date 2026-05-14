@@ -83,8 +83,8 @@ graph TB
         E --> F{Proven<br/>Correct?}
     end
     
-    F -->|✅ Yes| G[Approved Answer<br/>100% Confidence]
-    F -->|❌ No| H[Rejected<br/>+ Error Details]
+    F -->|✅ Yes| G[Verified Answer<br/>Deterministic Proof]
+    F -->|❌ No| H[Blocked or Unverifiable<br/>+ Error Details]
     
     style B fill:#ffc107
     style E fill:#2196f3
@@ -154,11 +154,13 @@ Without verification:
 - Users lose trust
 
 With verification:
-- 100% accuracy on verifiable tasks (math, logic, code syntax)
+- Deterministic checks on supported tasks (math, logic, code syntax)
 - Errors caught before deployment
-- Ship with confidence
+- Stronger trust boundaries for critical workflows
 
 **Not all tasks are verifiable** (creative writing isn't), but for **critical outputs** (money, medical, legal), verification is non-negotiable.
+
+If a task cannot be verified, QWED should surface a non-pass state such as `UNVERIFIABLE` or `HUMAN_REVIEW_REQUIRED`, not a weaker confidence score.
 
 ---
 

@@ -10,22 +10,24 @@ import jwt
 
 class QWEDCertificateIssuer:
     """
-    Issues W3C Verifiable Credentials for QWED AI Verification course completion.
-    Uses did:web for decentralized identity (no blockchain needed initially).
+    Issues demo W3C Verifiable Credentials for the learning repository.
+
+    This is educational scaffolding, not a production credential authority.
     """
     
     def __init__(self, issuer_domain: str = "qwed-ai.com", private_key_path: str = None):
         """
         Args:
             issuer_domain: Domain for DID (did:web:qwed-ai.com)
-            private_key_path: Path to private key for signing (if None, generates one)
+            private_key_path: Path to private key for signing.
+                If None, a local ephemeral key is generated for demo use only.
         """
         self.issuer_domain = issuer_domain
         self.did = f"did:web:{issuer_domain}"
         self.private_key = self._load_or_generate_key(private_key_path)
     
     def _load_or_generate_key(self, key_path: Optional[str]):
-        """Load existing key or generate new one"""
+        """Load an existing key or generate an ephemeral demo key."""
         if key_path:
             with open(key_path, 'rb') as f:
                 return serialization.load_pem_private_key(
@@ -34,7 +36,8 @@ class QWEDCertificateIssuer:
                     backend=default_backend()
                 )
         else:
-            # Generate new RSA key (Ephemeral mode - verify in prod needs persistent key)
+            # Generate a demo-only ephemeral RSA key. Do not treat this as a
+            # durable trust anchor and do not commit generated keys.
             return rsa.generate_private_key(
                 public_exponent=65537,
                 key_size=2048,

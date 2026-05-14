@@ -94,9 +94,7 @@
                 }
 
                 if (!didDoc) {
-                    // Fallback hardcoded for demo if fetch fails (CORS etc)
-                    console.warn("Could not fetch DID doc, using hardcoded fallback for demo");
-                    didDoc = { id: "did:web:qwed-ai.com" };
+                    throw new Error("Could not fetch DID document. Verification must fail closed.");
                 }
 
                 // Basic validation logic

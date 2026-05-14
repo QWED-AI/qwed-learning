@@ -207,7 +207,7 @@ class VerifiedPricingEngine:
                 "tax_amount": round(tax_amount, 2),
                 "final_price": final_price,
                 "verified": True,
-                "confidence": 100.0,
+                "verification_status": "VERIFIED",
                 "discount_source": "✅ Database-verified promotion"
             }
             
@@ -284,7 +284,7 @@ if __name__ == "__main__":
     print(f"   LLM hallucinated: {unsafe_result['hallucinated_discount']}% off")
     print(f"   Told customer: ${unsafe_result['advertised_price']:.2f}")
     print(f"   Actual promo: {unsafe_result['real_discount']}% off")
-    print(f\"   Should have said: ${base_price * 0.85:.2f}")
+    print(f"   Should have said: ${base_price * 0.85:.2f}")
     print(f"   ")
     print(f"   📊 BUSINESS IMPACT:")
     print(f"   Loss per sale: ${unsafe_result['revenue_loss_per_sale']:.2f}")

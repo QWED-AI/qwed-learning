@@ -136,7 +136,7 @@ Imagine two students taking a test.
 | **Best For** | Chatbots, content moderation | Finance, Medical, Code, Logic |
 | **Philosophy** | "Be Polite & Safe" | "Be Mathematically True" |
 | **Checks** | Toxicity, PII leaks, jailbreaks | Math errors, logic flaws, code bugs |
-| **Confidence** | ~85-95% (statistical) | 100% (mathematical proof) |
+| **Trust Signal** | Statistical confidence / heuristic scoring | Deterministic proof for supported claim classes |
 
 ---
 

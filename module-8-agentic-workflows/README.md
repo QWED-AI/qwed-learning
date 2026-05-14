@@ -540,7 +540,7 @@ response = verified_engine.query("What are the payment terms?")
 
 ### Turn Claude into a Banking Compliance Officer
 
-Using `qwed-mcp`, you can install QWED verification **directly into Claude Desktop**.
+Using `qwed-mcp`, you can install QWED verification **directly into Claude Desktop**. The current MCP surface is execution-oriented: instead of many fixed `verify_*` tools, Claude receives a deterministic execution tool and can run small Python verification programs through it.
 
 ### Step 1: Install MCP Server
 
@@ -575,19 +575,26 @@ Type this prompt in Claude:
 
 ### What You'll See
 
-```
-🛠️ verify_banking_compliance
-Request: { "scenario": "Senior Citizen Loan approval", "llm_output": "..." }
+```python
+# Tool: execute_python_code
+from qwed_finance import verify_banking_compliance
 
-🛑 BLOCKED by QWED Finance: Senior Citizen Premium (0.50%) applied incorrectly.
-   Logic Trap Detected.
+result = verify_banking_compliance(
+    scenario="Senior Citizen Loan approval",
+    llm_output="Base rate 7%, Premium 0.5%"
+)
 
-⚠️ Claude pivots: "The correct rate is 6.5%, not 7.5%. Seniors receive discounts."
+print(result)
+# {
+#   "status": "BLOCKED",
+#   "reason": "Senior Citizen Premium applied incorrectly",
+#   "details": "Seniors receive a discount, not a premium"
+# }
 ```
 
 ### 🎯 Key Takeaway
 
-> "You didn't just verify code in CI. You **patched Claude's brain** in real-time."
+> "You didn't just add a tool. You inserted a deterministic trust boundary into the agent's execution path."
 
 ---
 

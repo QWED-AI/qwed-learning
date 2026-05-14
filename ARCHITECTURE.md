@@ -1,258 +1,152 @@
 # Architecture Diagrams
 
-Visual guides to understanding QWED's neurosymbolic verification system.
+Visual guides to the current QWED trust-boundary model.
 
 ---
 
-## 1. The Neurosymbolic Flow
+## 1. Deterministic Verification Flow
 
-**How QWED verifies LLM outputs:**
+**How QWED should handle critical claims:**
 
 ```mermaid
 graph TB
-    A[User Query<br/>Natural Language] --> B[LLM<br/>Translator]
-    B --> C{Can Translate<br/>to DSL?}
-    C -->|Yes| D[Domain-Specific Language<br/>SymPy/Z3/AST]
-    C -->|No| E[Consensus Engine<br/>Multi-Provider]
-    D --> F[Symbolic Engine<br/>Executes DSL]
-    E --> G[Cross-Check Results]
-    F --> H{Proven<br/>Correct?}
-    G --> H
-    H -->|✅ Yes| I[Return Verified Result<br/>Confidence: 100%]
-    H -->|❌ No| J[Return Error<br/>+ Explanation]
-    
+    A["User Query"] --> B["LLM Translator<br/>Untrusted"]
+    B --> C{"Can the claim be reduced<br/>to a supported deterministic form?"}
+    C -->|Yes| D["DSL / Structured Claim<br/>SymPy / Z3 / AST / policy rules"]
+    C -->|No| E["Unsupported or heuristic path"]
+    D --> F["Deterministic Engine"]
+    F --> G{"Proof result"}
+    G -->|Verified| H["Return VERIFIED result"]
+    G -->|Invalid| I["Return INVALID result"]
+    E --> J["Return UNVERIFIABLE<br/>or HUMAN_REVIEW_REQUIRED"]
+
     style B fill:#ffc107
     style F fill:#4caf50
-    style I fill:#4caf50
-    style J fill:#f44336
+    style H fill:#4caf50
+    style I fill:#f44336
+    style J fill:#ff9800
 ```
 
-**Key Insight:** LLM translates, symbolic engine proves. Never trust LLM to compute!
+**Key insight:** the LLM may translate, summarize, or extract, but the trust decision belongs to the deterministic layer.
 
 ---
 
-## 2. The 8 Verification Engines
+## 2. Result States Matter
 
-**Domain-specific routing:**
+QWED should keep these categories separate:
+
+| State | Meaning |
+|------|---------|
+| `VERIFIED` | A supported deterministic check proved the claim |
+| `INVALID` | A supported deterministic check disproved the claim |
+| `UNVERIFIABLE` | The claim could not be proved with the available deterministic machinery |
+| `HEURISTIC` | A useful signal exists, but not a proof |
+| `SIMPLIFIED` | An expression was transformed, not proved |
+
+Do not collapse these into a single "confidence" field.
+
+---
+
+## 3. Domain Routing
 
 ```mermaid
 graph LR
-    A[User Query] --> B{Domain<br/>Detector}
-    
-    B -->|Math| C[Math Verifier<br/>SymPy + NumPy]
-    B -->|Logic| D[Logic Verifier<br/>Z3 Solver]
-    B -->|Code| E[Code Security<br/>AST + Semgrep]
-    B -->|SQL| F[SQL Validator<br/>SQLGlot]
-    B -->|Stats| G[Stats Engine<br/>Pandas]
-    B -->|Facts| H[Fact Checker<br/>NLI Model]
-    B -->|Images| I[Image Verifier<br/>OpenCV]
-    B -->|Unknown| J[Consensus<br/>Multi-LLM]
-    
-    C --> K[✅ Verified Result]
-    D --> K
-    E --> K
-    F --> K
-    G --> K
-    H --> K
-    I --> K
-    J --> K
-    
-    style C fill:#2196f3
-    style D fill:#9c27b0
-    style E fill:#f44336
-    style F fill:#ff9800
-    style G fill:#4caf50
-    style H fill:#00bcd4
-    style I fill:#e91e63
-    style J fill:#607d8b
+    A["User Query"] --> B{"Claim class"}
+
+    B -->|Math / symbolic| C["Math verifier"]
+    B -->|Logic / constraints| D["Logic verifier"]
+    B -->|Code structure / policy| E["Code verifier"]
+    B -->|SQL structure / safety| F["SQL verifier"]
+    B -->|Unsupported semantic task| G["Do not auto-approve"]
+
+    C --> H["VERIFIED / INVALID / SIMPLIFIED"]
+    D --> I["VERIFIED / INVALID"]
+    E --> J["VERIFIED / INVALID / BLOCKED"]
+    F --> K["VERIFIED / INVALID / BLOCKED"]
+    G --> L["UNVERIFIABLE / HUMAN_REVIEW_REQUIRED"]
 ```
 
 ---
 
-## 3. PII Masking Flow
+## 4. Safe Error Handling
 
-**HIPAA/GDPR compliance:**
+**Fail closed, not gracefully open:**
+
+```mermaid
+graph TD
+    A["Critical query"] --> B["Try primary translation path"]
+    B --> C{"Translation + verification succeeded?"}
+    C -->|Yes| D["Return VERIFIED / INVALID result"]
+    C -->|No| E["Try alternate translation path"]
+    E --> F{"Verification succeeded?"}
+    F -->|Yes| D
+    F -->|No| G["Mark request UNVERIFIABLE"]
+    G --> H["Log, alert, and preserve context"]
+    H --> I["Block, quarantine, or route to human review"]
+
+    style D fill:#4caf50
+    style G fill:#ff9800
+    style I fill:#f44336
+```
+
+What should **not** happen:
+
+- returning a conservative fallback value
+- lowering a confidence score and continuing
+- silently switching to unverified LLM output
+
+---
+
+## 5. Audit and Provenance
 
 ```mermaid
 sequenceDiagram
     participant User
+    participant App
     participant QWED
-    participant PIIDetector
-    participant LLM
-    participant SymEngine
-    
-    User->>QWED: Query with PII<br/>Calculate for SSN: 123-45-6789
-    QWED->>PIIDetector: Detect PII
-    PIIDetector-->>QWED: Found: [US_SSN]
-    QWED->>QWED: Mask PII<br/>Calculate for SSN: US_SSN
-    QWED->>LLM: Send masked query
-    LLM-->>QWED: Translation (DSL)
-    QWED->>SymEngine: Execute DSL
-    SymEngine-->>QWED: Verified result
-    QWED-->>User: Result + PII audit info
-    
-    Note over PIIDetector,LLM: LLM NEVER sees real PII!
-    
-    rect rgb(76, 175, 80, 0.1)
-        Note right of PIIDetector: ✅ Compliant with:<br/>HIPAA, GDPR, PCI-DSS
-    end
+    participant Ledger
+
+    User->>App: Critical request
+    App->>QWED: Verify claim
+    QWED-->>App: VERIFIED / INVALID / UNVERIFIABLE
+    App->>Ledger: Record decision, evidence, and context
+    Ledger-->>App: Persisted audit trail
+    App-->>User: Allowed, blocked, or escalated response
 ```
+
+Auditability is valuable, but auditability is not proof. A logged heuristic answer is still heuristic.
 
 ---
 
-## 4. LangChain Integration
-
-**Agent + QWED flow:**
+## 6. Agent and MCP Boundary
 
 ```mermaid
 graph TB
-    A[User: Calculate 2+2 and verify] --> B[LangChain Agent]
-    B --> C{Choose Tool}
-    C -->|Math Query| D[QWEDTool]
-    C -->|Search| E[DuckDuckGo]
-    C -->|Wikipedia| F[WikipediaTool]
-    
-    D --> G[QWED Verification]
-    G --> H[Symbolic Proof]
-    H --> I[Verified: 4]
-    I --> B
-    
-    E --> B
-    F --> B
-    
-    B --> J[Final Answer<br/>with Proof]
-    J --> A
-    
-    style D fill:#ffc107
-    style H fill:#4caf50
-    style J fill:#2196f3
+    A["Agent request"] --> B["Tool / MCP boundary"]
+    B --> C{"Can execution be verified<br/>or policy-checked deterministically?"}
+    C -->|Yes| D["Execute through verified gateway"]
+    C -->|No| E["Refuse or require human review"]
+
+    D --> F["Record provenance + audit trail"]
+    E --> F
 ```
 
----
+Modern QWED education should teach that:
 
-## 5. Production Deployment Architecture
-
-**Scalable verification system:**
-
-```mermaid
-graph TB
-    subgraph Client Layer
-        A1[Web App]
-        A2[Mobile App]
-        A3[API Client]
-    end
-    
-    subgraph Load Balancer
-        B[NGINX/<br/>API Gateway]
-    end
-    
-    subgraph Application Layer
-        C1[FastAPI<br/>Instance 1]
-        C2[FastAPI<br/>Instance 2]
-        C3[FastAPI<br/>Instance N]
-    end
-    
-    subgraph QWED Layer
-        D1[QWED Client<br/>+ Cache]
-        D2[QWED Client<br/>+ Cache]
-        D3[QWED Client<br/>+ Cache]
-    end
-    
-    subgraph External Services
-        E1[OpenAI API]
-        E2[Anthropic API]
-        E3[Ollama Local]
-    end
-    
-    subgraph Data Layer
-        F1[Redis Cache]
-        F2[PostgreSQL<br/>Audit Logs]
-        F3[Prometheus<br/>Metrics]
-    end
-    
-    A1 --> B
-    A2 --> B
-    A3 --> B
-    
-    B --> C1
-    B --> C2
-    B --> C3
-    
-    C1 --> D1
-    C2 --> D2
-    C3 --> D3
-    
-    D1 --> E1
-    D1 --> E2
-    D1 --> E3
-    D2 --> E1
-    D2 --> E2
-    D2 --> E3
-    D3 --> E1
-    D3 --> E2
-    D3 --> E3
-    
-    D1 --> F1
-    D2 --> F1
-    D3 --> F1
-    
-    C1 --> F2
-    C2 --> F2
-    C3 --> F2
-    
-    C1 --> F3
-    C2 --> F3
-    C3 --> F3
-    
-    style D1 fill:#4caf50
-    style D2 fill:#4caf50
-    style D3 fill:#4caf50
-    style F1 fill:#2196f3
-```
+- tool descriptions can be poisoned
+- execution provenance matters
+- replay and context binding matter
+- unsupported execution requests must fail closed
 
 ---
 
-## 6. Error Handling Flow
+## 7. What This Architecture Is Not
 
-**Graceful degradation:**
+This repo should not teach:
 
-```mermaid
-graph TD
-    A[Calculate Query] --> B[Try Primary Provider<br/>OpenAI]
-    B --> C{Success?}
-    C -->|✅| D[Return Verified Result]
-    C -->|❌| E[Try Fallback<br/>Anthropic]
-    E --> F{Success?}
-    F -->|✅| D
-    F -->|❌| G[Try Local<br/>Ollama]
-    G --> H{Success?}
-    H -->|✅| D
-    H -->|❌| I[Use Conservative<br/>Fallback Value]
-    I --> J[Log Warning<br/>+ Alert Ops]
-    J --> K[Return Unverified<br/>Confidence: 0%]
-    
-    style D fill:#4caf50
-    style I fill:#ff9800
-    style K fill:#f44336
-```
+- "100% confidence" as the label for proof
+- "safe default" as a substitute for verification
+- "retry until something works" as a trust strategy
+- "observed output" as equivalent to "audited output"
 
----
-
-## Legend
-
-- **Yellow/Orange** 🟨 = LLM components (probabilistic)
-- **Green** 🟩 = Symbolic engines (deterministic)
-- **Blue** 🟦 = Infrastructure/Data
-- **Red** 🟥 = Errors/Failures
-- **Purple** 🟪 = Logic/Constraints
-
----
-
-## Usage in Course
-
-These diagrams appear in:
-- Module 2: Neurosymbolic Theory
-- Module 3: Production Patterns
-- Module 4: Advanced Architectures
-
-**Mermaid rendering:** GitHub automatically renders these diagrams!
+The curriculum should teach trust-boundary engineering, not just AI convenience patterns.

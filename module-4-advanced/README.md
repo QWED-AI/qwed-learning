@@ -360,7 +360,7 @@ def monitored_verify(query: str):
         logger.info({
             "query": query,
             "verified": result.verified,
-            "confidence": result.confidence,
+            "status": "VERIFIED" if result.verified else "UNVERIFIABLE",
             "latency_ms": (time.time() - start_time) * 1000,
             "method": result.evidence.get('method')
         })
@@ -512,30 +512,29 @@ breaker = VerificationCircuitBreaker()
 result = breaker.call(client.verify_math, query)
 ```
 
-### Pattern 3: Graceful Degradation
+### Pattern 3: Fail-Closed Degradation
 
 ```python
-def verify_with_degradation(query: str):
-    """Try verification, gracefully degrade if fails."""
-    
+def verify_with_fail_closed_handling(query: str):
+    """Try deterministic verification, then return an explicit non-pass state."""
+
     try:
-        # Try symbolic verification
         result = client.verify_math(query)
         if result.verified:
-            return {"value": result.value, "confidence": 100, "method": "verified"}
-    except Exception:
-        pass
-    
-    try:
-        # Fallback: LLM only (no verification)
-        llm_result = call_llm(query)
-        logger.warning("Degraded to unverified LLM")
-        return {"value": llm_result, "confidence": 50, "method": "unverified"}
-    except Exception:
-        pass
-    
-    # Ultimate fallback
-    return {"value": None, "confidence": 0, "method": "failed"}
+            return {
+                "value": result.value,
+                "status": "VERIFIED",
+                "method": "verified",
+            }
+    except Exception as exc:
+        logger.error(f"Verification infrastructure failure: {exc}")
+
+    return {
+        "value": None,
+        "status": "UNVERIFIABLE",
+        "method": "blocked",
+        "message": "No deterministic proof was established",
+    }
 ```
 
 ---
