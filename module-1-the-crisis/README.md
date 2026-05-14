@@ -1,428 +1,208 @@
-# Module 1: The Crisis - Why LLMs Can't Be Trusted
+# Module 1: The Crisis - Why LLMs Cannot Be Trusted by Default
 
 **Duration:** 30 minutes  
 **Difficulty:** Beginner
 
-## 🎯 Learning Objectives
+## Learning objectives
 
 By the end of this module, you will:
-- Understand the fundamental problem with probabilistic AI systems
-- See real financial consequences of LLM errors
-- Recognize why current "solutions" fail
-- Know when verification is critical
+- understand why probabilistic outputs are unsafe trust anchors
+- see how plausible answers can still be materially wrong
+- distinguish confidence from proof
+- understand why QWED blocks unverifiable outputs instead of downgrading them
 
 ---
 
-## 💸 1.1 The $12,889 Bug
+## 1.1 The $12,889 bug
 
-### The Story
-
-A fintech startup built an AI financial advisor using GPT-4. A customer asked:
+A fintech startup built an AI financial advisor. A customer asked:
 
 > "I have $100,000. What will it grow to at 5% annual interest over 10 years?"
 
-**GPT-4's Answer:** $150,000
+The model answered: **$150,000**  
+The correct compound-interest answer is: **$162,889.46**
 
-**Reality:** $162,889.46
-
-**Error:** $12,889 per calculation 💸
-
-### What Happened?
-
-The LLM used **simple interest** instead of **compound interest**.
+The failure was not subtle. The model used simple interest instead of compound interest.
 
 ```python
-# What GPT-4 did (WRONG):
-simple = 100000 + (100000 * 0.05 * 10)  # $150,000
+# Wrong mental shortcut
+simple = 100000 + (100000 * 0.05 * 10)  # 150000
 
-# What it should have done:
-compound = 100000 * (1 + 0.05)**10      # $162,889.46
+# Correct compound-interest calculation
+compound = 100000 * (1 + 0.05) ** 10  # 162889.46
 ```
 
-### Why This Happened
+### Why this happened
 
-**LLMs don't "calculate" - they pattern match.**
+LLMs do not prove calculations. They predict plausible continuations.
 
-- GPT-4 has seen thousands of finance problems in training
-- It recognized the pattern and generated a plausible response
-- The formula *looked* right, but was mathematically wrong
-- **Confidence score: 95%** (completely meaningless)
+- the prompt looked like many examples in training data
+- the generated answer looked financially reasonable
+- the model could still be wrong even if it sounded certain
+- an LLM confidence score is not a verification result
 
-### Production Impact
+### Production impact
 
-**If deployed at scale:**
-- 1,000 users/day = **$12.8M in errors/day**
-- Legal liability
-- Destroyed trust
-- Business shut down
+If a system like this serves 1,000 users per day, a single repeated formula error can become a multi-million dollar trust and compliance failure.
 
-> **The Pattern:** LLMs predict plausible text, not provably correct text.
+> **Pattern:** LLMs generate plausible text. QWED is used when a claim must be checked, not merely phrased convincingly.
 
-**What QWED Can and Cannot Do:**
+---
+
+## 1.2 What QWED can and cannot verify
 
 ```mermaid
 graph TB
-    A[LLM Output] --> B{Is it<br/>Verifiable?}
-    
-    B -->|Yes - Deterministic| C[QWED can verify]
-    B -->|No - Subjective| D[QWED cannot help]
-    
-    C --> E[Math<br/>✅ SymPy proves it]
-    C --> F[Logic<br/>✅ Z3 proves it]
-    C --> G[Code Syntax<br/>✅ AST validates it]
-    
-    D --> H[Creative Writing<br/>❌ No proof possible]
-    D --> I[Opinions<br/>❌ Subjective]
-    D --> J[Casual Chat<br/>❌ No rules to verify]
-    
-    style C fill:#4caf50
-    style D fill:#ff9800
-    style E fill:#4caf50
-    style F fill:#4caf50
-    style G fill:#4caf50
-    style H fill:#607d8b
-    style I fill:#607d8b
-    style J fill:#607d8b
+    A["LLM Output"] --> B{"Is the claim formally checkable?"}
+    B -->|Yes| C["Deterministic verification path"]
+    B -->|No| D["No proof path available"]
+    C --> E["Math"]
+    C --> F["Logic"]
+    C --> G["Code / syntax / policy"]
+    D --> H["Creative writing"]
+    D --> I["Opinion / interpretation"]
+    D --> J["Open-ended chat"]
 ```
 
-**Key takeaway:** QWED catches 100% of errors in verifiable domains. For creative tasks, you still need human judgment.
+### Key rule
+
+QWED does not make all AI outputs trustworthy. It separates:
+
+- claims that can be verified
+- claims that are invalid
+- claims that are currently unverifiable
+
+For unsupported tasks, the correct result is often:
+
+- `UNVERIFIABLE`
+- `BLOCKED`
+- `HUMAN_REVIEW_REQUIRED`
+
+not a lower-confidence answer.
 
 ---
 
-## 📊 1.1b Case Study: The Senior Citizen Trap (Real Audit)
+## 1.3 Case study: the senior citizen trap
 
-### From Our Production Audit
-
-We ran 50 adversarial scenarios against GPT-4.1 (Azure). Here's one that **failed** without QWED:
+From a production audit:
 
 | Field | Value |
 |-------|-------|
-| **Scenario ID** | `50ebf9bc8d10` |
-| **Type** | Senior Citizen Fixed Deposit |
-| **User Query** | "Calculate FD maturity for 65yo depositing ₹5L at 7% base + 0.50% senior premium" |
-| **LLM Answer** | "Total rate: 7.50% (base + premium)" |
-| **Correct Answer** | "Total rate: 6.50% (seniors get DISCOUNT, not surcharge)" |
-| **Result** | 🛑 **BLOCKED by QWED** |
+| Scenario | Senior citizen fixed deposit |
+| User query | "Calculate FD maturity for 65yo depositing 5L at 7% base + 0.50% senior premium" |
+| LLM answer | "Total rate: 7.50% (base + premium)" |
+| Correct answer | "Total rate: 6.50% (premium is a discount/benefit in this product context)" |
+| Result | `BLOCKED` |
 
-### The Logic Trap
+### What went wrong
 
-The LLM saw "premium" and **assumed addition**. But in banking:
-- "Senior Citizen Premium" = **benefit** (rate reduction)
-- The correct formula: `7.00% - 0.50% = 6.50%`
+The model saw the word **premium** and assumed addition. In this domain, the premium represented a customer benefit.
 
-### What QWED Caught
+### Current MCP-shaped verification example
+
+This is an **illustrative integration pattern**, not a copy-paste runnable snippet from
+this repository. `qwed-mcp` is installed separately (for example, `pip install qwed-mcp`),
+and `qwed_finance` here represents a package-backed verifier surface that may live outside
+the learning repo.
 
 ```python
-from qwed_mcp import verify_banking_compliance
+from qwed_mcp import execute_python_code
+
+result = execute_python_code(
+    code="""
+from qwed_finance import verify_banking_compliance
 
 result = verify_banking_compliance(
     scenario="Senior Citizen Loan approval",
-    llm_output="Base 7% + Premium 0.5% = 7.5%"
+    llm_output="Base 7% + Premium 0.5% = 7.5%",
+)
+print(result)
+"""
 )
 
-# 🛑 BLOCKED: Senior Citizen Premium applied incorrectly. Logic Trap Detected.
+# Expected outcome:
+# BLOCKED - Senior Citizen Premium applied incorrectly.
 ```
 
-### Production Stats (50 Scenarios)
+### Lesson
 
-| Model | Pass Rate | Blocked by QWED |
-|-------|-----------|-----------------|
-| GPT-4.1 (Azure) | 84% | 8/50 |
-| Claude 4.5 Sonnet | 64% | 18/50 |
-
-> **The Lesson:** Even the best LLMs fail on domain-specific edge cases. QWED catches them all.
+Even strong models fail on domain-specific logic traps. QWED's role is not to make the model "more confident". Its role is to stop an unsafe claim from becoming trusted output.
 
 ---
 
-## 🎲 1.2 The Probabilistic Problem
+## 1.4 The probabilistic problem
 
-### How LLMs Actually Work
-
-LLMs are **next-token predictors**, not reasoners:
-
-1. Input: "What is 2+2?"
-2. LLM thinks: "I've seen this pattern before..."
-3. Output: "4" (because it's common in training data)
-
-**This works great... until it doesn't.**
-
-### Temperature = Built-in Randomness
+LLMs are next-token predictors.
 
 ```python
-# Same input, different outputs:
-for i in range(3):
+for _ in range(3):
     response = llm.generate("Calculate 137 * 89", temperature=0.7)
     print(response)
-    
-# Output:
-# Run 1: "12,193"  ✅ correct
-# Run 2: "12,183"  ❌ wrong
-# Run 3: "12,193"  ✅ correct
 ```
 
-**Even at temperature=0, subtle differences occur due to:**
-- Token sampling algorithms
-- Floating-point precision
-- Internal model state
+A model may produce the correct answer often and still remain the wrong primitive for a trust-critical guarantee.
 
-### Why This is Fundamentally Unsafe
+Deterministic systems:
 
-**Deterministic Systems:**
 ```python
 def calculate(a, b):
     return a * b
-
-# ALWAYS: calculate(137, 89) == 12193
 ```
 
-**Probabilistic Systems (LLMs):**
+Probabilistic systems:
+
 ```python
 def llm_calculate(a, b):
-    return "probably something around " + generate_token()
-    
-# MAYBE: llm_calculate(137, 89) == "12193"
+    return "probably " + generate_token()
 ```
 
-> **Key Insight:** You can't build reliable systems on unreliable foundations.
+> **Key insight:** reliability cannot be derived from confidence language alone.
 
 ---
 
-## 📊 1.3 Benchmark Reality Check
+## 1.5 Why common AI fixes are insufficient
 
-We benchmarked **Claude Opus 4.5** (one of the world's best LLMs) on 215 critical tasks.
+### RAG
+- can improve grounding
+- does not prove math, logic, or policy compliance
 
-### Results:
+### Prompt engineering
+- can reduce some classes of mistakes
+- does not produce deterministic guarantees
 
-| Domain | Accuracy | Implications |
-|--------|----------|--------------|
-| **Finance** | 73% | 27 out of 100 calculations wrong |
-| **Logic** | 78% | Can't follow basic if-then rules |
-| **Adversarial** | 85% | Falls for authority bias tricks |
+### Fine-tuning
+- can improve domain familiarity
+- still leaves the core system probabilistic
 
-![Benchmark Chart](../assets/benchmark_chart.png)
-
-### What This Means
-
-**Even the BEST LLM:**
-- ❌ Fails 1 in 4 financial calculations
-- ❌ Can't reliably verify logical statements
-- ❌ Vulnerable to manipulation
-
-**In Production:**
-- Healthcare: Wrong drug dosage = patient harm
-- Legal: Incorrect contract interpretation = lawsuit
-- Finance: Bad calculations = regulatory violation
-
-### The QWED Difference
-
-**With QWED verification:**
-- ✅ 100% detection of errors*
-- ✅ Caught all 22 failures before production
-- ✅ Mathematical proof of correctness
-
-> **\*Important Note:** 100% detection applies to mathematically verifiable domains 
-> (math, logic, code syntax, SQL validation). Subjective tasks like creative writing 
-> or opinions cannot be verified using symbolic methods and remain probabilistic.
-
-📄 **[Read Full Benchmark Report](https://github.com/QWED-AI/qwed-verification/blob/main/BENCHMARKS.md)**
+### Human preference training
+- can improve helpfulness
+- does not transform plausibility into proof
 
 ---
 
-## 🚫 1.4 Current "Solutions"  Don't Work
+## 1.6 What we actually need
 
-### ❌ RAG (Retrieval-Augmented Generation)
+The incorrect approach is:
 
-**What it does:** Fetch relevant docs, add to prompt
+1. ask the model
+2. trust the answer if it looks good
+3. soften failure with a fallback
 
-**Why it fails:**
-- ✅ Improves grounding
-- ❌ Doesn't prevent calculation errors
-- ❌ Still probabilistic
+The correct pattern is:
 
-**Example:**
-```python
-# RAG can't help with math:
-context = "Interest = Principal × Rate × Time"
-llm_output = llm.generate(prompt + context)
-# Still might use wrong formula!
+1. generate a candidate claim
+2. deterministically verify it if the claim type supports proof
+3. return `VERIFIED` only if verification succeeds
+4. otherwise block, quarantine, or escalate
+
+```text
+LLM candidate -> deterministic verifier -> VERIFIED / INVALID / UNVERIFIABLE
 ```
 
-### ❌ Prompt Engineering
-
-**What it does:** Better prompts = better outputs
-
-**Why it fails:**
-- ✅ Reduces errors ~20%
-- ❌ Can't eliminate them
-- ❌ Requires constant tweaking
-
-**Example:**
-```python
-prompt = """
-You are a precise financial calculator.
-Calculate compound interest for $100K at 5% for 10 years.
-Show your work step by step.
-Double-check your math.
-"""
-# Still might make mistakes!
-```
-
-### ❌ RLHF (Reinforcement Learning from Human Feedback)
-
-**What it does:** Train on human preferences
-
-**Why it fails:**
-- ✅ Improves helpfulness
-- ❌ Still probabilistic at core
-- ❌ Expensive ($$$)
-
-### ❌ Fine-tuning
-
-**What it does:** Retrain on domain-specific data
-
-**Why it fails:**
-- ✅ Better at domain tasks
-- ❌ See problem #1,000,001 → guess
-- ❌ Very expensive
+This is the trust-boundary mindset the rest of the course builds on.
 
 ---
 
-## ✅ 1.5 What We Actually Need
+## Next step
 
-### The Core Principle
-
-**Don't fix the liar. Verify the lie.**
-
-### Separation of Concerns
-
-```
-┌─────────────────┐
-│   LLM (Guesser) │  ← Probabilistic, creative
-└────────┬────────┘
-         │ Unverified output
-         ▼
-┌─────────────────┐
-│ Verifier (Judge)│  ← Deterministic, rigorous
-└────────┬────────┘
-         │
-    ┌────┴────┐
-    ▼         ▼
-  ❌ rej    ✅ Verified
-```
-
-### Deterministic Verification
-
-**What this means:**
-- Same input → Same verification result (always)
-- Mathematical proof (not probability)
-- 100% reproducible
-
-**Example:**
-```python
-from qwed_sdk import QWEDLocal
-
-client = QWEDLocal(model="llama3")
-
-# LLM says derivative of x² is 3x (WRONG)
-result = client.verify_math("What is derivative of x²?")
-
-print(result.verified)  # False
-print(result.value)     # 2*x (CORRECT)
-print(result.method)    # symbolic (SymPy proof)
-```
-
-### When Verification is Critical
-
-✅ **Use verification when:**
-- Financial calculations
-- Medical dosages
-- Legal interpretations
-- Code security
-- Regulatory compliance
-
-❌ **Don't need verification when:**
-- Creative writing
-- Brainstorming ideas
-- Casual conversation
-- Subjective opinions
-
----
-
-## 🎓 Exercises
-
-### Exercise 1: Calculate the Cost
-
-Your company uses LLMs for 1,000 calculations/day with 5% error rate.
-
-**Questions:**
-1. How many errors per day?
-2. If each error costs $100 to fix, what's monthly cost?
-3. At what error rate does verification become worth it?
-
-<details>
-<summary>Solution</summary>
-
-1. 1000 * 0.05 = **50 errors/day**
-2. 50 * 100 * 30 = **$150,000/month**
-3. If verification costs $10K/month, break-even at 100 errors (~2% error rate)
-
-**Lesson:** Even small error rates are expensive!
-</details>
-
-### Exercise 2: Identify the Need
-
-Which of these needs verification?
-
-- [ ] AI writes marketing email
-- [ ] AI calculates tax deductions
-- [ ] AI suggests movie recommendations
-- [ ] AI reviews code for SQL injection
-- [ ] AI generates bedtime story
-
-<details>
-<summary>Answer</summary>
-
-✅ Tax calculations (financial)  
-✅ Code security review (safety)  
-❌ Marketing email (creative)  
-❌ Movie recommendations (subjective)  
-❌ Bedtime story (creative)
-</details>
-
-### Exercise 3: Probabilistic vs Deterministic
-
-Classify these systems:
-
-1. `numpy.sqrt(16)`
-2. `llm.generate("What is sqrt(16)?")`
-3. `sympy.solve(x**2 - 16)`
-4. `random.choice([4, -4])`
-
-<details>
-<summary>Answer</summary>
-
-1. **Deterministic** - Always returns 4.0
-2. **Probabilistic** - Might return "4", "4.0", "four", etc.
-3. **Deterministic** - Always returns {4, -4}
-4. **Probabilistic** - Random selection
-</details>
-
----
-
-## 🚀 Next Steps  
-
-**Ready to understand HOW verification works?**
-
-→ **[Module 2: Neurosymbolic Theory](../module-2-neurosymbolic-theory/README.md)**
-
----
-
-## 📚 Additional Resources
-
-- [QWED Benchmark Report](https://github.com/QWED-AI/qwed-verification/blob/main/BENCHMARKS.md)
-- [Why Cloud LLMs vs Local](https://github.com/QWED-AI/qwed-verification/blob/main/docs/WHY_CLOUD_LLMS.md)
-- [LLM Hallucination Research](https://arxiv.org/search/?query=llm+hallucination)
-
----
-
-**Questions or stuck?** 💬 [Start a Discussion](https://github.com/QWED-AI/qwed-learning/discussions)
+Continue to [Module 2](../module-2-qwed-basics/README.md), where we move from the crisis to the core mechanics of deterministic verification.

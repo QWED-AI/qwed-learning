@@ -117,9 +117,9 @@ Module 2 → Module 1.5 → Module 5 → Module 10
 
 **After This Course:**
 - ✅ Understand determinism vs probabilistic systems
-- ✅ Implement formal verification in production
-- ✅ Use mathematical proofs to catch hallucinations
-- ✅ Ship provably correct AI outputs
+- ✅ Implement fail-closed verification boundaries in production
+- ✅ Distinguish proof, simplification, validation, and heuristic output
+- ✅ Design AI systems that block unsupported trust claims
 
 ---
 
@@ -145,8 +145,8 @@ graph LR
     B --> C["Draft Answer<br/>May contain errors"]
     C --> D["QWED Accountant<br/>Strict & Deterministic"]
     D --> E{"Mathematically<br/>Proven?"}
-    E -->|"✅ Yes"| F["Verified Output<br/>100% Confidence"]
-    E -->|"❌ No"| G["Error Report<br/>+ Explanation"]
+    E -->|"✅ Yes"| F["Verified Output<br/>Deterministic Evidence"]
+    E -->|"❌ No"| G["Blocked or Unverifiable<br/>+ Explanation"]
     
     style B fill:#ffc107
     style D fill:#4caf50
@@ -157,6 +157,19 @@ graph LR
 ---
 
 ## ❓ Quick Questions Before You Start
+
+<details>
+<summary><strong>What is the most important concept in this course?</strong></summary>
+
+**Proof is not confidence.**
+
+QWED is about deterministic verification and explicit non-pass states, not stronger confidence scores.
+
+Start here before the rest of the curriculum:
+
+- [Module 0: Proof vs. Confidence](module-0-prerequisites/00-proof-vs-confidence.md)
+
+</details>
 
 <details>
 <summary><strong>Do I need a GPU?</strong></summary>
@@ -261,7 +274,7 @@ CC0-1.0 - Public domain. Free to use, modify, and share!
 
 **Ready to build trustworthy AI?**
 
-### [🚀 Start with Module 1](module-1-the-crisis/README.md)
+### [🚀 Start with Module 0](module-0-prerequisites/00-proof-vs-confidence.md)
 
 *"Safe AI is the only AI that scales."*
 

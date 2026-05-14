@@ -1,258 +1,160 @@
-# Module 0: Prerequisites - AI Verification Basics
+# Module 0: Prerequisites - Trust-Boundary Basics
 
-**Duration:** 20 minutes
-
-**For:** Developers new to LLMs or AI verification
-
-**Goal:** Understand core concepts before diving into verification techniques
+**Duration:** 20 minutes  
+**For:** Developers new to LLMs, verification, or trust-critical AI systems  
+**Goal:** Build the right mental model before touching any QWED API
 
 ---
 
 ## What You'll Learn
 
-- 🤖 What is an LLM and how does it work?
-- 💭 What are hallucinations and why do they happen?
-- ⚖️ Probabilistic vs. Deterministic systems
-- 🎯 Why verification is critical for production AI
+- Proof vs. confidence
+- What an LLM actually does
+- Why hallucinations are inevitable
+- Probabilistic vs. deterministic systems
+- Why fail-closed verification matters
 
 ---
 
-## 1. What is a Large Language Model (LLM)?
+## Start Here First
 
-### The Simple Explanation
+Before anything else, read:
 
-An LLM is a **text prediction machine** trained on massive amounts of internet text.
+- [Proof vs. Confidence](00-proof-vs-confidence.md)
+- [What Are Formal Methods?](01-formal-methods-intro.md)
 
-**How it works:**
-1. You give it a prompt: `"The capital of France is"`
-2. It predicts the most likely next word: `"Paris"`
-3. It keeps predicting: `"Paris, known for the Eiffel Tower..."`
+These two lessons establish the distinction that drives the entire QWED ecosystem:
 
-**Key insight:** It doesn't "know" facts. It predicts patterns.
+- parsing is not proof
+- simplification is not verification
+- confidence is not evidence
+- unsupported is not approved
 
-### Real Example
+---
+
+## 1. What Is a Large Language Model?
+
+An LLM is a **text prediction system** trained on massive corpora.
+
+It does not "know" facts the way a deterministic engine proves facts. It predicts likely continuations.
+
+### Example
 
 ```python
 Prompt: "2 + 2 ="
-LLM predicts: "4" ✅ (saw this pattern a million times)
+LLM predicts: "4"
 
-Prompt: "2843 + 7291 ="  
-LLM predicts: "10134" ✅ or "9134" ❌ (less common, might guess wrong)
+Prompt: "2843 + 7291 ="
+LLM predicts a likely continuation, which may still be wrong
 ```
 
 ### What LLMs Are Good At
 
-✅ **Pattern Recognition**
-- Writing emails
-- Translating languages
-- Summarizing text
-- Code generation (common patterns)
-
-✅ **Creative Tasks**
-- Brainstorming ideas
-- Writing stories
-- Conversational responses
+- drafting language
+- summarization
+- translation
+- extracting structured information
+- conversational interaction
 
 ### What LLMs Are Bad At
 
-❌ **Precise Calculations**
-- Math (they predict digits, not calculate)
-- Logic (they pattern-match, not reason)
-- Code execution (they generate code, can't run it)
-
-❌ **Factual Accuracy**
-- Might mix up dates, numbers, names
-- Can't distinguish truth from plausible-sounding fiction
+- exact arithmetic
+- formal logic
+- safety-critical execution decisions
+- distinguishing a plausible answer from a proved answer
 
 ---
 
 ## 2. What Are Hallucinations?
 
-### Definition
+A hallucination is a plausible-sounding output that is still wrong.
 
-**Hallucination:** When an LLM generates plausible-sounding but incorrect information.
+This happens because LLMs optimize for pattern completion, not truth.
 
-### Why They Happen
+### Examples of Hallucinations
 
-LLMs are trained to predict **plausible** text, not **true** text.
-
-**Example:**
-```
-User: "Who was the first person on Mars?"
-LLM: "Neil Armstrong in 1969."
-
-✅ Plausible (Armstrong was first on Moon)
-❌ Wrong (no one has been to Mars yet)
-```
-
-### Types of Hallucinations
-
-1. **Factual Errors**
-   - Wrong dates, numbers, names
-   - "iPhone 15 was released in 2019" ❌
-
-2. **Logic Errors**
-   - "If A > B and B > C, then C > A" ❌
-
-3. **Calculation Errors**
-   - "15% of $200 is $35" ❌ (should be $30)
-
-4. **Invented References**
-   - "According to study XYZ-2023..." (study doesn't exist)
-
-### Real-World Impact
-
-**Healthcare:** Wrong dosage (could be fatal)  
-**Finance:** Incorrect interest calculation ($12,889 error in production)  
-**Legal:** Fake case citations (lawyer sanctioned)  
-**E-commerce:** Hallucinated discounts (revenue loss)
+- wrong calculations
+- fake legal citations
+- invalid medical dosages
+- invented policies, studies, or references
 
 ---
 
 ## 3. Probabilistic vs. Deterministic Systems
 
-### Probabilistic (LLMs)
+### Probabilistic Systems
 
-**How it works:** Predicts based on patterns and probabilities
+LLMs are probabilistic:
 
-```python
-# LLM generates different answers each time
-llm("What is 2+2?")
-→ "4" (90% probability)
-→ "2+2 equals four" (8%)
-→ "The answer is 4" (2%)
+- they generate likely outputs
+- they may vary across runs
+- they can be helpful without being provable
+
+### Deterministic Systems
+
+Deterministic engines:
+
+- follow exact rules
+- produce the same result for the same input
+- can prove or reject claims within supported domains
+
+### Why QWED Uses Both
+
+QWED uses the LLM as an **untrusted translator** and the deterministic engine as the **trust decision layer**.
+
+```text
+User query -> LLM translation -> deterministic verification -> verified / invalid / unverifiable
 ```
-
-**Characteristics:**
-- ✅ Flexible, creative
-- ✅ Handles ambiguity well
-- ❌ Not 100% reliable
-- ❌ Different outputs for same input
-
-**Use cases:** Creative writing, summarization, conversation
-
-### Deterministic (Verification Engines)
-
-**How it works:** Follows exact rules, always same output
-
-```python
-# Calculator always gives same answer
-calculator(2 + 2)
-→ 4 (100% certainty, always)
-```
-
-**Characteristics:**
-- ✅ 100% reliable (for verifiable tasks)
-- ✅ Same input = same output
-- ❌ Can't handle ambiguity
-- ❌ Needs precise specifications
-
-**Examples:** SymPy (math), Z3 (logic), compilers (code)
-
-### Why Both Matter
-
-**Best practice:** Use LLM for **generation**, deterministic tools for **verification**
-
-```
-User Query (English)
-    ↓
-LLM translates to code
-    ↓
-Deterministic engine verifies
-    ↓
-Return verified result
-```
-
-This is the **neurosymbolic approach** QWED uses!
 
 ---
 
-## 4. Why Verification is Critical
+## 4. Why Verification Is Critical
 
-### The Trust Problem
+Without verification:
 
-**Without Verification:**
-- Hope LLM is right (73-85% accuracy on finance tasks)
-- Manually check outputs (slow, error-prone)
-- Ship bugs to production (costly)
+- bugs ship to production
+- users inherit silent trust failures
+- "helpful" outputs can cause financial, legal, or safety harm
 
-**With Verification:**
-- Mathematically prove correctness
-- Block errors before they reach users
-- Ship with confidence
+With verification:
 
-### Cost of Unverified AI
-
-| Industry | Cost of Error | Example |
-|----------|---------------|---------|
-| Healthcare | Lives | Wrong dosage (1000x overdose) |
-| Finance | Revenue | $12,889 calculation error |
-| Legal | Sanctions | Fake case citations |
-| E-commerce | Trust | Hallucinated discounts |
-
-### When Verification is Required
-
-✅ **Must verify:**
-- Financial calculations
-- Medical dosages
-- Legal citations
-- Security checks
-- Regulatory compliance
-
-⏸️ **Optional verification:**
-- Creative writing
-- Casual conversation
-- Brainstorming
-- Subjective opinions
+- supported claims can be checked deterministically
+- invalid claims can be blocked
+- unsupported claims can be surfaced honestly as `UNVERIFIABLE`
 
 ---
 
-## Quick Check: Did You Understand?
+## 5. What Fail-Closed Means
 
-**Answer these to test yourself:**
+When QWED cannot establish proof, the answer should not silently degrade into:
 
-1. **What is an LLM?**
-   <details>
-   <summary>Answer</summary>
-   A text prediction machine that generates likely next words based on training patterns, not facts.
-   </details>
+- a fallback guess
+- a lower confidence answer
+- a default value that looks safe
 
-2. **Why do hallucinations happen?**
-   <details>
-   <summary>Answer</summary>
-   LLMs predict plausible text, not true text. They can't distinguish fact from fiction.
-   </details>
+The right outcomes are:
 
-3. **Difference between probabilistic and deterministic?**
-   <details>
-   <summary>Answer</summary>
-   Probabilistic (LLM): Flexible but unreliable, different outputs each time.  
-   Deterministic (Calculator): Exact same output for same input, 100% reliable.
-   </details>
+- `BLOCKED`
+- `UNVERIFIABLE`
+- `QUARANTINED`
+- `HUMAN_REVIEW_REQUIRED`
 
-4. **When should you use verification?**
-   <details>
-   <summary>Answer</summary>
-   When errors have real consequences: money, lives, legal issues, security.
-   </details>
+This is what makes QWED a trust-boundary system rather than just another AI helper.
 
 ---
 
-## Key Takeaways
+## Quick Check
 
-✅ **LLMs predict patterns, not facts**  
-✅ **Hallucinations are inevitable** (not bugs, it's how they work)  
-✅ **Probabilistic ≠ Deterministic**  
-✅ **Verification prevents costly errors**
+1. What is the difference between a useful answer and a verified answer?
+2. Why is confidence not the same thing as proof?
+3. What should happen when a claim is unsupported?
+4. Why is "safe default" often the wrong pattern for trust-critical AI?
 
-**Next:** Now that you understand the problem, learn how QWED solves it!
-
-→ [Module 1: The Crisis](../module-1-the-crisis/README.md)
+If you can answer those clearly, you are ready for the rest of the course.
 
 ---
 
-## Additional Resources
+## Next
 
-- [OpenAI: GPT Concepts](https://platform.openai.com/docs/guides/text-generation)
-- [Anthropic: Claude Model Card](https://www.anthropic.com/claude)
-- [Paper: "On Hallucinations in LLMs"](https://arxiv.org/abs/2305.14552)
+- [Proof vs. Confidence](00-proof-vs-confidence.md)
+- [What Are Formal Methods?](01-formal-methods-intro.md)

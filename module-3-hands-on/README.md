@@ -9,7 +9,7 @@ By the end of this module, you will:
 - Install and configure QWED
 - Run your first verification
 - Build a Production Verification
-- Handle errors gracefully
+- Handle unsupported states safely
 - Optimize for performance
 
 ---
@@ -34,7 +34,7 @@ graph TB
     G --> H
     
     H -->|✅ Verified| I[Return to User<br/>With Proof]
-    H -->|❌ Error| J[Log & Alert<br/>Fallback Value]
+    H -->|❌ Error| J[Block, Escalate,<br/>or Human Review]
     
     style C fill:#2196f3
     style E fill:#4caf50
@@ -153,7 +153,6 @@ result = client.verify_math("What is the derivative of x^2?")
 
 print(f"Verified: {result.verified}")      # True
 print(f"Answer: {result.value}")           # 2*x
-print(f"Confidence: {result.confidence}") # 100%
 print(f"Method: {result.evidence['method']}")  # symbolic
 ```
 
@@ -163,7 +162,6 @@ print(f"Method: {result.evidence['method']}")  # symbolic
 class VerificationResult:
     verified: bool         # True if proven correct
     value: any            # The verified answer
-    confidence: float     # 0-100% (100% for symbolic proofs)
     evidence: dict        # How it was verified
     error: str | None     # Error message if failed
 ```
@@ -232,7 +230,7 @@ try:
     print(f"Monthly payment: ${payment:,.2f}")
 except ValueError as e:
     print(f"Error: {e}")
-    # Handle error (log, fallback, human escalation)
+    # Handle error (log, block, human escalation)
 ```
 
 ### Real-World Example
@@ -263,24 +261,23 @@ class FinancialCalculator:
 
 ## ⚠️ 3.4 Error Handling Patterns
 
-### Pattern 1: Retry with Different Model
+### Pattern 1: Try Alternate Translation Paths, Then Stop
 
 ```python
-def verify_with_fallback(query: str):
-    """Try multiple providers if one fails."""
+def verify_with_alternate_paths(query: str):
+    """Try alternate translation providers, but fail closed if proof is not established."""
     providers = ["openai", "anthropic", "gemini"]
-    
+
     for provider in providers:
         try:
-            client = Q WEDLocal(provider=provider)
+            client = QWEDLocal(provider=provider)
             result = client.verify_math(query)
             if result.verified:
                 return result
-        except Exception as e:
-            logger.warning(f"{provider} failed: {e}")
-            continue
-    
-    raise VerificationError("All providers failed")
+        except Exception as exc:
+            logger.warning(f"{provider} translation path failed: {exc}")
+
+    raise VerificationError("No provider produced a deterministically verified result")
 ```
 
 ### Pattern 2: Human Escalation
@@ -302,22 +299,22 @@ def verify_or_escalate(query: str):
         return f"Pending human review (task: {task_id})"
 ```
 
-### Pattern 3: Conservative Fallback
+### Pattern 3: Quarantine Unsupported Results
 
 ```python
-def verify_or_safe_default(query: str, safe_default=None):
-    """Return safe default if verification fails."""
+def verify_or_quarantine(query: str):
+    """Do not return a guessed value when verification fails."""
     try:
         result = client.verify_math(query)
-        return result.value if result.verified else safe_default
-    except Exception:
-        return safe_default
+        if result.verified:
+            return result.value
+    except Exception as exc:
+        logger.error(f"Verification infrastructure failure: {exc}")
 
-# Usage
-interest = verify_or_safe_default(
-    "Calculate interest on $1M at 5%",
-    safe_default=50000  # Conservative estimate
-)
+    return {
+        "status": "UNVERIFIABLE",
+        "message": "No deterministic proof was established",
+    }
 ```
 
 ---
@@ -409,10 +406,9 @@ def calculate_final_price(base_price: float, discount_pct: float, tax_rate: floa
     
     if result.verified:
         return round(result.value, 2)
-    else:
-        # Log error, use conservative fallback
-        logger.error(f"Price verification failed: {result.error}")
-        return base_price * (1 + tax_rate/100)  # No discount if unsure
+
+    logger.error(f"Price verification failed: {result.error}")
+    raise VerificationError("Final price could not be deterministically verified")
 ```
 
 ### Example 3: Code Review Assistant
@@ -465,19 +461,18 @@ def calculate_tip(bill: float, tip_percent: float) -> float:
     
     if result.verified:
         return result.value
-    else:
-        # Fallback to manual calc
-        return bill * (tip_percent / 100)
+
+    raise VerificationError("Tip amount could not be deterministically verified")
 ```
 </details>
 
-### Exercise 2: Add Error Handling
+### Exercise 2: Add Fail-Closed Error Handling
 
-Improve the tip calculator with retry logic:
+Improve the tip calculator with escalation logic:
 
 ```python
-def robust_calculate_tip(bill: float, tip_percent: float, max_retries: int = 3) -> float:
-    # Add retry logic here
+def robust_calculate_tip(bill: float, tip_percent: float) -> float:
+    # Add blocking or human-review logic here
     pass
 ```
 
