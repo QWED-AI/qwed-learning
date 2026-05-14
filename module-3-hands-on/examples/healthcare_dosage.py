@@ -8,6 +8,7 @@ This demo is intentionally strict:
 """
 
 from datetime import datetime
+import hashlib
 import logging
 from typing import Dict, Optional
 
@@ -52,6 +53,25 @@ class HIPAACompliantDosageCalculator:
         )
         self.safety_log = []
 
+    @staticmethod
+    def _validate_dose_inputs(
+        weight_kg: float,
+        dosage_per_kg_mg: float,
+        max_dosage_mg: Optional[float],
+    ) -> None:
+        """Reject clinically invalid inputs before verification."""
+        if weight_kg <= 0:
+            raise ValueError("weight_kg must be greater than 0")
+        if dosage_per_kg_mg <= 0:
+            raise ValueError("dosage_per_kg_mg must be greater than 0")
+        if max_dosage_mg is not None and max_dosage_mg <= 0:
+            raise ValueError("max_dosage_mg must be greater than 0 when provided")
+
+    @staticmethod
+    def _patient_ref(patient_name: str) -> str:
+        """Create a stable pseudonymous patient reference for logs and audits."""
+        return hashlib.sha256(patient_name.encode("utf-8")).hexdigest()[:12]
+
     def calculate_pediatric_dose(
         self,
         patient_name: str,
@@ -65,9 +85,11 @@ class HIPAACompliantDosageCalculator:
 
         Raises `SafetyError` if the dosage cannot be deterministically verified.
         """
+        self._validate_dose_inputs(weight_kg, dosage_per_kg_mg, max_dosage_mg)
+        patient_ref = self._patient_ref(patient_name)
         logger.info(
-            "Processing dosage for %s: %s, %skg, %smg/kg",
-            patient_name,
+            "Processing dosage for patient_ref=%s: %s, %skg, %smg/kg",
+            patient_ref,
             drug_name,
             weight_kg,
             dosage_per_kg_mg,
@@ -88,7 +110,7 @@ class HIPAACompliantDosageCalculator:
             result = self.client.verify_math(query)
             if not result.verified:
                 self._log_safety_event(
-                    patient=patient_name,
+                    patient=patient_ref,
                     drug=drug_name,
                     weight=weight_kg,
                     dosage=None,
@@ -118,7 +140,7 @@ class HIPAACompliantDosageCalculator:
             )
 
             audit_info = self._log_safety_event(
-                patient=patient_name,
+                patient=patient_ref,
                 drug=drug_name,
                 weight=weight_kg,
                 dosage=calculated_dosage_mg,
@@ -141,7 +163,7 @@ class HIPAACompliantDosageCalculator:
             raise
         except Exception as exc:
             self._log_safety_event(
-                patient=patient_name,
+                patient=patient_ref,
                 drug=drug_name,
                 weight=weight_kg,
                 dosage=None,

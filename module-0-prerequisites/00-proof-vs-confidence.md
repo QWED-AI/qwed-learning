@@ -56,7 +56,7 @@ That means:
 - `95% confidence` is not verification
 - `100% confidence` is still not the right label for a proof
 - a low-confidence answer is not automatically false
-- an unsupported answer is not automatically safe
+- an unsupported answer is not necessarily safe
 
 In QWED, unsupported or unknown states must not silently become trusted outputs.
 
@@ -82,6 +82,11 @@ This is the core philosophy that protects future agent ecosystems from silent tr
 ---
 
 ## Short Examples
+
+These examples intentionally show different surfaces of the QWED ecosystem.
+Some APIs return an object (`result.verified`, `result.value`), while others return
+structured dictionaries (`status`, `is_valid`, `simplified`). The trust model is the
+same across all of them: interpret the result category first, then decide the workflow action.
 
 ### Example 1: Verified
 

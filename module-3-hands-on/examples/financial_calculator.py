@@ -47,12 +47,23 @@ class FinancialCalculator:
         self.calculation_count = 0
         self.blocked_calculations = 0
 
+    @staticmethod
+    def _validate_financial_inputs(principal: float, rate: float, years: int) -> None:
+        """Reject domain-invalid business inputs before verification."""
+        if principal < 0:
+            raise ValueError("principal must be >= 0")
+        if rate < 0:
+            raise ValueError("rate must be >= 0")
+        if not isinstance(years, int) or years <= 0:
+            raise ValueError("years must be a positive integer")
+
     def compound_interest(self, principal: float, rate: float, years: int) -> CalculationResult:
         """
         Calculate compound interest with deterministic verification.
 
         Formula: A = P(1 + r)^t
         """
+        self._validate_financial_inputs(principal, rate, years)
         query = f"""
         Calculate compound interest:
         - Principal: ${principal:,.2f}
@@ -87,6 +98,7 @@ class FinancialCalculator:
 
         Formula: M = P[r(1+r)^n]/[(1+r)^n-1]
         """
+        self._validate_financial_inputs(principal, annual_rate, years)
         query = f"""
         Calculate monthly payment for a loan:
         - Principal: ${principal:,.2f}

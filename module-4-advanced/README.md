@@ -512,7 +512,11 @@ breaker = VerificationCircuitBreaker()
 result = breaker.call(client.verify_math, query)
 ```
 
-### Pattern 3: Fail-Closed Degradation
+### Pattern 3: Fail-Closed Handling
+
+Fail-closed does **not** mean gracefully degrading to a lower-trust answer. It means the
+system blocks or returns an explicit non-pass state when deterministic verification is
+unavailable.
 
 ```python
 def verify_with_fail_closed_handling(query: str):
@@ -527,7 +531,14 @@ def verify_with_fail_closed_handling(query: str):
                 "method": "verified",
             }
     except Exception as exc:
-        logger.error(f"Verification infrastructure failure: {exc}")
+        logger.error("Verification infrastructure failure: %s", exc)
+        return {
+            "value": None,
+            "status": "UNVERIFIABLE",
+            "method": "blocked",
+            "message": "Verification infrastructure failure",
+            "error": str(exc),
+        }
 
     return {
         "value": None,

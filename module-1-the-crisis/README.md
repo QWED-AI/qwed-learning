@@ -100,6 +100,11 @@ The model saw the word **premium** and assumed addition. In this domain, the pre
 
 ### Current MCP-shaped verification example
 
+This is an **illustrative integration pattern**, not a copy-paste runnable snippet from
+this repository. `qwed-mcp` is installed separately (for example, `pip install qwed-mcp`),
+and `qwed_finance` here represents a package-backed verifier surface that may live outside
+the learning repo.
+
 ```python
 from qwed_mcp import execute_python_code
 
@@ -177,13 +182,13 @@ def llm_calculate(a, b):
 
 ## 1.6 What we actually need
 
-The right pattern is not:
+The incorrect approach is:
 
 1. ask the model
 2. trust the answer if it looks good
 3. soften failure with a fallback
 
-The right pattern is:
+The correct pattern is:
 
 1. generate a candidate claim
 2. deterministically verify it if the claim type supports proof

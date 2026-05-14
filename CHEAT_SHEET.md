@@ -97,12 +97,18 @@ def calculate_or_escalate(query: str):
 ### Pattern 3: Quarantine Unsupported Results
 
 ```python
+import hashlib
+
 def calculate_or_quarantine(query: str):
     result = client.verify_math(query)
     if result.verified:
         return result.value
 
-    logger.error("Blocking unverifiable result", extra={"query": query})
+    query_hash = hashlib.sha256(query.encode("utf-8")).hexdigest()[:12]
+    logger.error(
+        "Blocking unverifiable result",
+        extra={"query_hash": query_hash, "status": "UNVERIFIABLE"},
+    )
     return {
         "status": "UNVERIFIABLE",
         "message": "No deterministic proof was established",

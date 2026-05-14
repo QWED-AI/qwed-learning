@@ -15,7 +15,7 @@ class QWEDCertificateIssuer:
     This is educational scaffolding, not a production credential authority.
     """
     
-    def __init__(self, issuer_domain: str = "qwed-ai.com", private_key_path: str = None):
+    def __init__(self, issuer_domain: str = "qwed-ai.com", private_key_path: Optional[str] = None):
         """
         Args:
             issuer_domain: Domain for DID (did:web:qwed-ai.com)

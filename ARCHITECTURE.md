@@ -45,6 +45,10 @@ QWED should keep these categories separate:
 
 Do not collapse these into a single "confidence" field.
 
+Note: `BLOCKED` and `HUMAN_REVIEW_REQUIRED` are handling dispositions, not proof states.
+Keep verification state (`VERIFIED`, `INVALID`, `UNVERIFIABLE`, `HEURISTIC`, `SIMPLIFIED`)
+separate from execution policy.
+
 ---
 
 ## 3. Domain Routing

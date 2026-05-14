@@ -1,6 +1,7 @@
 import base64
 import json
 from typing import Any, Dict, Optional, Tuple
+from urllib.parse import unquote
 
 import jwt
 import requests
@@ -18,17 +19,39 @@ class QWEDCertificateVerifier:
 
     def __init__(self, issuer_did: str = "did:web:qwed-ai.com"):
         self.issuer_did = issuer_did
-        self.public_key = self._fetch_public_key()
+        self.did_document = self._fetch_did_document()
+        self.public_key = self._default_public_key()
 
-    def _fetch_public_key(self) -> Optional[rsa.RSAPublicKey]:
-        """Fetch the issuer public key from the DID document."""
-        url = "https://qwed-ai.com/.well-known/did.json"
+    def _did_document_url(self) -> str:
+        """Resolve the DID document URL for a did:web issuer."""
+        if not self.issuer_did.startswith("did:web:"):
+            raise ValueError(f"Unsupported issuer DID: {self.issuer_did}")
+
+        did_suffix = self.issuer_did.removeprefix("did:web:")
+        parts = [unquote(part) for part in did_suffix.split(":")]
+        host, *path = parts
+        if path:
+            return f"https://{host}/{'/'.join(path)}/did.json"
+        return f"https://{host}/.well-known/did.json"
+
+    def _fetch_did_document(self) -> Optional[Dict[str, Any]]:
+        """Fetch the issuer DID document."""
+        url = self._did_document_url()
 
         try:
             response = requests.get(url, timeout=5)
             response.raise_for_status()
-            did_doc = response.json()
-            public_key_jwk = did_doc["publicKey"][0]
+            return response.json()
+        except Exception:
+            return None
+
+    def _default_public_key(self) -> Optional[rsa.RSAPublicKey]:
+        """Load the default verification key from the DID document."""
+        if self.did_document is None:
+            return None
+
+        try:
+            public_key_jwk = self.did_document["publicKey"][0]
             return self._load_public_key_from_jwk(public_key_jwk)
         except Exception:
             return None
@@ -61,17 +84,36 @@ class QWEDCertificateVerifier:
         padding_len = (-len(signature_value)) % 4
         return base64.urlsafe_b64decode(signature_value + ("=" * padding_len))
 
+    def _public_key_for_verification_method(
+        self,
+        verification_method: Optional[str],
+    ) -> Optional[rsa.RSAPublicKey]:
+        """Resolve the proof key referenced by verificationMethod."""
+        if self.did_document is None:
+            return None
+        if not verification_method:
+            return self.public_key
+
+        for candidate in self.did_document.get("publicKey", []):
+            if candidate.get("id") == verification_method or candidate.get("kid") == verification_method:
+                return self._load_public_key_from_jwk(candidate)
+
+        return None
+
     def _verify_signature(self, credential: Dict[str, Any]) -> Tuple[bool, str]:
-        if self.public_key is None:
+        proof = credential.get("proof", {})
+        verification_method = proof.get("verificationMethod")
+        public_key = self._public_key_for_verification_method(verification_method)
+
+        if public_key is None:
             return False, "Trusted public key could not be resolved; fail closed"
 
-        proof = credential.get("proof", {})
         signature_value = proof.get("signatureValue")
         if not signature_value:
             return False, "Credential is missing proof.signatureValue"
 
         try:
-            self.public_key.verify(
+            public_key.verify(
                 self._signature_bytes(signature_value),
                 self._canonical_credential_payload(credential),
                 padding.PKCS1v15(),

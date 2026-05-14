@@ -542,6 +542,8 @@ response = verified_engine.query("What are the payment terms?")
 
 Using `qwed-mcp`, you can install QWED verification **directly into Claude Desktop**. The current MCP surface is execution-oriented: instead of many fixed `verify_*` tools, Claude receives a deterministic execution tool and can run small Python verification programs through it.
 
+> 🔒 **Security note:** Treat execution-oriented MCP verification as a sandboxed trust boundary. Production deployments should enforce CPU and memory limits, timeouts, strict file-system and network controls, least-privilege execution, audited script review, and input validation before any verification program is allowed to run.
+
 ### Step 1: Install MCP Server
 
 ```bash
@@ -567,30 +569,55 @@ Add to your `claude_desktop_config.json`:
 
 Close and reopen Claude Desktop to load the new tools.
 
-### Step 4: Test the "Senior Citizen Trap"
+### Step 4: Test Banking Compliance (Senior Citizen Scenario)
+
+In this scenario, senior-citizen products should receive a **discount**, not a premium.
+The verification step should block any policy that silently turns that discount into an added charge.
 
 Type this prompt in Claude:
 
-> "I am approving a Senior Citizen Loan (65yo). Base rate 7%, Premium 0.5%. Verify compliance using qwed-finance and calculate total."
+> "I am approving a loan for a 65-year-old customer. Base rate 7%, senior adjustment 0.5%. Verify that the adjustment is applied as a discount, not a premium, before calculating the final rate."
 
 ### What You'll See
 
 ```python
 # Tool: execute_python_code
-from qwed_finance import verify_banking_compliance
+def verify_banking_compliance(claim: dict) -> dict:
+    senior_customer = claim["applicant_age"] >= 60
+    adjustment_type = claim["adjustment_type"]
 
-result = verify_banking_compliance(
-    scenario="Senior Citizen Loan approval",
-    llm_output="Base rate 7%, Premium 0.5%"
-)
+    if senior_customer and adjustment_type != "discount":
+        return {
+            "status": "BLOCKED",
+            "reason": "Senior citizen adjustment applied incorrectly",
+            "details": "Senior products must apply a discount, not a premium",
+        }
 
-print(result)
+    final_rate = claim["base_rate_percent"] - claim["senior_adjustment_percent"]
+    return {
+        "status": "APPROVED",
+        "reason": "Structured banking rule verified",
+        "details": {"final_rate_percent": final_rate},
+    }
+
+claim = {
+    "scenario": "Senior Citizen Loan approval",
+    "applicant_age": 65,
+    "base_rate_percent": 7.0,
+    "senior_adjustment_percent": 0.5,
+    "adjustment_type": "premium",
+}
+
+print(verify_banking_compliance(claim))
 # {
 #   "status": "BLOCKED",
-#   "reason": "Senior Citizen Premium applied incorrectly",
-#   "details": "Seniors receive a discount, not a premium"
+#   "reason": "Senior citizen adjustment applied incorrectly",
+#   "details": "Senior products must apply a discount, not a premium",
 # }
 ```
+
+This example is intentionally self-contained so learners can study the **structured, deterministic pattern**
+without depending on unpublished package surfaces from this repository.
 
 ### 🎯 Key Takeaway
 
