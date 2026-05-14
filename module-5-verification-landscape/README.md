@@ -176,9 +176,9 @@ for _ in range(5):
 
 ### The Concept
 
-**Beaver** (Berkeley, 2024) is a clever approach that computes **probability bounds** on LLM constraint satisfaction.
+**Beaver** (Berkeley, 2024) computes **probability bounds** on whether an output satisfies a defined constraint.
 
-Instead of asking "Is this correct?" it asks "What's the probability this is correct?"
+Instead of asking "Was this claim proved?" it asks "What fraction of candidate outputs satisfy this structural constraint?"
 
 ### How It Works
 
@@ -228,14 +228,14 @@ QWED: "This response is mathematically WRONG." ❌
 
 | Aspect | Beaver | QWED |
 |--------|--------|------|
-| **Output** | "87% likely correct" | "100% proven correct" |
+| **Output** | "Constraint satisfaction is at least 87%" | "This supported claim was deterministically verified" |
 | **Method** | Probability bounds | Mathematical proof |
 | **Verifies** | Format/structure | Content/correctness |
 | **Use case** | Risk assessment | Production deployment |
 
 ### 🎯 Key Takeaway
 
-> **"Beaver tells you probability. QWED tells you truth."**
+> **"Beaver tells you structural risk. QWED tells you whether a supported claim was deterministically verified."**
 
 ---
 
@@ -361,12 +361,12 @@ def production_pipeline(llm_response):
     if not result.verified:
         return f"Error: {result.error}"
     
-    return result.value  # Proven correct!
+    return result.value  # Deterministically verified output
 ```
 
 ### 🎯 Key Takeaway
 
-> **"Guardrails for safety, Beaver for probability, QWED for truth."**
+> **"Guardrails for safety, Beaver for structural probability, QWED for deterministic verification."**
 
 ---
 
@@ -419,7 +419,7 @@ print(result.computed_value) # 157.625 (close enough with rounding)
 <details>
 <summary><strong>Q3: What's the difference between Beaver and QWED?</strong></summary>
 
-**Answer:** Beaver tells you PROBABILITY ("87% likely correct") while QWED tells you TRUTH ("100% proven correct"). Beaver verifies format/structure, QWED verifies content/correctness.
+**Answer:** Beaver reports a probability bound on a structural constraint, while QWED verifies whether a supported claim passed a deterministic check. Beaver is useful for format/risk assessment; QWED is for proof-oriented correctness checks.
 
 </details>
 

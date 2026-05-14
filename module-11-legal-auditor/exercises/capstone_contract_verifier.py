@@ -2,7 +2,7 @@
 Capstone: build 'The Legal Auditor' ⚖️
 
 Goal: Create a master script that integrates all guards into a single verification pipeline.
-In a real-world scenario, you would expose this via MCP to Claude.
+In a real-world scenario, expose this through a governed execution gateway or an audited MCP host.
 
 Usage:
     python verify_contract.py --file contract_draft_v1.txt

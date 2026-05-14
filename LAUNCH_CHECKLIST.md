@@ -20,7 +20,7 @@ Complete guide to launching qwed-learning to the world.
   - Go to Settings → Features → Discussions
   - Create categories: General, Module 1, Module 2, Module 3, Module 4, Show Your Projects
 - [ ] Add topics/tags: `ai`, `llm`, `verification`, `course`, `neurosymbolic`
-- [ ] Set description: "Free course on AI verification - Stop LLM hallucinations"
+- [ ] Set description: "Free course on fail-closed AI verification and trust-boundary engineering"
 - [ ] Add website: https://github.com/QWED-AI/qwed-learning
 
 ### Content Final Check
@@ -196,7 +196,7 @@ Post these to start conversations:
 
 1. "What brought you to this course?"
 2. "Share your first verification success!"
-3. "Which mental model resonates most? (Artist vs Accountant, etc.)"
+3. "Which mental model resonates most? (Proof vs Confidence, Draft vs Decision Boundary, etc.)"
 4. "Capstone project progress thread"
 
 ---

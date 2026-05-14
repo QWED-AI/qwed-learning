@@ -10,7 +10,7 @@ You will learn why "chatting with PDF contracts" is dangerous and how to build a
 
 ## 🛑 The Crisis: The "Mata v. Avianca" Effect
 
-Generative AI is an "Artist" — it loves creative writing. Law requires an "Accountant" — strict adherence to facts.
+Generative AI is a persuasive draft generator. Law requires verified dates, grounded citations, and explicit non-pass states when proof is unavailable.
 
 When you ask an LLM: *"Find all deadlines in this NDA"*, it often:
 1.  **Misses dates** hidden in complex clauses ("3 business days after the last Friday...").
@@ -38,7 +38,7 @@ result = guard.verify_deadline(
 )
 
 if not result["verified"]:
-    print(f"Hallucination Blocked: {result['irac.issue']}")
+    print(f"Unsupported legal claim blocked: {result['irac.issue']}")
 ```
 
 ### Lesson 2: Financial Risk Auditing (LiabilityGuard)
@@ -83,7 +83,7 @@ Integrate the `SACProcessor` to manage context windows. Learn how to map chunks 
 4.  **Contradiction Hunter**: Use Logic to find conflicting terms.
 5.  **Bias Detection**: Use `FairnessGuard` to evaluate a settlement offer.
 6.  **IRAC Audit**: Verify that an AI-generated memo follows IRAC structure.
-7.  **Capstone**: Build `verify_contract.py` using **Claude Desktop** to audit a PDF in real-time.
+7.  **Capstone**: Build `verify_contract.py` behind a governed execution gateway or audited MCP host.
 
 ---
 

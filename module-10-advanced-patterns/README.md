@@ -1,6 +1,6 @@
 # Module 10: Advanced Patterns - RAG & Consensus
 
-> **"One witness is a rumor. Two witnesses are evidence. Three witnesses are a fact."**
+> **"One witness is a signal. Consensus is still not proof unless the decision boundary treats disagreement as a block."**
 
 ⏱️ **Duration:** 45 minutes  
 📊 **Level:** Expert  

@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720" role="img" aria-labelledby="title desc">
+  <title id="title">QWED Learning course thumbnail</title>
+  <desc id="desc">Master trust-boundary verification for AI systems. Drafts stay probabilistic until a deterministic verification boundary decides whether the claim is verified or blocked.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fffdf8"/>
+      <stop offset="100%" stop-color="#f3f6fb"/>
+    </linearGradient>
+    <linearGradient id="orangeFade" x1="0" y1="0.5" x2="1" y2="0.5">
+      <stop offset="0%" stop-color="#ff7a1a" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#ff7a1a" stop-opacity="0.15"/>
+    </linearGradient>
+    <linearGradient id="greenFade" x1="0" y1="0.5" x2="1" y2="0.5">
+      <stop offset="0%" stop-color="#2a8f4b" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#2a8f4b" stop-opacity="0.04"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1280" height="720" fill="url(#bg)"/>
+
+  <g stroke="#d7dde8" stroke-width="1">
+    <line x1="0" y1="96" x2="1280" y2="96"/>
+    <line x1="0" y1="192" x2="1280" y2="192"/>
+    <line x1="0" y1="288" x2="1280" y2="288"/>
+    <line x1="0" y1="384" x2="1280" y2="384"/>
+    <line x1="0" y1="480" x2="1280" y2="480"/>
+    <line x1="0" y1="576" x2="1280" y2="576"/>
+    <line x1="64" y1="0" x2="64" y2="720"/>
+    <line x1="160" y1="0" x2="160" y2="720"/>
+    <line x1="256" y1="0" x2="256" y2="720"/>
+    <line x1="352" y1="0" x2="352" y2="720"/>
+    <line x1="448" y1="0" x2="448" y2="720"/>
+    <line x1="544" y1="0" x2="544" y2="720"/>
+    <line x1="640" y1="0" x2="640" y2="720"/>
+    <line x1="736" y1="0" x2="736" y2="720"/>
+    <line x1="832" y1="0" x2="832" y2="720"/>
+    <line x1="928" y1="0" x2="928" y2="720"/>
+    <line x1="1024" y1="0" x2="1024" y2="720"/>
+    <line x1="1120" y1="0" x2="1120" y2="720"/>
+    <line x1="1216" y1="0" x2="1216" y2="720"/>
+  </g>
+
+  <text x="640" y="110" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="72" font-weight="700" fill="#1f2933">
+    Master Trust-Boundary Verification
+  </text>
+  <text x="640" y="170" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" fill="#263544">
+    Fail-closed AI systems, deterministic evidence, and governed agent execution
+  </text>
+
+  <text x="122" y="468" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" fill="#1f2933">
+    Probabilistic
+  </text>
+  <text x="122" y="512" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" fill="#1f2933">
+    Draft
+  </text>
+
+  <text x="1136" y="468" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" fill="#1f2933">
+    Verified or
+  </text>
+  <text x="1136" y="512" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" fill="#1f2933">
+    Blocked Outcome
+  </text>
+
+  <g>
+    <circle cx="290" cy="420" r="8" fill="#ff7a1a"/>
+    <circle cx="340" cy="356" r="8" fill="#ff7a1a"/>
+    <circle cx="382" cy="438" r="8" fill="#ff7a1a"/>
+    <circle cx="410" cy="394" r="8" fill="#ff7a1a"/>
+    <circle cx="454" cy="470" r="8" fill="#ff7a1a"/>
+    <circle cx="500" cy="420" r="8" fill="#ff7a1a"/>
+    <circle cx="326" cy="498" r="8" fill="#ff7a1a"/>
+    <circle cx="370" cy="388" r="8" fill="#ff7a1a"/>
+    <circle cx="430" cy="528" r="8" fill="#ff7a1a"/>
+    <circle cx="270" cy="466" r="8" fill="#ff7a1a"/>
+    <circle cx="475" cy="348" r="8" fill="#ff7a1a"/>
+    <circle cx="540" cy="478" r="8" fill="#ff7a1a"/>
+    <circle cx="580" cy="430" r="8" fill="#ff7a1a"/>
+    <circle cx="612" cy="450" r="8" fill="#ff7a1a"/>
+    <circle cx="560" cy="380" r="8" fill="#ff7a1a"/>
+    <circle cx="246" cy="410" r="8" fill="#ff7a1a"/>
+    <circle cx="520" cy="530" r="8" fill="#ff7a1a"/>
+    <circle cx="604" cy="376" r="8" fill="#ff7a1a"/>
+    <polygon points="230,450 660,450 660,470 230,470" fill="url(#orangeFade)"/>
+  </g>
+
+  <g>
+    <rect x="660" y="300" width="320" height="250" fill="#ffffff" stroke="#1f2933" stroke-width="6"/>
+    <g stroke="#1f2933" stroke-width="3">
+      <line x1="700" y1="300" x2="700" y2="550"/>
+      <line x1="740" y1="300" x2="740" y2="550"/>
+      <line x1="780" y1="300" x2="780" y2="550"/>
+      <line x1="820" y1="300" x2="820" y2="550"/>
+      <line x1="860" y1="300" x2="860" y2="550"/>
+      <line x1="900" y1="300" x2="900" y2="550"/>
+      <line x1="940" y1="300" x2="940" y2="550"/>
+      <line x1="660" y1="340" x2="980" y2="340"/>
+      <line x1="660" y1="380" x2="980" y2="380"/>
+      <line x1="660" y1="420" x2="980" y2="420"/>
+      <line x1="660" y1="460" x2="980" y2="460"/>
+      <line x1="660" y1="500" x2="980" y2="500"/>
+    </g>
+  </g>
+
+  <rect x="980" y="438" width="120" height="24" rx="12" fill="url(#greenFade)"/>
+  <line x1="980" y1="450" x2="1088" y2="450" stroke="#2f80ed" stroke-width="6"/>
+  <circle cx="1098" cy="450" r="26" fill="#ffffff" stroke="#2f80ed" stroke-width="6"/>
+
+  <text x="640" y="640" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="26" fill="#334155">
+    Untrusted drafts become trusted only after deterministic verification at the boundary.
+  </text>
+</svg>

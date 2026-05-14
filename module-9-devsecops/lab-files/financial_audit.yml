@@ -1,16 +1,22 @@
-name: Financial Compliance Audit
+name: Financial Compliance Verification Gate
 
 on: [pull_request]
 
 jobs:
   audit_numbers:
     runs-on: ubuntu-latest
-    name: 🛡️ QWED Accountant
+    name: Deterministic verification gate
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Run Finance Guard
-        uses: QWED-AI/qwed-finance@v1.2.0
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          file-path: 'lab-files/rates_update.csv'
+          python-version: "3.11"
+
+      - name: Install verifier
+        run: pip install qwed-verification
+
+      - name: Run finance verification script
+        run: python lab-files/verify_financial_csv.py --input lab-files/rates_update.csv --fail-on-error

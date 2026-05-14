@@ -1,6 +1,6 @@
-# Capstone Project: Verified Banking Agent
+# Capstone Project: Governed Banking Agent
 
-**Build a "Banker Agent" that manages money and refuses to be tricked.**
+**Build a banking agent whose tool execution is checked before money or policy can move.**
 
 ---
 
@@ -9,14 +9,14 @@
 Create a **compliance-ready banking agent** that can safely handle financial transactions.
 
 **The Challenge:**
-Standard LLMs are terrible accountants. They hallucinate numbers and ignore laws.
-Your agent must use **QWED Enterprise** features to ensure it **never** steals money or breaks sanctions.
+Standard LLMs can produce persuasive drafts while still missing deterministic constraints.
+Your agent must use QWED verification patterns so unsupported claims are blocked before execution.
 
 **What you'll build:**
-- 💰 **Loan Calculator** (Verified by SymPy)
-- 🚫 **Sanctions Guard** (Verified by Z3 Cross-Guard)
-- 📝 **Audit Trail** (Cryptographic Receipts)
-- 🤖 **Agentic Loop** (Open Responses Interceptor)
+- 💰 **Loan Calculator** (deterministically verified)
+- 🚫 **Transfer Policy Guard** (fail-closed before execution)
+- 📝 **Audit Trail** (receipts plus append-only logging)
+- 🤖 **Governed Agent Loop** (plan -> verify -> execute)
 
 **Estimated Time:** 90 minutes
 
@@ -69,19 +69,15 @@ Your Banking Agent must:
 
 ```
 capstone-project/
-├── README.md (you're here)
-├── starter-code/
-│   ├── agent.py (The "Bad" Agent)
-│   ├── interceptor.py (TODO: Your Verifier)
-│   ├── tools.py (Bank functions)
-│   └── requirements.txt
-├── solution/
-│   ├── agent.py
-│   ├── interceptor.py
-│   ├── tools.py
-│   └── auditing.py
-└── CHECKLIST.md
+└── README.md (project brief)
 ```
+
+This repository currently ships the **capstone brief**, not a full starter template.
+Build your implementation in a separate workspace or fork the examples from:
+
+- `module-3-hands-on/examples/`
+- `module-9-devsecops/lab-files/`
+- `module-13-secure-orchestration/`
 
 ---
 
@@ -95,49 +91,62 @@ Your developers built an AI agent that helps customers move money.
 
 **Your Mission:** Wrap the agent in a **Verification Interceptor** that blocks illegal transactions.
 
-### Step 2: Set Up
+### Step 2: Set Up Your Workspace
 
 ```bash
-cd capstone-project/starter-code
-pip install qwed-finance
+mkdir governed-banking-agent
+cd governed-banking-agent
+python -m venv .venv
+# Activate your venv here, then:
+pip install qwed-verification
 ```
 
 ### Step 3: Implementation Guide
 
-#### Part 1: Sanctions Guard (30 mins)
-**Goal:** Block transfers to names on the watchlist.
+#### Part 1: Transfer Policy Guard (30 mins)
+**Goal:** Block transfers that violate your structured allow/deny policy.
 
 ```python
 # interceptor.py
-from qwed_finance import CrossGuard
-
-def check_sanctions(name, amount):
-    # TODO: Use CrossGuard to verify
-    pass
+def verify_transfer_request(beneficiary: str, amount_usd: float, policy: dict) -> dict:
+    if beneficiary in policy["blocked_beneficiaries"]:
+        return {"status": "BLOCKED", "reason": "beneficiary_on_blocklist"}
+    if amount_usd > policy["max_amount_usd"]:
+        return {"status": "BLOCKED", "reason": "amount_limit_exceeded"}
+    return {"status": "APPROVED"}
 ```
 
 #### Part 2: Math Verification (30 mins)
-**Goal:** Ensure loan interest is calculated using the formula: `I = P * r * t`
+**Goal:** Ensure loan interest is calculated using a deterministic formula before quoting it.
 
 ```python
 # interceptor.py
-from qwed_finance import FinanceVerifier
+from qwed_sdk import QWEDLocal
 
-def verify_interest(principal, rate, time, agent_answer):
-    # TODO: Use FinanceVerifier
-    pass
+client = QWEDLocal(provider="ollama")
+
+def verify_interest(principal, rate, time_years, agent_answer):
+    return client.verify_math(
+        f"{principal} * {rate} * {time_years} == {agent_answer}"
+    )
 ```
 
 #### Part 3: The Audit Trail (30 mins)
-**Goal:** Generate a receipt for every transaction (blocked or approved).
+**Goal:** Generate a receipt and append-only log entry for every blocked or approved action.
 
 ```python
 # auditing.py
-from qwed_finance.models import ReceiptGenerator
+import json
+from datetime import datetime
 
 def log_receipt(input_data, result):
-    # TODO: Create and save receipt
-    pass
+    event = {
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "input": input_data,
+        "result": result,
+    }
+    with open("audit_log.jsonl", "a", encoding="utf-8") as handle:
+        handle.write(json.dumps(event) + "\n")
 ```
 
 ---
@@ -155,11 +164,11 @@ def log_receipt(input_data, result):
 
 ## 🎓 Learning Outcomes
 
-You now have a **Verified Banking Agent** for your portfolio.
+You now have a **Governed Banking Agent** for your portfolio.
 You can prove to an employer:
-1. You know AI Agent architecture (Interceptors)
-2. You know Financial Compliance (Sanctions/AML)
-3. You know DevSecOps (Audit Trails)
+1. You know AI agent architecture (interceptors and trust boundaries)
+2. You know how to separate verification from execution
+3. You know how to preserve auditability in a high-stakes workflow
 
 ---
 

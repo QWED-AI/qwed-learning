@@ -42,7 +42,7 @@ This glossary translates scary technical terms into plain English with real-worl
 
 **Scary Definition:** When an AI generates plausible but incorrect information.
 
-**Simple Meaning:** When AI lies confidently.
+**Simple Meaning:** When AI presents an unsupported claim as if it were established.
 
 **Real-World Analogy:**
 - **Student Making Up Answers** - Sounds smart, totally wrong
@@ -161,7 +161,7 @@ LLM: "Neil Armstrong, in 1969." ❌ (Sounds plausible, completely false)
 
 **Comparison with QWED:**
 - **Beaver:** "87% likely correct"
-- **QWED:** "100% proven correct"
+- **QWED:** "Deterministically verified for a supported claim"
 
 **When to Use:** Risk assessment, not production verification.
 
@@ -316,7 +316,7 @@ derivative = sp.diff(x**2, x)  # Always: 2*x (proven)
 |------|-------------|-------|
 | Deterministic | Always same answer | 🧮 |
 | Probabilistic | Maybe right | 🎲 |
-| Hallucination | AI lying | 🤥 |
+| Hallucination | Unsupported claim presented as fact | 🤥 |
 | Symbolic | Math proof | ✅ |
 | LLM-as-Judge | AI checks AI | 🤔 |
 | Verification | Proof of correctness | 🛡️ |

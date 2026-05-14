@@ -56,6 +56,8 @@ Research shows Context Engineering can:
 
 **But there's a catch...**
 
+Context engineering can improve retrieval quality, but it does **not** create deterministic proof on its own. Retrieved context remains untrusted until a downstream verifier checks the claim, and replay/context-binding controls still need to exist outside the prompt.
+
 ---
 
 ## 2. The Layered Compression Paradox

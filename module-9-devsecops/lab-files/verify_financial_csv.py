@@ -1,0 +1,104 @@
+"""Sample deterministic verification gate for CI/CD course labs.
+
+This script intentionally uses standard-library checks so learners can see the
+policy boundary clearly:
+- transaction AML threshold checks
+- additive rate validation for the senior-citizen lab
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+from pathlib import Path
+
+
+def verify_transactions(rows: list[dict[str, str]]) -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    for row in rows:
+        amount = float(row["amount"])
+        flagged = row["llm_flagged"].strip().lower() == "true"
+        if amount >= 10_000 and not flagged:
+            findings.append(
+                {
+                    "rule": "AML_THRESHOLD",
+                    "transaction_id": row["transaction_id"],
+                    "message": "Transactions at or above $10,000 must be flagged.",
+                }
+            )
+    return findings
+
+
+def verify_rates(rows: list[dict[str, str]]) -> list[dict[str, str]]:
+    findings: list[dict[str, str]] = []
+    for row in rows:
+        base_rate = float(row["base_rate"])
+        senior_margin = float(row["senior_margin"])
+        claude_output = float(row["claude_output"])
+        expected = round(base_rate + senior_margin, 3)
+        if round(claude_output, 3) != expected:
+            findings.append(
+                {
+                    "rule": "ADDITIVE_RATE_CHECK",
+                    "product": row["product"],
+                    "message": (
+                        f"Expected additive rate {expected:.3f}, found {claude_output:.3f}."
+                    ),
+                }
+            )
+    return findings
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", required=True, type=Path)
+    parser.add_argument("--format", choices=["text", "json", "sarif"], default="text")
+    parser.add_argument("--fail-on-error", action="store_true")
+    args = parser.parse_args()
+
+    with args.input.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+
+    if not rows:
+        findings = [{"rule": "EMPTY_INPUT", "message": "No rows to verify."}]
+    elif {"transaction_id", "amount", "llm_flagged"}.issubset(rows[0].keys()):
+        findings = verify_transactions(rows)
+    elif {"product", "base_rate", "senior_margin", "claude_output"}.issubset(rows[0].keys()):
+        findings = verify_rates(rows)
+    else:
+        findings = [
+            {
+                "rule": "UNSUPPORTED_SCHEMA",
+                "message": "Input columns do not match the supported course lab formats.",
+            }
+        ]
+
+    if args.format == "json":
+        print(json.dumps({"findings": findings}, indent=2))
+    elif args.format == "sarif":
+        sarif = {
+            "version": "2.1.0",
+            "runs": [
+                {
+                    "tool": {"driver": {"name": "qwed-learning-sample-gate"}},
+                    "results": [
+                        {"ruleId": finding["rule"], "message": {"text": finding["message"]}}
+                        for finding in findings
+                    ],
+                }
+            ],
+        }
+        print(json.dumps(sarif, indent=2))
+    else:
+        if findings:
+            for finding in findings:
+                print(f"[{finding['rule']}] {finding['message']}")
+        else:
+            print("No deterministic policy violations found.")
+
+    return 1 if findings and args.fail_on_error else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
