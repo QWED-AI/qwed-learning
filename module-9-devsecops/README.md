@@ -186,7 +186,7 @@ Merge blocked - Fix required
 
 ## Hands-On Lab: The "Senior Citizen" Trap
 
-**Scenario:** Ideally, senior citizens get `+0.50%` interest. Claude 4.5 hallucinates the math.
+**Scenario:** Senior citizens get `+0.50 percentage points` as an additive spread, not a multiplicative `0.50%` increase. Claude 4.5 hallucinates the math.
 
 ### Lab Goal
 
@@ -202,8 +202,8 @@ Standard FD,7.00,0.00,7.00
 Senior FD,7.00,0.50,7.035
 ```
 
-**The Error:** Claude did `7.00 * 1.005 = 7.035`.  
-**The Truth:** `7.00 + 0.50 = 7.50`.
+**The Error:** Claude treated the senior margin as a multiplicative increase and did `7.00 * 1.005 = 7.035`.  
+**The Truth:** The senior margin is additive, so `7.00 + 0.50 = 7.50`.
 
 ### Step 2: Push and Watch Fail
 
