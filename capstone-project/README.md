@@ -14,8 +14,8 @@ Your agent must use QWED verification patterns so unsupported claims are blocked
 
 **What you'll build:**
 - 💰 **Loan Calculator** (deterministically verified)
-- 🚫 **Transfer Policy Guard** (fail-closed before execution)
-- 📝 **Audit Trail** (receipts plus append-only logging)
+- 🚫 **Sanctions Transfer Policy Guard** (fail-closed before execution)
+- 📝 **Audit Trail** (structured verification records plus append-only logging)
 - 🤖 **Governed Agent Loop** (plan -> verify -> execute)
 
 **Estimated Time:** 90 minutes
@@ -59,8 +59,8 @@ Your Banking Agent must:
 - [ ] **Cross-Guard:** Check SWIFT messages against Sanctions List (Z3)
 - [ ] **Math Verification:** Verify Loan Interest calculations (SymPy)
 - [ ] **Interceptor:** Catch "transfer" tool calls before execution
-- [ ] **Receipts:** Generate a cryptographic JSON receipt for every action
-- [ ] **Audit Log:** Save all receipts to a log file
+- [ ] **Verification Records:** Generate a structured JSON verification record for every action
+- [ ] **Audit Log:** Save all verification records to a log file
 - [ ] **Unit Tests:** Verify the verifier itself
 
 ---
@@ -103,7 +103,7 @@ pip install qwed-verification
 
 ### Step 3: Implementation Guide
 
-#### Part 1: Transfer Policy Guard (30 mins)
+#### Part 1: Sanctions Transfer Policy Guard (30 mins)
 **Goal:** Block transfers that violate your structured allow/deny policy.
 
 ```python
@@ -132,7 +132,7 @@ def verify_interest(principal, rate, time_years, agent_answer):
 ```
 
 #### Part 3: The Audit Trail (30 mins)
-**Goal:** Generate a receipt and append-only log entry for every blocked or approved action.
+**Goal:** Generate a verification record and append-only log entry for every blocked or approved action.
 
 ```python
 # auditing.py
@@ -158,7 +158,7 @@ def log_receipt(input_data, result):
 - [ ] Agent blocks transfer to "Bad Actor Corp"
 - [ ] Agent allows transfer to "Good Corp"
 - [ ] Agent corrects wrong interest calculation
-- [ ] `audit_log.jsonl` contains cryptographic receipts
+- [ ] `audit_log.jsonl` contains append-only verification records
 
 ---
 

@@ -108,7 +108,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install verifier dependencies
-        run: pip install qwed-verification
+        run: pip install qwed-verification==5.1.0
 
       - name: Run deterministic verification
         run: python .github/scripts/verify_financial_csv.py --input tests/transactions.csv --format sarif --fail-on-error
@@ -140,6 +140,7 @@ cp module-9-devsecops/lab-files/verify_financial_csv.py .github/scripts/verify_f
 The sample script demonstrates a deterministic gate for:
 - AML threshold checks (`amount >= 10000` must be flagged)
 - additive rate calculations for the senior-citizen lab
+- it is tested against `qwed-verification==5.1.0`
 
 #### Step 4: Push and Watch
 

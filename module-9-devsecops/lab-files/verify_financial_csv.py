@@ -14,16 +14,36 @@ import json
 from pathlib import Path
 
 
+TESTED_QWED_VERSION = "5.1.0"
+
+
 def verify_transactions(rows: list[dict[str, str]]) -> list[dict[str, str]]:
     findings: list[dict[str, str]] = []
-    for row in rows:
-        amount = float(row["amount"])
-        flagged = row["llm_flagged"].strip().lower() == "true"
+    for index, row in enumerate(rows, start=1):
+        transaction_id = row.get("transaction_id", f"row-{index}")
+        try:
+            amount = float(row["amount"].strip())
+            flagged_value = row["llm_flagged"].strip().lower()
+            if flagged_value not in {"true", "false"}:
+                raise ValueError("llm_flagged must be true or false")
+            flagged = flagged_value == "true"
+        except (KeyError, ValueError, AttributeError) as exc:
+            findings.append(
+                {
+                    "rule": "MALFORMED_ROW",
+                    "transaction_id": transaction_id,
+                    "row": str(index),
+                    "message": f"Malformed transaction row: {exc}",
+                }
+            )
+            continue
+
         if amount >= 10_000 and not flagged:
             findings.append(
                 {
                     "rule": "AML_THRESHOLD",
-                    "transaction_id": row["transaction_id"],
+                    "transaction_id": transaction_id,
+                    "row": str(index),
                     "message": "Transactions at or above $10,000 must be flagged.",
                 }
             )
@@ -32,16 +52,32 @@ def verify_transactions(rows: list[dict[str, str]]) -> list[dict[str, str]]:
 
 def verify_rates(rows: list[dict[str, str]]) -> list[dict[str, str]]:
     findings: list[dict[str, str]] = []
-    for row in rows:
-        base_rate = float(row["base_rate"])
-        senior_margin = float(row["senior_margin"])
-        claude_output = float(row["claude_output"])
+    for index, row in enumerate(rows, start=1):
+        product_name = row.get("product") or row.get("product_name") or f"row-{index}"
+        output_key = "claude_output" if "claude_output" in row else "claude_generated_final_rate"
+
+        try:
+            base_rate = float(row["base_rate"].strip())
+            senior_margin = float(row["senior_margin"].strip())
+            claude_output = float(row[output_key].strip())
+        except (KeyError, ValueError, AttributeError) as exc:
+            findings.append(
+                {
+                    "rule": "MALFORMED_ROW",
+                    "product": product_name,
+                    "row": str(index),
+                    "message": f"Malformed rate row: {exc}",
+                }
+            )
+            continue
+
         expected = round(base_rate + senior_margin, 3)
         if round(claude_output, 3) != expected:
             findings.append(
                 {
                     "rule": "ADDITIVE_RATE_CHECK",
-                    "product": row["product"],
+                    "product": product_name,
+                    "row": str(index),
                     "message": (
                         f"Expected additive rate {expected:.3f}, found {claude_output:.3f}."
                     ),
@@ -64,7 +100,10 @@ def main() -> int:
         findings = [{"rule": "EMPTY_INPUT", "message": "No rows to verify."}]
     elif {"transaction_id", "amount", "llm_flagged"}.issubset(rows[0].keys()):
         findings = verify_transactions(rows)
-    elif {"product", "base_rate", "senior_margin", "claude_output"}.issubset(rows[0].keys()):
+    elif {"base_rate", "senior_margin"}.issubset(rows[0].keys()) and (
+        {"product", "claude_output"}.issubset(rows[0].keys())
+        or {"product_name", "claude_generated_final_rate"}.issubset(rows[0].keys())
+    ):
         findings = verify_rates(rows)
     else:
         findings = [
