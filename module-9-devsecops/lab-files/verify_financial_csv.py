@@ -86,36 +86,36 @@ def verify_rates(rows: list[dict[str, str]]) -> list[dict[str, str]]:
     return findings
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--input", required=True, type=Path)
-    parser.add_argument("--format", choices=["text", "json", "sarif"], default="text")
-    parser.add_argument("--fail-on-error", action="store_true")
-    args = parser.parse_args()
-
-    with args.input.open("r", encoding="utf-8", newline="") as handle:
-        rows = list(csv.DictReader(handle))
-
+def find_policy_violations(rows: list[dict[str, str]]) -> list[dict[str, str]]:
     if not rows:
-        findings = [{"rule": "EMPTY_INPUT", "message": "No rows to verify."}]
-    elif {"transaction_id", "amount", "llm_flagged"}.issubset(rows[0].keys()):
-        findings = verify_transactions(rows)
-    elif {"base_rate", "senior_margin"}.issubset(rows[0].keys()) and (
-        {"product", "claude_output"}.issubset(rows[0].keys())
-        or {"product_name", "claude_generated_final_rate"}.issubset(rows[0].keys())
-    ):
-        findings = verify_rates(rows)
-    else:
-        findings = [
-            {
-                "rule": "UNSUPPORTED_SCHEMA",
-                "message": "Input columns do not match the supported course lab formats.",
-            }
-        ]
+        return [{"rule": "EMPTY_INPUT", "message": "No rows to verify."}]
 
-    if args.format == "json":
+    columns = set(rows[0].keys())
+    if {"transaction_id", "amount", "llm_flagged"}.issubset(columns):
+        return verify_transactions(rows)
+
+    supports_rates = {"base_rate", "senior_margin"}.issubset(columns)
+    supports_legacy_rate_shape = {"product", "claude_output"}.issubset(columns)
+    supports_shipped_rate_shape = {"product_name", "claude_generated_final_rate"}.issubset(
+        columns
+    )
+    if supports_rates and (supports_legacy_rate_shape or supports_shipped_rate_shape):
+        return verify_rates(rows)
+
+    return [
+        {
+            "rule": "UNSUPPORTED_SCHEMA",
+            "message": "Input columns do not match the supported course lab formats.",
+        }
+    ]
+
+
+def emit_findings(findings: list[dict[str, str]], output_format: str) -> None:
+    if output_format == "json":
         print(json.dumps({"findings": findings}, indent=2))
-    elif args.format == "sarif":
+        return
+
+    if output_format == "sarif":
         sarif = {
             "version": "2.1.0",
             "runs": [
@@ -129,12 +129,28 @@ def main() -> int:
             ],
         }
         print(json.dumps(sarif, indent=2))
-    else:
-        if findings:
-            for finding in findings:
-                print(f"[{finding['rule']}] {finding['message']}")
-        else:
-            print("No deterministic policy violations found.")
+        return
+
+    if not findings:
+        print("No deterministic policy violations found.")
+        return
+
+    for finding in findings:
+        print(f"[{finding['rule']}] {finding['message']}")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", required=True, type=Path)
+    parser.add_argument("--format", choices=["text", "json", "sarif"], default="text")
+    parser.add_argument("--fail-on-error", action="store_true")
+    args = parser.parse_args()
+
+    with args.input.open("r", encoding="utf-8", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+
+    findings = find_policy_violations(rows)
+    emit_findings(findings, args.format)
 
     return 1 if findings and args.fail_on_error else 0
 
