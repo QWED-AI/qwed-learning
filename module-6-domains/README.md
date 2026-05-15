@@ -129,8 +129,9 @@ Expected final USD amount
 #### Pattern 4: ISO 20022 Message Validation (ISOGuard)
 
 ```python
-# Verify banking payment message compliance
-from qwed_finance import ISOGuard
+# Illustrative domain guard example.
+# In production, use the QWED package that owns your banking/ISO policy surface.
+from qwed_sdk.guards import ISOGuard
 
 guard = ISOGuard()
 result = guard.verify_iso20022_xml(xml_payload)
@@ -561,8 +562,9 @@ Enterprise:  LLM → Verify → Receipt → Audit Log → Archive
 ### QWED Solution: Verification Receipts
 
 ```python
-from qwed_finance import ComplianceGuard
-from qwed_finance.models import ReceiptGenerator, VerificationEngine
+# Illustrative enterprise pattern. Exact package boundaries may vary by deployment.
+from qwed_sdk.audit import VerificationReceipt
+from qwed_sdk.guards import ComplianceGuard
 
 # Step 1: Verify the transaction
 guard = ComplianceGuard()
@@ -573,8 +575,8 @@ result = guard.verify_aml_flag(
 )
 
 # Step 2: Generate cryptographic receipt
-receipt = ReceiptGenerator.create(
-    engine=VerificationEngine.COMPLIANCE,
+receipt = VerificationReceipt.create(
+    engine="COMPLIANCE",
     input_data={"amount": 15000, "country": "US"},
     result=result,
     metadata={"transaction_id": "TXN-12345"}
@@ -599,7 +601,7 @@ print(f"⏰ Timestamp: {receipt.timestamp}")
 When a single check isn't enough, use Cross-Guard for **multi-layer verification**:
 
 ```python
-from qwed_finance import CrossGuard
+from qwed_sdk.guards import CrossGuard
 
 guard = CrossGuard()
 
@@ -634,7 +636,7 @@ Overall: 🚫 BLOCKED
 Every verification generates an audit entry:
 
 ```python
-from qwed_finance.models import AuditLog
+from qwed_sdk.audit import AuditLog
 
 # View audit trail
 log = AuditLog()
@@ -654,12 +656,12 @@ for entry in log.get_entries(transaction_id="TXN-12345"):
 |------------|--------------|
 | BSA/FinCEN CTR ($10k+) | ComplianceGuard.verify_aml_flag() |
 | OFAC Sanctions | CrossGuard.verify_swift_with_sanctions() |
-| SOX Audit Trail | ReceiptGenerator + AuditLog |
+| SOX Audit Trail | VerificationReceipt + AuditLog |
 | ISO 20022 Messages | MessageGuard.verify_iso20022_xml() |
 
 ### 🎯 Key Takeaway
 
-> **"In banking, correctness without proof is useless. QWED provides both."**
+> **"In banking, correctness without provenance is incomplete. QWED couples deterministic checks with auditable receipts."**
 
 ---
 

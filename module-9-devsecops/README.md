@@ -80,13 +80,11 @@ graph LR
 
 ---
 
-## 9.2: GitHub Action Setup
+## 9.2: GitHub Workflow Setup
 
-### The QWED Finance Action
+### The QWED Verification Gate
 
-QWED provides a ready-to-use GitHub Action for financial AI verification.
-
-**Marketplace:** [QWED Finance Verify](https://github.com/marketplace/actions/qwed-finance-verify)
+For long-lived teams, the stable pattern is to run **your own pinned verification script** inside CI rather than relying on a course-specific marketplace action name.
 
 ### Quick Setup
 
@@ -95,7 +93,7 @@ QWED provides a ready-to-use GitHub Action for financial AI verification.
 Create `.github/workflows/qwed-verify.yml`:
 
 ```yaml
-name: QWED Finance Verification
+name: QWED Verification Gate
 
 on: [push, pull_request]
 
@@ -104,16 +102,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - uses: QWED-AI/qwed-verification@v3
+
+      - uses: actions/setup-python@v5
         with:
-          action: scan-npv
-          data_file: tests/transactions.csv
-          output_format: sarif
-          fail_on_error: true
+          python-version: "3.11"
+
+      - name: Install verifier dependencies
+        run: pip install qwed-verification==5.1.0
+
+      - name: Run deterministic verification
+        run: python .github/scripts/verify_financial_csv.py --input tests/transactions.csv --format sarif --fail-on-error
 ```
 
-*Note: The `sarif` output format integrates financial hallucinations perfectly into the GitHub Security Dashboard alongside your CVEs.*
+*Note: Treat the workflow above as the durable integration pattern: pin your Python version, pin your verifier dependency, run your own deterministic policy script, and fail the check when proof is unavailable or a violation is found.*
 
 #### Step 2: Create Test CSV
 
@@ -127,7 +128,21 @@ TXN_002,15000,US,False
 
 > ⚠️ **Note:** `TXN_002` is $15,000 but NOT flagged. This is an AML violation.
 
-#### Step 3: Push and Watch
+#### Step 3: Create the Verification Script
+
+Copy the sample verifier from this module into your repository, for example:
+
+```bash
+mkdir -p .github/scripts
+cp module-9-devsecops/lab-files/verify_financial_csv.py .github/scripts/verify_financial_csv.py
+```
+
+The sample script demonstrates a deterministic gate for:
+- AML threshold checks (`amount >= 10000` must be flagged)
+- additive rate calculations for the senior-citizen lab
+- it is tested against `qwed-verification==5.1.0`
+
+#### Step 4: Push and Watch
 
 ```bash
 git add .
@@ -135,30 +150,14 @@ git commit -m "Add QWED verification to CI/CD"
 git push
 ```
 
-#### Step 3: Push and Watch
+### Workflow Outputs
 
-```bash
-git add .
-git commit -m "Add QWED verification to CI/CD"
-git push
-```
-
-### Action Inputs
-
-| Input | Description | Default |
-|-------|-------------|---------|
-| `action` | The verification action (`scan-npv`, `verify`, etc) | Required |
-| `data_file` | Path to your CSV/JSON file to verify | Required |
-| `output_format` | Format for results (`json`, `sarif`, `text`) | `text` |
-| `fail_on_error` | Fail workflow if verification fails | `true` |
-
-### Action Outputs
+Your pipeline should publish two kinds of artifacts:
 
 | Output | Description |
 |--------|-------------|
-| `verified` | Whether all verifications passed |
-| `receipt-count` | Number of verification receipts generated |
-| `violations` | JSON array of violations found |
+| `verification.sarif` | Structured findings for GitHub code scanning |
+| `verification-report.json` | Full policy results, receipts, or audit metadata |
 
 ---
 
@@ -179,22 +178,12 @@ Configure GitHub to require QWED verification before merge:
 Now when a PR fails QWED verification:
 
 ```
-❌ QWED Finance Verification
+❌ QWED Verification Gate
    └── verify: Failed
        └── Error: AML verification failed!
        
 🚫 Merge blocked - Fix required
 ```
-
-### Verified Badge
-
-Once your workflow passes, add the badge to your README:
-
-```markdown
-[![Verified by QWED](https://img.shields.io/badge/Verified_by-QWED-00C853?style=flat&logo=checkmarx)](https://github.com/QWED-AI/qwed-finance)
-```
-
----
 
 ## 🧪 Hands-On Lab: The "Senior Citizen" Trap
 
@@ -261,11 +250,9 @@ Update `rates_update.csv`:
 
 ---
 
-## 9.4: v4.0.0 CI/CD Infrastructure
+## 9.4: Modern CI/CD Verification Infrastructure
 
-🆕 *New in QWED v4.0.0 Sentinel Edition*
-
-v4.0.0 introduced enterprise-grade CI/CD tooling beyond GitHub Actions:
+Current QWED-style CI/CD programs usually combine deterministic verification with standard supply-chain and observability tooling:
 
 ### The Stack
 
@@ -290,7 +277,7 @@ v4.0.0 introduced enterprise-grade CI/CD tooling beyond GitHub Actions:
 # 5. Run Docker Scout vulnerability scan
 ```
 
-### Key Practices from v4.0.0
+### Key Practices
 
 1. **pip-audit with exclusions** — Exclude local packages from audit (`--exclude qwed`)
 2. **Non-root Docker** — All containers run as non-root user via `gosu`/`runuser`
@@ -299,7 +286,7 @@ v4.0.0 introduced enterprise-grade CI/CD tooling beyond GitHub Actions:
 
 ### 🎯 Key Takeaway
 
-> **"One scanner is hope. Five scanners in CI/CD is infrastructure."**
+> **"One scanner is hope. A deterministic gate plus layered CI evidence is infrastructure."**
 
 ---
 
@@ -308,7 +295,7 @@ v4.0.0 introduced enterprise-grade CI/CD tooling beyond GitHub Actions:
 | Concept | Implementation |
 |---------|----------------|
 | **Shift-Left** | Catch errors in PRs, not production |
-| **GitHub Action** | `QWED-AI/qwed-finance@v1.2.0` |
+| **Verification Gate** | Pinned workflow + deterministic verification script |
 | **Branch Protection** | Require "verify" status to merge |
 | **Artifacts** | Verification receipts uploaded |
 | **Sentry** | Error tracking in production |

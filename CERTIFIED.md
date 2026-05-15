@@ -37,7 +37,7 @@ Each demo learner credential is shaped like a W3C Verifiable Credential and is i
 
 This learning repository does **not** claim that the bundled demo artifacts are:
 
-- tamper-proof in production
+- self-authenticating in production
 - enterprise-ready
 - a substitute for managed key infrastructure
 - safe to use with committed signing keys

@@ -1,6 +1,6 @@
-# Master AI Verification: Stop LLM Hallucinations in Production
+# Master Trust-Boundary Verification for AI Systems
 
-🎓 **Free, open-source course on deterministic AI verification**
+🎓 **Free, open-source course on deterministic AI verification, fail-closed trust boundaries, and governed agent systems**
 
 [![CC0 License](https://img.shields.io/badge/license-CC0--1.0-green)](LICENSE)
 [![Stars](https://img.shields.io/github/stars/QWED-AI/qwed-learning?style=social)](https://github.com/QWED-AI/qwed-learning/stargazers)
@@ -16,7 +16,7 @@
 
 <div align="center" id="video-intro">
 
-[![Watch the Course Intro](./assets/video-thumbnail.png)](https://youtu.be/DjFOviJMMWY)
+[![Watch the Course Intro](./assets/video-thumbnail.svg)](https://youtu.be/DjFOviJMMWY)
 
 **▶️ [Watch Course Introduction](https://youtu.be/DjFOviJMMWY)** *(5 min)*
 
@@ -123,28 +123,28 @@ Module 2 → Module 1.5 → Module 5 → Module 10
 
 ---
 
-## 💡 The Core Concept: Artist vs. Accountant
+## 💡 The Core Concept: Draft vs. Decision Boundary
 
 **Think of it this way:**
 
-🎨 **LLMs are Artists**
-- Creative and convincing
-- Bad at precise details
-- **Don't ask an artist to do your taxes!**
+📝 **An LLM produces a draft**
+- Helpful for translation, summarization, and first-pass reasoning
+- May still be unsupported, inconsistent, or context-confused
+- Must not silently decide a high-stakes outcome on its own
 
-🧮 **QWED is the Accountant**
-- Boring and strict
-- Never makes a math mistake
-- **This is who you want handling your money!**
+🛡️ **QWED is the decision boundary**
+- Verifies supported claims with deterministic checks
+- Separates `VERIFIED`, `INVALID`, `UNVERIFIABLE`, and other non-pass states
+- Blocks or escalates when proof is unavailable
 
 **Visual Workflow:**
 
 ```mermaid
 graph LR
-    A["User Query<br/>Natural Language"] --> B["LLM Artist<br/>Creative & Fast"]
-    B --> C["Draft Answer<br/>May contain errors"]
-    C --> D["QWED Accountant<br/>Strict & Deterministic"]
-    D --> E{"Mathematically<br/>Proven?"}
+    A["User Query<br/>Natural Language"] --> B["LLM Draft Layer<br/>Useful but untrusted"]
+    B --> C["Candidate Answer<br/>May be unsupported"]
+    C --> D["QWED Trust Boundary<br/>Deterministic checks"]
+    D --> E{"Supported claim<br/>deterministically verified?"}
     E -->|"✅ Yes"| F["Verified Output<br/>Deterministic Evidence"]
     E -->|"❌ No"| G["Blocked or Unverifiable<br/>+ Explanation"]
     
