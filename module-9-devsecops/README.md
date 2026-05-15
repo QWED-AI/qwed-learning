@@ -2,31 +2,31 @@
 
 > **"Shift left. Catch hallucinations in the PR, not in production."**
 
-⏱️ **Duration:** 45 minutes  
-📊 **Level:** Advanced  
-🎯 **Goal:** Automate AI verification in your CI/CD pipeline using GitHub Actions.
+**Duration:** 45 minutes  
+**Level:** Advanced  
+**Goal:** Automate AI verification in your CI/CD pipeline using GitHub Actions.
 
 ---
 
-## 🧠 What You'll Learn
+## What You'll Learn
 
 After this module, you'll understand:
 
-- ✅ Shift-Left Verification philosophy
-- ✅ Setting up QWED GitHub Action
-- ✅ Blocking PRs that fail verification
-- ✅ Generating verification artifacts
+- Shift-left verification philosophy
+- Setting up a QWED verification gate in CI
+- Blocking PRs that fail deterministic checks
+- Generating verification artifacts for review and audit
 
 ---
 
-## 📚 Table of Contents
+## Table of Contents
 
 | Lesson | Topic | Time |
 |--------|-------|------|
 | 9.1 | [Shift-Left Philosophy](#91-shift-left-verification) | 10 min |
 | 9.2 | [GitHub Action Setup](#92-github-action-setup) | 20 min |
 | 9.3 | [Branch Protection](#93-branch-protection) | 10 min |
-| 9.4 | [v4.0.0 CI/CD Infrastructure](#94-v400-cicd-infrastructure) | 15 min |
+| 9.4 | [Modern CI/CD Verification Infrastructure](#94-modern-cicd-verification-infrastructure) | 15 min |
 
 ---
 
@@ -37,19 +37,17 @@ After this module, you'll understand:
 Most teams catch AI errors in production:
 
 ```
-Developer → Code → Deploy → Production → 🔥 Error → Hotfix
-                                              ↑
-                                        Too late!
+Developer -> Code -> Deploy -> Production -> Error -> Hotfix
 ```
+
+That is too late.
 
 ### The Solution: Shift Left
 
 Move verification earlier in the pipeline:
 
 ```
-Developer → Code → PR → CI/CD Verification → ✅ Merge
-                              ↑
-                        Caught early!
+Developer -> Code -> PR -> CI/CD Verification -> Merge
 ```
 
 ### Why This Matters
@@ -68,12 +66,12 @@ Developer → Code → PR → CI/CD Verification → ✅ Merge
 graph LR
     A[Developer Push] --> B[GitHub Action]
     B --> C[QWED Verification]
-    C --> D{All Tests Pass?}
-    D -->|✅ Yes| E[Allow Merge]
-    D -->|❌ No| F[Block PR]
+    C --> D{All checks pass?}
+    D -->|Yes| E[Allow Merge]
+    D -->|No| F[Block PR]
     F --> G[Developer Fixes]
     G --> A
-    
+
     style C fill:#4caf50
     style F fill:#f44336
 ```
@@ -118,7 +116,7 @@ jobs:
 
 #### Step 2: Create Test CSV
 
-Create `tests/transactions.csv` (Simulate a "Bad Data" trap):
+Create `tests/transactions.csv` to simulate a bad-data trap:
 
 ```csv
 transaction_id,amount,customer_region,llm_flagged
@@ -126,11 +124,11 @@ TXN_001,500,US,False
 TXN_002,15000,US,False
 ```
 
-> ⚠️ **Note:** `TXN_002` is $15,000 but NOT flagged. This is an AML violation.
+**Note:** `TXN_002` is `$15,000` but not flagged. This is an AML violation.
 
 #### Step 3: Create the Verification Script
 
-Copy the sample verifier from this module into your repository, for example:
+Copy the sample verifier from this module into your repository:
 
 ```bash
 mkdir -p .github/scripts
@@ -140,7 +138,8 @@ cp module-9-devsecops/lab-files/verify_financial_csv.py .github/scripts/verify_f
 The sample script demonstrates a deterministic gate for:
 - AML threshold checks (`amount >= 10000` must be flagged)
 - additive rate calculations for the senior-citizen lab
-- it is tested against `qwed-verification==5.1.0`
+- the shipped rate CSV schema used in this repo
+- `qwed-verification==5.1.0`, which is the tested dependency pin for this example
 
 #### Step 4: Push and Watch
 
@@ -167,7 +166,7 @@ Your pipeline should publish two kinds of artifacts:
 
 Configure GitHub to require QWED verification before merge:
 
-1. Go to **Settings → Branches → Add Rule**
+1. Go to **Settings -> Branches -> Add Rule**
 2. Enter branch name pattern: `main`
 3. Enable **"Require status checks to pass before merging"**
 4. Select **"verify"** from the list
@@ -177,43 +176,46 @@ Configure GitHub to require QWED verification before merge:
 
 Now when a PR fails QWED verification:
 
-```
-❌ QWED Verification Gate
-   └── verify: Failed
-       └── Error: AML verification failed!
-       
-🚫 Merge blocked - Fix required
+```text
+X QWED Verification Gate
+  -> verify: Failed
+     -> Error: AML verification failed
+
+Merge blocked - Fix required
 ```
 
-## 🧪 Hands-On Lab: The "Senior Citizen" Trap
+## Hands-On Lab: The "Senior Citizen" Trap
 
-**Scenario:** Ideally, Senior Citizens get +0.50% interest. Claude 4.5 hallucinates the math.
+**Scenario:** Ideally, senior citizens get `+0.50%` interest. Claude 4.5 hallucinates the math.
 
 ### Lab Goal
-Blocking a "Bad PR" that would underpay customers.
 
-### Step 1: Create The Trap
+Block a bad PR that would underpay customers.
 
-Create a file `rates_update.csv`:
+### Step 1: Create the Trap
+
+Create or reuse `rates_update.csv`:
 
 ```csv
-product,base_rate,senior_margin,claude_output
-Senior_FD,7.00,0.50,7.035
+product_name,base_rate,senior_margin,claude_generated_final_rate
+Standard FD,7.00,0.00,7.00
+Senior FD,7.00,0.50,7.035
 ```
 
-> **The Error:** Claude did `7.00 * 1.005 = 7.035`.
-> **The Truth:** `7.00 + 0.50 = 7.50`.
+**The Error:** Claude did `7.00 * 1.005 = 7.035`.  
+**The Truth:** `7.00 + 0.50 = 7.50`.
 
 ### Step 2: Push and Watch Fail
 
 Your pipeline will fail because QWED calculates `7.50` but sees `7.035`.
 
-**Result in Actions tab:**
-```
-❌ Verification Failed: Interest Rate Mismatch
-   Expected: 7.50%
-   Found: 7.035%
-   Error: Multiplicative logic applied to additive spread.
+**Result in the Actions tab:**
+
+```text
+X Verification Failed: Interest Rate Mismatch
+  Expected: 7.50%
+  Found: 7.035%
+  Error: Multiplicative logic applied to additive spread.
 ```
 
 ### Step 3: Fix the Bug
@@ -221,32 +223,33 @@ Your pipeline will fail because QWED calculates `7.50` but sees `7.035`.
 Update `rates_update.csv`:
 
 ```diff
-- Senior_FD,7.00,0.50,7.035
-+ Senior_FD,7.00,0.50,7.50
+- Senior FD,7.00,0.50,7.035
++ Senior FD,7.00,0.50,7.50
 ```
 
 ### Step 4: Push and Watch Pass
 
 **Result:**
-```
-✅ QWED Finance Verification
-   └── verify: Passed
-   └── Audited 1 row(s). No hallucinations found.
-   
-🟢 Ready to merge!
+
+```text
+QWED Finance Verification
+  -> verify: Passed
+  -> Audited 2 row(s). No additive-rate violations found.
+
+Ready to merge.
 ```
 
 ---
 
-## 📋 DevSecOps Checklist
+## DevSecOps Checklist
 
 | Item | Status |
 |------|--------|
-| Workflow file created | ☐ |
-| Test script written | ☐ |
-| Branch protection enabled | ☐ |
-| Badge added to README | ☐ |
-| Team trained on fixing failures | ☐ |
+| Workflow file created | [ ] |
+| Test script written | [ ] |
+| Branch protection enabled | [ ] |
+| Badge added to README | [ ] |
+| Team trained on fixing failures | [ ] |
 
 ---
 
@@ -259,7 +262,7 @@ Current QWED-style CI/CD programs usually combine deterministic verification wit
 | Tool | Purpose | Integration |
 |------|---------|-------------|
 | **Sentry** | Real-time error tracking | `sentry-sdk` in Python |
-| **CircleCI** | Matrix testing (Python 3.10–3.12) | `.circleci/config.yml` |
+| **CircleCI** | Matrix testing (Python 3.10-3.12) | `.circleci/config.yml` |
 | **SonarCloud** | Code quality + coverage analysis | GitHub App |
 | **Snyk** | Security vulnerability scanning (SARIF) | `snyk test` / `snyk monitor` |
 | **pip-audit** | Python dependency CVE scanning | `pip-audit --strict` |
@@ -279,36 +282,36 @@ Current QWED-style CI/CD programs usually combine deterministic verification wit
 
 ### Key Practices
 
-1. **pip-audit with exclusions** — Exclude local packages from audit (`--exclude qwed`)
-2. **Non-root Docker** — All containers run as non-root user via `gosu`/`runuser`
-3. **Hash-verified requirements** — `pip install --require-hashes` in Docker builds
-4. **SARIF output** — Snyk results exported as SARIF for GitHub Security tab
+1. **pip-audit with exclusions** - Exclude local packages from audit (`--exclude qwed`)
+2. **Non-root Docker** - All containers run as non-root user via `gosu` / `runuser`
+3. **Hash-verified requirements** - Use `pip install --require-hashes` in Docker builds
+4. **SARIF output** - Export Snyk results as SARIF for the GitHub Security tab
 
-### 🎯 Key Takeaway
+### Key Takeaway
 
 > **"One scanner is hope. A deterministic gate plus layered CI evidence is infrastructure."**
 
 ---
 
-## 📝 Summary
+## Summary
 
 | Concept | Implementation |
 |---------|----------------|
 | **Shift-Left** | Catch errors in PRs, not production |
 | **Verification Gate** | Pinned workflow + deterministic verification script |
-| **Branch Protection** | Require "verify" status to merge |
-| **Artifacts** | Verification receipts uploaded |
+| **Branch Protection** | Require `verify` status to merge |
+| **Artifacts** | Verification records uploaded |
 | **Sentry** | Error tracking in production |
 | **Snyk + pip-audit** | Dependency CVE scanning |
 | **SBOM** | Software supply chain transparency |
 
 ---
 
-## ➡️ Next: Advanced Patterns
+## Next: Advanced Patterns
 
-Learn the advanced verification engines — Fact Checker, Consensus, and Reasoning:
+Learn the advanced verification engines - Fact Checker, Consensus, and Reasoning:
 
-**[→ Continue to Module 10: Advanced Patterns](../module-10-advanced-patterns/README.md)**
+**[Continue to Module 10: Advanced Patterns](../module-10-advanced-patterns/README.md)**
 
 ---
 
