@@ -4,7 +4,7 @@
 
 ---
 
-## 🎯 Project Goal
+## Project Goal
 
 Create a **compliance-ready banking agent** that can safely handle financial transactions.
 
@@ -13,10 +13,10 @@ Standard LLMs can produce persuasive drafts while still missing deterministic co
 Your agent must use QWED verification patterns so unsupported claims are blocked before execution.
 
 **What you'll build:**
-- 💰 **Loan Calculator** (deterministically verified)
-- 🚫 **Sanctions Transfer Policy Guard** (fail-closed before execution)
-- 📝 **Audit Trail** (structured verification records plus append-only logging)
-- 🤖 **Governed Agent Loop** (plan -> verify -> execute)
+- **Loan Calculator** (deterministically verified)
+- **Sanctions Transfer Policy Guard** (fail-closed before execution)
+- **Audit Trail** (structured verification records plus append-only logging)
+- **Governed Agent Loop** (plan -> verify -> execute)
 
 **Estimated Time:** 90 minutes
 
@@ -31,18 +31,18 @@ graph TB
     A[User Request] --> B[LLM Agent]
     B --> C[Tool Call:<br/>start_transfer(...)]
     C --> D[QWED Interceptor]
-    
+
     D --> E{Sanctions<br/>Check}
     D --> F{Amount<br/>Limit}
-    
-    E -->|✅ Clear| G{Generate<br/>Receipt}
-    F -->|✅ Safe| G
-    
+
+    E -->|Clear| G{Generate<br/>Record}
+    F -->|Safe| G
+
     G --> H[Execute Transfer]
-    
-    E -->|❌ Blocked| I[Deny & Log]
-    F -->|❌ Blocked| I
-    
+
+    E -->|Blocked| I[Deny & Log]
+    F -->|Blocked| I
+
     style D fill:#2196f3
     style G fill:#4caf50
     style I fill:#f44336
@@ -50,26 +50,24 @@ graph TB
 
 ---
 
----
+## Requirements Checklist
 
-## 📋 Requirements Checklist
+Your banking agent must:
 
-Your Banking Agent must:
-
-- [ ] **Cross-Guard:** Check SWIFT messages against Sanctions List (Z3)
-- [ ] **Math Verification:** Verify Loan Interest calculations (SymPy)
-- [ ] **Interceptor:** Catch "transfer" tool calls before execution
+- [ ] **Cross-Guard:** Check SWIFT messages against a sanctions list (Z3)
+- [ ] **Math Verification:** Verify loan interest calculations (SymPy)
+- [ ] **Interceptor:** Catch `transfer` tool calls before execution
 - [ ] **Verification Records:** Generate a structured JSON verification record for every action
 - [ ] **Audit Log:** Save all verification records to a log file
 - [ ] **Unit Tests:** Verify the verifier itself
 
 ---
 
-## 🏗️ Project Structure
+## Project Structure
 
-```
+```text
 capstone-project/
-└── README.md (project brief)
+`-- README.md (project brief)
 ```
 
 This repository currently ships the **capstone brief**, not a full starter template.
@@ -81,15 +79,15 @@ Build your implementation in a separate workspace or fork the examples from:
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Step 1: The Scenario
 
 You are the **Chief Compliance Officer** for "QWED Bank".
 Your developers built an AI agent that helps customers move money.
-**The problem:** It will happily transfer money to terrorists if asked politely.
+**The problem:** it will happily transfer money to terrorists if asked politely.
 
-**Your Mission:** Wrap the agent in a **Verification Interceptor** that blocks illegal transactions.
+**Your mission:** wrap the agent in a verification interceptor that blocks illegal transactions.
 
 ### Step 2: Set Up Your Workspace
 
@@ -98,12 +96,13 @@ mkdir governed-banking-agent
 cd governed-banking-agent
 python -m venv .venv
 # Activate your venv here, then:
-pip install qwed-verification
+pip install qwed-verification==5.1.0
 ```
 
 ### Step 3: Implementation Guide
 
 #### Part 1: Sanctions Transfer Policy Guard (30 mins)
+
 **Goal:** Block transfers that violate your structured allow/deny policy.
 
 ```python
@@ -117,6 +116,7 @@ def verify_transfer_request(beneficiary: str, amount_usd: float, policy: dict) -
 ```
 
 #### Part 2: Math Verification (30 mins)
+
 **Goal:** Ensure loan interest is calculated using a deterministic formula before quoting it.
 
 ```python
@@ -132,6 +132,7 @@ def verify_interest(principal, rate, time_years, agent_answer):
 ```
 
 #### Part 3: The Audit Trail (30 mins)
+
 **Goal:** Generate a verification record and append-only log entry for every blocked or approved action.
 
 ```python
@@ -151,7 +152,7 @@ def log_receipt(input_data, result):
 
 ---
 
-## ✅ Completion Checklist
+## Completion Checklist
 
 **Before submitting, verify:**
 
@@ -162,20 +163,20 @@ def log_receipt(input_data, result):
 
 ---
 
-## 🎓 Learning Outcomes
+## Learning Outcomes
 
-You now have a **Governed Banking Agent** for your portfolio.
+You now have a **governed banking agent** for your portfolio.
 You can prove to an employer:
-1. You know AI agent architecture (interceptors and trust boundaries)
+
+1. You understand AI agent architecture (interceptors and trust boundaries)
 2. You know how to separate verification from execution
 3. You know how to preserve auditability in a high-stakes workflow
 
 ---
 
-## 🚀 Next Steps
+## Next Steps
 
 **Deploy it:**
-Wrap your agent in a `FastAPI` server and connect it to a frontend!
+Wrap your agent in a `FastAPI` server and connect it to a frontend.
 
-**[→ Back to Course Root](../README.md)**
-
+**[Back to Course Root](../README.md)**
