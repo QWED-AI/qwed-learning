@@ -5,6 +5,7 @@ This demo is intentionally strict:
 - all patient math must be verified before a dosage is returned
 - unit mistakes are treated as safety failures
 - unverifiable outputs escalate to human review instead of downgraded confidence
+- every VERIFIED result carries a proof_ref binding verdict to evidence
 """
 
 from datetime import datetime
@@ -13,6 +14,7 @@ import logging
 from typing import Dict, Optional
 
 from qwed_sdk import QWEDLocal
+from qwed_core import DiagnosticResult, DiagnosticStatus
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -83,6 +85,7 @@ class HIPAACompliantDosageCalculator:
         """
         Calculate and verify a pediatric dosage in milligrams.
 
+        Returns a dict with DiagnosticResult fields and audit metadata.
         Raises `SafetyError` if the dosage cannot be deterministically verified.
         """
         self._validate_dose_inputs(weight_kg, dosage_per_kg_mg, max_dosage_mg)
@@ -108,21 +111,21 @@ class HIPAACompliantDosageCalculator:
 
         try:
             result = self.client.verify_math(query)
-            if not result.verified:
+            if result.status != DiagnosticStatus.VERIFIED:
                 self._log_safety_event(
                     patient=patient_ref,
                     drug=drug_name,
                     weight=weight_kg,
                     dosage=None,
-                    verified=False,
-                    error=result.error,
+                    status=result.status.value,
+                    message=result.agent_message,
                 )
                 raise SafetyError(
-                    f"Dosage for {drug_name} is unverifiable: {result.error}. "
+                    f"Dosage for {drug_name} is unverifiable: {result.agent_message}. "
                     "Escalate to pharmacist or clinician review."
                 )
 
-            calculated_dosage_mg = result.value
+            calculated_dosage_mg = result.developer_fields.get("value")
             capped = False
             if max_dosage_mg is not None and calculated_dosage_mg > max_dosage_mg:
                 logger.warning(
@@ -136,7 +139,20 @@ class HIPAACompliantDosageCalculator:
             logger.info(
                 "Verified dosage: %smg via %s",
                 calculated_dosage_mg,
-                result.evidence.get("method", "symbolic engine"),
+                result.developer_fields.get("method", "symbolic engine"),
+            )
+
+            diag = DiagnosticResult.verified(
+                agent_message=f"Dosage of {calculated_dosage_mg}mg calculated for {drug_name}",
+                developer_fields={
+                    "value": calculated_dosage_mg,
+                    "method": result.developer_fields.get("method", "symbolic engine"),
+                    "constraint_id": "MED-DOSAGE-001",
+                    "pii_masked": result.developer_fields.get("pii_masked", {}),
+                    "capped": capped,
+                    "max_dosage_mg": max_dosage_mg,
+                },
+                evidence=result.developer_fields,
             )
 
             audit_info = self._log_safety_event(
@@ -144,17 +160,19 @@ class HIPAACompliantDosageCalculator:
                 drug=drug_name,
                 weight=weight_kg,
                 dosage=calculated_dosage_mg,
-                verified=True,
-                pii_masked=result.evidence.get("pii_masked", {}),
+                status=diag.status.value,
+                proof_ref=diag.proof_ref,
+                pii_masked=result.developer_fields.get("pii_masked", {}),
             )
 
             return {
                 "dosage_mg": calculated_dosage_mg,
-                "verified": True,
-                "verification_status": "VERIFIED",
+                "status": diag.status.value,
+                "proof_ref": diag.proof_ref,
+                "is_authoritative": diag.is_authoritative,
                 "capped": capped,
                 "max_dosage_mg": max_dosage_mg,
-                "pii_detected": result.evidence.get("pii_masked", {}).get("pii_detected", 0),
+                "pii_detected": result.developer_fields.get("pii_masked", {}).get("pii_detected", 0),
                 "audit_id": audit_info["audit_id"],
                 "timestamp": audit_info["timestamp"],
                 "safety_status": "APPROVED",
@@ -167,8 +185,8 @@ class HIPAACompliantDosageCalculator:
                 drug=drug_name,
                 weight=weight_kg,
                 dosage=None,
-                verified=False,
-                error=str(exc),
+                status="BLOCKED",
+                message=str(exc),
             )
             raise SafetyError(f"Critical error in dosage calculation: {exc}") from exc
 
@@ -178,9 +196,10 @@ class HIPAACompliantDosageCalculator:
         drug: str,
         weight: float,
         dosage: Optional[float],
-        verified: bool,
+        status: str,
+        proof_ref: Optional[str] = None,
         pii_masked: Optional[Dict] = None,
-        error: Optional[str] = None,
+        message: Optional[str] = None,
     ) -> Dict:
         """Create a local audit trail entry."""
         audit_event = {
@@ -190,9 +209,10 @@ class HIPAACompliantDosageCalculator:
             "drug": drug,
             "weight_kg": weight,
             "calculated_dosage_mg": dosage,
-            "verified": verified,
+            "status": status,
+            "proof_ref": proof_ref,
             "pii_masked": pii_masked,
-            "error": error,
+            "message": message,
         }
         self.safety_log.append(audit_event)
         return audit_event
@@ -225,8 +245,9 @@ if __name__ == "__main__":
             max_dosage_mg=max_dose,
         )
         print(f"Dosage: {safe_result['dosage_mg']}mg")
-        print(f"Verified: {safe_result['verified']}")
-        print(f"Verification Status: {safe_result['verification_status']}")
+        print(f"Status: {safe_result['status']}")
+        print(f"Proof Ref: {safe_result['proof_ref']}")
+        print(f"Authoritative: {safe_result['is_authoritative']}")
         print(f"Capped: {safe_result['capped']}")
         print(f"Audit ID: {safe_result['audit_id']}")
         print(f"Safety Status: {safe_result['safety_status']}")

@@ -310,6 +310,92 @@ derivative = sp.diff(x**2, x)  # Always: 2*x (proven)
 
 ---
 
+---
+
+## Diagnostic Architecture (v5.2.0)
+
+### DiagnosticResult
+
+**Simple Meaning:** The single unified result type for all QWED verification operations. Replaces the old incompatible `VerificationResult` variants.
+
+**Three Layers:**
+1. **`agent_message`** — Human-readable status ("Verification succeeded", "Proof not established"). Safe for downstream agents. Always present.
+2. **`developer_fields`** — Structured evidence dictionary. Contains `constraint_id`, `advisory_checks`, solver traces, and engine metadata. For engineers and audit.
+3. **`proof_ref`** — Cryptographic hash (`sha256:...`) of the proof artifact. Present only on `VERIFIED`. Absence means non-authoritative.
+
+**Usage:**
+```python
+if result.status == DiagnosticStatus.VERIFIED:
+    # proof_ref is guaranteed to be set
+    process(result.developer_fields["value"])
+else:
+    raise ValueError(result.agent_message)
+```
+
+---
+
+### DiagnosticStatus
+
+**Simple Meaning:** The three-state enum that replaces the old five-state model.
+
+| Value | Meaning | Can drive control flow? |
+|-------|---------|------------------------|
+| `VERIFIED` | Deterministically proven | Yes (proof_ref present) |
+| `UNVERIFIABLE` | Could not be proven | No (proof_ref is None) |
+| `BLOCKED` | Could not even be attempted | No (proof_ref is None) |
+
+**What was removed:** `INVALID`, `HEURISTIC`, `SIMPLIFIED`. These are not verification states. Heuristic signals live in `advisory_checks`. Simplified expressions are transformations, not verdicts.
+
+---
+
+### proof_ref
+
+**Simple Meaning:** A cryptographic fingerprint (`sha256:...`) that proves a verification result is authentic and hasn't been tampered with.
+
+**Real-World Analogy:**
+- **Tamper-Evident Seal** — If the seal is broken, you know the bottle was opened
+- **Digital Signature** — Proves who signed a document
+- **Checksum** — Verifies a file downloaded correctly
+
+**How It Works:**
+1. When a claim is `VERIFIED`, QWED hashes the evidence (solver traces, frequency counts, constraints) with SHA-256
+2. The hash becomes the `proof_ref`: `"sha256:abcdef123456..."`
+3. Any downstream gate can re-hash the evidence and compare — if it matches, the verdict is authentic
+4. If `proof_ref` is `None`, the result is non-authoritative and must not drive control flow
+
+**Why It Matters:** `proof_ref` makes audit trails replayable and tamper-detectable. Without it, a logged `VERIFIED` result is just a claim — with it, the claim is cryptographically bound to the evidence that justified it.
+
+---
+
+### advisory_checks
+
+**Simple Meaning:** Optional, non-authoritative signals carried inside `developer_fields`. These are useful hints, not verdicts.
+
+**Examples:**
+- A heuristic safety score
+- A "SIMPLIFIED" transformation note
+- A model confidence estimate
+- A policy warning
+
+**Why It's Not a Status:** Advisory checks are information, not proof. They live in `developer_fields` so they don't pollute the verification state machine. A blocked result can still carry advisory signals.
+
+---
+
+### constraint_id
+
+**Simple Meaning:** A unique identifier for the specific constraint or rule that was checked.
+
+**Real-World Analogy:**
+- **Regulation Section Number** — "Section 5.2.1 of HIPAA Privacy Rule"
+- **Test Case ID** — "TC-4711: Interest rate must be positive"
+- **Policy Rule** — "POLICY-03: No eval() in production code"
+
+**Where It Lives:** `result.developer_fields["constraint_id"]`
+
+**Why It Matters:** Enables targeted audit queries ("show me every time constraint POL-047 triggered"), structured compliance reporting, and policy-as-code workflows.
+
+---
+
 ## Quick Reference Table
 
 | Term | Translation | Emoji |
@@ -321,6 +407,11 @@ derivative = sp.diff(x**2, x)  # Always: 2*x (proven)
 | LLM-as-Judge | AI checks AI | 🤔 |
 | Verification | Proof of correctness | 🛡️ |
 | DSL (Domain-Specific Language) | Special code for one task | 🔧 |
+| DiagnosticResult | Unified result type (3 states + proof_ref) | 📋 |
+| DiagnosticStatus | VERIFIED / UNVERIFIABLE / BLOCKED | 🚦 |
+| proof_ref | Cryptographic proof fingerprint | 🔏 |
+| advisory_checks | Non-authoritative signals (not verdicts) | 💡 |
+| constraint_id | Unique constraint/rule identifier | 🏷️ |
 
 ---
 

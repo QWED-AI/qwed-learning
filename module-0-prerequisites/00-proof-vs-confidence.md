@@ -11,10 +11,11 @@
 
 In QWED, these are different categories:
 
-- **Verified:** A deterministic engine proved the claim within a supported domain.
-- **Invalid:** A deterministic engine checked the claim and found it false.
-- **Unverifiable:** The claim could not be proved with the available deterministic machinery.
-- **Heuristic:** A system produced a useful signal, but not a proof.
+- **VERIFIED:** A deterministic engine proved the claim within a supported domain. The result includes a `proof_ref` — a cryptographic hash binding the verdict to the evidence that justified it.
+- **UNVERIFIABLE:** The claim could not be proved with the available deterministic machinery. `proof_ref` is `None`.
+- **BLOCKED:** Verification could not even be attempted (parse error, configuration failure, security policy violation). `proof_ref` is `None`.
+
+There are exactly three diagnostic states. `HEURISTIC` and `SIMPLIFIED` are not verification states — they are optional advisory signals carried in `developer_fields.advisory_checks`.
 
 This distinction matters because future AI systems will often produce outputs that are:
 
@@ -83,46 +84,62 @@ This is the core philosophy that protects future agent ecosystems from silent tr
 
 ## Short Examples
 
-These examples intentionally show different surfaces of the QWED ecosystem.
-Some APIs return an object (`result.verified`, `result.value`), while others return
-structured dictionaries (`status`, `is_valid`, `simplified`). The trust model is the
-same across all of them: interpret the result category first, then decide the workflow action.
+All QWED operations return a `DiagnosticResult` with three layers. The trust model is the same across all domains: check the status first, then decide the workflow action.
 
 ### Example 1: Verified
 
 ```python
+from qwed_core import DiagnosticStatus
+
 query = "Solve x^2 - 4 = 0"
 result = client.verify_math(query)
 
-print(result.verified)  # True
-print(result.value)     # [-2, 2]
+print(result.status)                    # DiagnosticStatus.VERIFIED
+print(result.proof_ref)                 # "sha256:abcdef..."
+print(result.developer_fields["value"])  # [-2, 2]
 ```
 
-The claim is in a supported symbolic domain, and the engine can prove it.
+The claim is in a supported symbolic domain, and the engine can prove it. The `proof_ref` cryptographically binds the verdict to the evidence.
 
-### Example 2: Simplified, Not Verified
+### Example 2: Blocked
 
 ```python
+from qwed_core import DiagnosticStatus
+
 query = "x + x"
-result = batch_verifier.verify_item(query)
+result = client.verify_math(query)
 
-print(result["is_valid"])   # False
-print(result["status"])     # "SIMPLIFIED"
-print(result["simplified"]) # "2*x"
+print(result.status)          # DiagnosticStatus.BLOCKED
+print(result.proof_ref)       # None
+print(result.agent_message)   # "Expression could not be parsed as a claim"
 ```
 
-The system transformed the expression, but no equality or proof claim was provided.
+The engine could not parse the query as a verifiable claim. No proof artifact exists.
 
-### Example 3: Unsupported
+### Example 3: Unverifiable
 
 ```python
-query = "Which startup strategy is safest in 2027?"
-result = verify_policy_decision(query)
+from qwed_core import DiagnosticStatus
 
-print(result["status"])  # "UNVERIFIABLE"
+query = "Which startup strategy is safest in 2027?"
+result = client.verify(query)
+
+print(result.status)          # DiagnosticStatus.UNVERIFIABLE
+print(result.proof_ref)       # None
 ```
 
-The output may still be useful, but it is not deterministically provable.
+The output may still be useful, but it is not deterministically provable. Without a `proof_ref`, this result is non-authoritative.
+
+### Advisory Checks (Non-Status Signals)
+
+```python
+# Heuristic signals live in developer_fields, not the status enum
+advisory = result.developer_fields.get("advisory_checks", [])
+for check in advisory:
+    print(check.name, check.outcome)  # e.g. "style_check" "PASS"
+```
+
+These are information, not proof. A BLOCKED or UNVERIFIABLE result can still carry useful advisory signals.
 
 ---
 

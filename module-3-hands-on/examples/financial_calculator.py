@@ -4,13 +4,13 @@ Production-ready financial calculator with fail-closed verification.
 This example demonstrates the QWED mindset for trust-critical math:
 - deterministic verification happens before a value is returned
 - unsupported or unverifiable calculations are blocked
-- simplified or heuristic outputs are never normalized into "verified"
+- only VERIFIED results with proof_ref are authoritative for control flow
 """
 
-from dataclasses import dataclass
 import logging
 
 from qwed_sdk import QWEDLocal
+from qwed_core import DiagnosticResult, DiagnosticStatus, compute_proof_ref
 
 
 logging.basicConfig(level=logging.INFO)
@@ -21,21 +21,12 @@ class VerificationError(Exception):
     """Raised when a financial calculation cannot be verified."""
 
 
-@dataclass
-class CalculationResult:
-    """Deterministic result for a financial calculation."""
-
-    value: float
-    verified: bool
-    status: str
-    audit_trail: str
-
-
 class FinancialCalculator:
     """
     Financial calculator that fails closed on unverifiable results.
 
     The calculator never returns a fallback estimate in place of proof.
+    Every VERIFIED result carries a proof_ref binding the verdict to evidence.
     """
 
     def __init__(self, provider: str = "openai", model: str = "gpt-4o-mini"):
@@ -57,11 +48,12 @@ class FinancialCalculator:
         if not isinstance(years, int) or years <= 0:
             raise ValueError("years must be a positive integer")
 
-    def compound_interest(self, principal: float, rate: float, years: int) -> CalculationResult:
+    def compound_interest(self, principal: float, rate: float, years: int) -> DiagnosticResult:
         """
         Calculate compound interest with deterministic verification.
 
         Formula: A = P(1 + r)^t
+        Returns DiagnosticResult with proof_ref on VERIFIED.
         """
         self._validate_financial_inputs(principal, rate, years)
         query = f"""
@@ -76,27 +68,32 @@ class FinancialCalculator:
         result = self.client.verify_math(query)
         self.calculation_count += 1
 
-        if not result.verified:
+        if result.status != DiagnosticStatus.VERIFIED:
             self.blocked_calculations += 1
-            logger.error("Compound-interest verification failed: %s", result.error)
+            logger.error("Compound-interest verification failed: %s", result.agent_message)
             raise VerificationError(
-                f"Compound-interest calculation is unverifiable: {result.error}. "
+                f"Compound-interest calculation is unverifiable: {result.agent_message}. "
                 "Block the response and escalate for manual review."
             )
 
-        logger.info("Verified compound interest: $%.2f", result.value)
-        return CalculationResult(
-            value=result.value,
-            verified=True,
-            status="VERIFIED",
-            audit_trail=f"Deterministic math verification via {result.evidence.get('method', 'symbolic engine')}",
+        value = result.developer_fields.get("value")
+        logger.info("Verified compound interest: $%.2f", value)
+        return DiagnosticResult.verified(
+            agent_message=f"Compound interest calculated for ${principal:,.2f} at {rate}% over {years} years",
+            developer_fields={
+                "value": value,
+                "method": result.developer_fields.get("method", "symbolic engine"),
+                "constraint_id": "FIN-001",
+            },
+            evidence=result.developer_fields,
         )
 
-    def loan_payment(self, principal: float, annual_rate: float, years: int) -> CalculationResult:
+    def loan_payment(self, principal: float, annual_rate: float, years: int) -> DiagnosticResult:
         """
         Calculate a monthly loan payment with deterministic verification.
 
         Formula: M = P[r(1+r)^n]/[(1+r)^n-1]
+        Returns DiagnosticResult with proof_ref on VERIFIED.
         """
         self._validate_financial_inputs(principal, annual_rate, years)
         query = f"""
@@ -111,20 +108,24 @@ class FinancialCalculator:
         result = self.client.verify_math(query)
         self.calculation_count += 1
 
-        if not result.verified:
+        if result.status != DiagnosticStatus.VERIFIED:
             self.blocked_calculations += 1
-            logger.error("Loan-payment verification failed: %s", result.error)
+            logger.error("Loan-payment verification failed: %s", result.agent_message)
             raise VerificationError(
-                f"Loan-payment calculation is unverifiable: {result.error}. "
+                f"Loan-payment calculation is unverifiable: {result.agent_message}. "
                 "Do not substitute a fallback value."
             )
 
-        logger.info("Verified loan payment: $%.2f", result.value)
-        return CalculationResult(
-            value=result.value,
-            verified=True,
-            status="VERIFIED",
-            audit_trail=f"Deterministic math verification via {result.evidence.get('method', 'symbolic engine')}",
+        value = result.developer_fields.get("value")
+        logger.info("Verified loan payment: $%.2f", value)
+        return DiagnosticResult.verified(
+            agent_message=f"Monthly loan payment calculated for ${principal:,.2f} at {annual_rate}% over {years} years",
+            developer_fields={
+                "value": value,
+                "method": result.developer_fields.get("method", "symbolic engine"),
+                "constraint_id": "FIN-002",
+            },
+            evidence=result.developer_fields,
         )
 
     def get_stats(self) -> dict:
@@ -151,17 +152,16 @@ if __name__ == "__main__":
 
     print("\nExample 1: Compound Interest")
     compound = calc.compound_interest(principal=100000, rate=5.0, years=10)
-    print(f"Final Amount: ${compound.value:,.2f}")
-    print(f"Verified: {compound.verified}")
-    print(f"Status: {compound.status}")
-    print(f"Audit Trail: {compound.audit_trail}")
+    print(f"Status: {compound.status.value}")
+    print(f"Value: ${compound.developer_fields['value']:,.2f}")
+    print(f"Proof Ref: {compound.proof_ref}")
+    print(f"Is Authoritative: {compound.is_authoritative}")
 
     print("\nExample 2: Mortgage Payment")
     mortgage = calc.loan_payment(principal=500000, annual_rate=6.5, years=30)
-    print(f"Monthly Payment: ${mortgage.value:,.2f}")
-    print(f"Verified: {mortgage.verified}")
-    print(f"Status: {mortgage.status}")
-    print(f"Audit Trail: {mortgage.audit_trail}")
+    print(f"Status: {mortgage.status.value}")
+    print(f"Monthly Payment: ${mortgage.developer_fields['value']:,.2f}")
+    print(f"Proof Ref: {mortgage.proof_ref}")
 
     print("\nCalculator Statistics")
     stats = calc.get_stats()

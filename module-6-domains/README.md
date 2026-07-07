@@ -76,9 +76,9 @@ Compounding: Annual
 Final Amount = Principal * (1 + rate)^time
 """)
 
-print(f"Verified: {result.verified}")
-print(f"Computed: ${result.computed_value:,.2f}")
-# Output: Verified: True, Computed: $162,889.46
+print(f"Status: {result.status.value}")
+print(f"Computed: ${result.developer_fields.get('value'):,.2f}")
+# Output: Status: VERIFIED, Computed: $162,889.46
 ```
 
 ### Financial Verification Patterns
@@ -194,8 +194,8 @@ result = client.verify_math(query)
 # BMI = (weight_lbs * 703) / height_inches²
 # BMI = (180 * 703) / 70² = 25.8
 
-print(f"BMI: {result.computed_value}")  # 25.8
-print(f"Verified: {result.verified}")   # True
+print(f"BMI: {result.developer_fields.get('value')}")  # 25.8
+print(f"Status: {result.status.value}")                 # VERIFIED
 # Patient name NEVER reached the LLM!
 ```
 
@@ -445,7 +445,7 @@ for pkg in imports:
         f"Python package '{pkg}' exists on PyPI",
         sources=["pypi_packages.json"]
     )
-    if not result.verified:
+    if not result.is_verified:
         print(f"⚠️ WARNING: {pkg} may not exist!")
 
 # Output: ⚠️ WARNING: aiohttp_security may not exist!

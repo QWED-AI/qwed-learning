@@ -290,7 +290,7 @@ result = client.verify_math("Is 17*24 equal to 408?")
 # 2. SymPy evaluates: 17*24 = 408 ✓
 # 3. Returns: verified=True, proof="17*24 = 408"
 
-print(result.verified)  # True (PROVEN, not guessed)
+print(result.status)     # DiagnosticStatus.VERIFIED (PROVEN, not guessed)
 ```
 
 ### Why It Works
@@ -321,12 +321,13 @@ print(result.verified)  # True (PROVEN, not guessed)
          Safety?         Quality?        Correctness?
               │               │               │
               ▼               ▼               ▼
-        ┌─────────┐    ┌───────────┐    ┌─────────┐
-        │Guardrails│    │LLM-as-Judge│    │  QWED   │
-        │(if blocking│    │(if subjective│    │(if math,│
-        │ harmful   │    │ rating OK)   │    │ logic,  │
-        │ content)  │    │              │    │ code)   │
-        └─────────┘    └───────────┘    └─────────┘
+        ┌─────────┐    ┌───────────┐    ┌───────────┐
+        │Guardrails│    │LLM-as-Judge│    │   QWED    │
+        │(if      │    │(if        │    │(if math,  │
+        │ blocking│    │ subjective│    │ logic,    │
+        │ harmful │    │ rating OK)│    │ code)     │
+        │ content)│    │           │    │           │
+        └─────────┘    └───────────┘    └───────────┘
 ```
 
 ### Recommendation Matrix
@@ -358,10 +359,10 @@ def production_pipeline(llm_response):
     
     # Layer 3: Correctness (QWED)
     result = qwed.verify(llm_response)
-    if not result.verified:
-        return f"Error: {result.error}"
+    if result.status != qwed.DiagnosticStatus.VERIFIED:
+        return f"Error: {result.agent_message}"
     
-    return result.value  # Deterministically verified output
+    return result.developer_fields.get("value")
 ```
 
 ### 🎯 Key Takeaway
@@ -387,13 +388,15 @@ result = gpt4(prompt)
 ### QWED Approach
 ```python
 from qwed_sdk import QWEDLocal
+from qwed_core import DiagnosticStatus
 
 client = QWEDLocal()
 result = client.verify_math(
     "1000 * (1 + 0.05)^3 - 1000 == 157.63"
 )
-print(result.verified)       # True
-print(result.computed_value) # 157.625 (close enough with rounding)
+print(result.status)                    # DiagnosticStatus.VERIFIED
+print(result.proof_ref)                 # sha256:...
+print(result.developer_fields["value"])  # 157.625 (close enough with rounding)
 ```
 
 **Which one would you trust with real money?**
