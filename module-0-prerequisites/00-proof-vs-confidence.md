@@ -71,12 +71,7 @@ When QWED cannot establish trust, the correct outcome is not:
 - "guess conservatively"
 - "return the LLM answer with lower confidence"
 
-The correct outcome is one of:
-
-- `BLOCKED`
-- `UNVERIFIABLE`
-- `QUARANTINED`
-- `HUMAN_REVIEW_REQUIRED`
+The result states are `BLOCKED` or `UNVERIFIABLE`. Follow-up actions such as quarantine or human review are separate workflow steps, not verification states.
 
 This is the core philosophy that protects future agent ecosystems from silent trust failures.
 

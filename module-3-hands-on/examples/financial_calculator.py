@@ -10,7 +10,7 @@ This example demonstrates the QWED mindset for trust-critical math:
 import logging
 
 from qwed_sdk import QWEDLocal
-from qwed_core import DiagnosticResult, DiagnosticStatus, compute_proof_ref
+from qwed_core import DiagnosticResult, DiagnosticStatus
 
 
 logging.basicConfig(level=logging.INFO)

@@ -123,7 +123,7 @@ result = verifier.verify_content(
     policy="Block structuring attempts"
 )
 
-if result.status == "VERIFIED":
+if result.is_verified:
     print("✅ Consensus Reached: Suspicious")
 else:
     print("⚠️ Disagreement: Human Review Needed")

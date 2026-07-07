@@ -70,7 +70,6 @@ class FinancialAssistant:
             "max_dti": 43,
             "annual_income": annual_income,
             "loan_amount": loan_amount,
-            "verified": True
         }
     
     def _validate_inputs(self, income: float, loan: float, rate: float, years: int) -> Dict:

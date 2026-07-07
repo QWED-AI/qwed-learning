@@ -446,15 +446,28 @@ class QWEDVerificationLayer:
         """Checkpoint 2: Verify each step's output."""
         if step["action"] == "verify_math":
             result = self.qwed.verify(step.get("expression", ""))
-            return {"status": result.status.value, "value": result.developer_fields.get("value"), "proof_ref": result.proof_ref}
+            return {
+                "status": result.status.value,
+                "value": result.developer_fields.get("value"),
+                "proof_ref": result.proof_ref,
+                "agent_message": result.agent_message,
+            }
         
         if step["action"] == "verify_fact":
             result = self.qwed.verify(
                 f"Is this true: {step['claim']}? Context: {step.get('context', '')}"
             )
-            return {"status": result.status.value, "proof_ref": result.proof_ref}
+            return {
+                "status": result.status.value,
+                "proof_ref": result.proof_ref,
+                "agent_message": result.agent_message,
+            }
         
-        return {"status": "UNVERIFIABLE", "note": "No verification rule for this step type"}
+        return {
+            "status": "UNVERIFIABLE",
+            "proof_ref": None,
+            "agent_message": "No verification rule for this step type",
+        }
     
     def verify_final_report(self, report_text: str) -> dict:
         """Checkpoint 3: Verify the final output has IRAC structure."""

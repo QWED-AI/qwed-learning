@@ -318,6 +318,7 @@ from qwed_core import DiagnosticStatus
 
 def verify_or_quarantine(query: str):
     """Do not return a guessed value when verification fails."""
+    result = None
     try:
         result = client.verify_math(query)
         if result.status == DiagnosticStatus.VERIFIED:
@@ -326,8 +327,8 @@ def verify_or_quarantine(query: str):
         logger.error(f"Verification infrastructure failure: {exc}")
 
     return {
-        "status": result.status.value if 'result' in dir() else "BLOCKED",
-        "message": result.agent_message if 'result' in dir() else "Verification infrastructure error",
+        "status": result.status.value if result is not None else "BLOCKED",
+        "message": result.agent_message if result is not None else "Verification infrastructure error",
     }
 ```
 

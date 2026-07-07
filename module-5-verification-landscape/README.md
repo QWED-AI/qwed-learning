@@ -358,8 +358,9 @@ def production_pipeline(llm_response):
         return "Warning: Format uncertain"
     
     # Layer 3: Correctness (QWED)
+    from qwed_core import DiagnosticStatus
     result = qwed.verify(llm_response)
-    if result.status != qwed.DiagnosticStatus.VERIFIED:
+    if result.status != DiagnosticStatus.VERIFIED:
         return f"Error: {result.agent_message}"
     
     return result.developer_fields.get("value")

@@ -195,7 +195,7 @@ class VerifiedPricingEngine:
                 break
 
         if not applicable_tier:
-            return {"discount_percent": 0, "verified": True, "reason": "No tier"}
+            return {"discount_percent": 0, "status": "VERIFIED", "reason": "No tier"}
 
         query = f"""
         Verify bulk discount logic:
