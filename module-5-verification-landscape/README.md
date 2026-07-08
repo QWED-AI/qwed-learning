@@ -71,7 +71,8 @@ Different tools address different parts of this problem.
 | **Guardrails** | Rule-based filters | Pass/Fail | Blocking harmful content |
 | **LLM-as-Judge** | GPT rates GPT | Score (1-10) | Subjective quality |
 | **Beaver** | Token exploration | Probability bound | Risk assessment |
-| **QWED** | Symbolic solvers | Mathematical proof | Correctness verification |
+| **QWED (core)** | Symbolic solvers | Mathematical proof | AI output correctness |
+| **QWED-Infra** | Z3 + NetworkX + Decimal | Deterministic pass/block | IaC trust boundaries |
 
 ---
 

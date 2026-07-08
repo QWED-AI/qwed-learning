@@ -268,6 +268,20 @@ Current QWED-style CI/CD programs usually combine deterministic verification wit
 | **pip-audit** | Python dependency CVE scanning | `pip-audit --strict` |
 | **Docker Scout** | Container vulnerability scanning | Docker Hub integration |
 | **SBOM** | Software Bill of Materials (SPDX) | `anchore/sbom-action` |
+| **QWED-Infra** | IaC verification (IAM, network, cost, artifacts) | `qwed-infra>=0.2.0` |
+
+### IaC Verification with QWED-Infra
+
+For infrastructure-as-code verification (Terraform IAM policies, network topologies, cost estimates), use the `qwed-infra` package as a CI/CD gate:
+
+```yaml
+- name: Verify IaC with QWED-Infra
+  run: |
+    pip install qwed-infra>=0.2.0
+    python ci/verify_terraform_pr.py
+```
+
+See [Module 14: Infrastructure Verification](../module-14-infrastructure-verification/README.md) for a full walkthrough of the four IaC guards.
 
 ### Docker Auto-Publish Pipeline
 

@@ -44,7 +44,8 @@
 - [ ] [Module 10: Advanced Patterns](module-10-advanced-patterns/README.md) _(45 min)_
 - [ ] [Module 11: Legal Auditor](module-11-legal-auditor/README.md) _(60 min)_
 - [ ] [Module 12: Agentic Security](module-12-agentic-security/README.md) _(60 min)_
-- [ ] [Module 13: Secure Orchestration](module-13-secure-orchestration/README.md) _(75 min)_ [New]
+- [ ] [Module 13: Secure Orchestration](module-13-secure-orchestration/README.md) _(75 min)_
+- [ ] [Module 14: Infrastructure Verification](module-14-infrastructure-verification/README.md) _(75 min)_ [New]
 
 **Pro Tip:** Save this page or fork the repo if you want a persistent progress checklist.
 
@@ -105,7 +106,8 @@ Module 2 -> Module 1.5 -> Module 5 -> Module 10
 | [6: Domains](module-6-domains/) | 60m | Industry | Business | Easy |
 | [11: Legal](module-11-legal-auditor/) | 60m | Law | Legal Tech | Medium |
 | [12: Security](module-12-agentic-security/) | 60m | Agentic AI | Security | Hard |
-| [13: Orchestration](module-13-secure-orchestration/) | 75m | Multi-Agent | Architects | Hard [New] |
+| [13: Orchestration](module-13-secure-orchestration/) | 75m | Multi-Agent | Architects | Hard |
+| [14: Infra Verification](module-14-infrastructure-verification/) | 75m | IaC | DevOps | Hard [New] |
 
 ---
 
