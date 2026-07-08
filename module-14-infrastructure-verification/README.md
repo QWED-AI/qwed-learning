@@ -77,8 +77,8 @@ QWED-Infra mirrors the same deterministic fail-closed philosophy from the core c
 
 ## 14.2: The Four Guards
 
-```python
-pip install qwed-infra
+```bash
+pip install "qwed-infra>=0.2.0"
 ```
 
 QWED-Infra provides four deterministic guards, each covering a different IaC trust boundary:
@@ -112,7 +112,7 @@ The `to_diagnostic()` converter produces an `InfraDiagnosticResult` — the same
 
 These examples use `qwed-infra>=0.2.0`:
 
-```
+```bash
 pip install "qwed-infra>=0.2.0"
 ```
 
@@ -399,7 +399,7 @@ else:
 
 `InfraDiagnosticResult` follows the same 3-layer pattern as `DiagnosticResult` from the core curriculum, with infrastructure-specific `developer_fields`:
 
-```
+```text
 ┌──────────────────────────────────────────────┐
 │  Layer 1: agent_message (str)                │
 │  "IAM policy access: allowed"                │
@@ -488,7 +488,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install qwed-infra
-        run: pip install qwed-infra>=0.2.0
+        run: pip install "qwed-infra>=0.2.0"
 
       - name: Verify IAM policies
         run: python ci/verify_iam.py
@@ -606,13 +606,9 @@ from qwed_infra import IamGuard, NetworkGuard, CostGuard
 
 all_blocked = []
 
-# 1. IAM check
+# 1. IAM check — detect over-privileged wildcard policy
 iam_guard = IamGuard()
-iam_result = iam_guard.verify_access(
-    terraform["iam_policy"],
-    action="s3:*",
-    resource="*"
-)
+iam_result = iam_guard.verify_least_privilege(terraform["iam_policy"])
 iam_diag = IamGuard.to_diagnostic(iam_result)
 print(f"[{iam_diag.status.value}] IAM: {iam_diag.agent_message}")
 if not iam_diag.is_verified:
@@ -651,15 +647,13 @@ else:
 ```
 
 **Expected output:**
-```
-[VERIFIED] IAM: IAM policy access: allowed
+```text
+[BLOCKED] IAM: IAM policy is over-privileged
 [BLOCKED] Network: Network reachability blocked
 [BLOCKED] Cost: Cost estimate exceeds budget
 
-🚫 PR BLOCKED by: Network, Cost
+🚫 PR BLOCKED by: IAM, Network, Cost
 ```
-
-Note: IamGuard allows access because the policy explicitly grants `s3:*` on `*`. The `verify_least_privilege` check would flag this as over-privileged. In a real pipeline, both checks should run.
 </details>
 
 ---

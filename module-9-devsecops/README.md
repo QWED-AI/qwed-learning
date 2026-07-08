@@ -106,7 +106,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install verifier dependencies
-        run: pip install qwed-verification>=5.2.0
+        run: pip install "qwed-verification>=5.2.0"
 
       - name: Run deterministic verification
         run: python .github/scripts/verify_financial_csv.py --input tests/transactions.csv --format sarif --fail-on-error
@@ -139,7 +139,7 @@ The sample script demonstrates a deterministic gate for:
 - AML threshold checks (`amount >= 10000` must be flagged)
 - additive rate calculations for the senior-citizen lab
 - the shipped rate CSV schema used in this repo
-- \`qwed-verification>=5.2.0\` (tested against 5.2.0)
+- `qwed-verification>=5.2.0` (tested against 5.2.0)
 
 #### Step 4: Push and Watch
 
@@ -277,7 +277,7 @@ For infrastructure-as-code verification (Terraform IAM policies, network topolog
 ```yaml
 - name: Verify IaC with QWED-Infra
   run: |
-    pip install qwed-infra>=0.2.0
+    pip install "qwed-infra>=0.2.0"
     python ci/verify_terraform_pr.py
 ```
 
