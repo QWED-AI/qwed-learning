@@ -85,7 +85,7 @@ print(result.developer_fields.get('pii_masked'))
 ### Healthcare Example
 
 ```python
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 class HIPAACompliantBot:
     def __init__(self):
@@ -524,7 +524,7 @@ system blocks or returns an explicit non-pass state when deterministic verificat
 unavailable.
 
 ```python
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 def verify_with_fail_closed_handling(query: str):
     """Try deterministic verification, then return an explicit non-pass state."""

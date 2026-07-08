@@ -42,7 +42,7 @@ If a claim cannot be proved deterministically, do not silently continue with a g
 ## Basic Usage
 
 ```python
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 result = client.verify_math("What is 2+2?")
 
@@ -71,7 +71,7 @@ print(result.proof_ref)           # "sha256:..." when VERIFIED, None otherwise
 ### Pattern 1: Verify Before Return
 
 ```python
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 def calculate(query: str):
     result = client.verify_math(query)
@@ -83,7 +83,7 @@ def calculate(query: str):
 ### Pattern 2: Block and Escalate
 
 ```python
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 def calculate_or_escalate(query: str):
     result = client.verify_math(query)
@@ -101,7 +101,7 @@ def calculate_or_escalate(query: str):
 ### Pattern 3: Quarantine Unsupported Results
 
 ```python
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 def calculate_or_quarantine(query: str):
     result = client.verify_math(query)

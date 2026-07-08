@@ -358,7 +358,7 @@ def production_pipeline(llm_response):
         return "Warning: Format uncertain"
     
     # Layer 3: Correctness (QWED)
-    from qwed_core import DiagnosticStatus
+    from qwed_new.core import DiagnosticStatus
     result = qwed.verify(llm_response)
     if result.status != DiagnosticStatus.VERIFIED:
         return f"Error: {result.agent_message}"
@@ -389,7 +389,7 @@ result = gpt4(prompt)
 ### QWED Approach
 ```python
 from qwed_sdk import QWEDLocal
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 client = QWEDLocal()
 result = client.verify_math(

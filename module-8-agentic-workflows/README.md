@@ -66,31 +66,23 @@ graph LR
 ```python
 from qwed_sdk import QWEDLocal
 
-# Create the verifier
 client = QWEDLocal(provider="openai")
 
-# Register tools with verification
-# In production, attach QWED verification to each tool call
-tools = [
-    {
-        "name": "transfer_money",
-    function=actual_transfer_function,
-    verifier=lambda params: guard.verify_transfer(
-        amount=params["amount"],
-        to_account=params["to_account"]
-    )
-)
+# In your agentic loop, verify before executing each tool call
+def verify_tool_call(tool_name: str, params: dict) -> bool:
+    """Verify a tool call before allowing execution."""
+    if tool_name == "transfer_money":
+        result = client.verify_math(
+            f"Transfer ${params['amount']} to {params['to_account']}"
+        )
+        return result.verified
+    return False
 
 # In your agentic loop
-async for event in client.responses.create_stream(...):
-    if event.type == "tool_call":
-        # QWED intercepts and verifies before execution
-        result = integration.verify_and_execute(event.tool_call)
-        
-        if result.blocked:
-            print(f"🚫 Blocked: {result.reason}")
-        else:
-            print(f"✅ Executed: {result.output}")
+if verify_tool_call("transfer_money", {"amount": 5000, "to_account": "ACC-123"}):
+    print("✅ Verified — executing")
+else:
+    print("🚫 Blocked — verification failed")
 ```
 
 ### Key Concept: Never Trust, Always Verify
@@ -263,10 +255,11 @@ QWED provides a **TypeScript SDK** (planned, `@qwed-ai/finance` TBD) that wraps 
 Until the TypeScript SDK ships, Node.js agents can call the QWED Python CLI:
 
 ```typescript
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 function verifyWithQWED(query: string): string {
-  return execSync(`qwed verify "${query}"`).toString();
+  // execFileSync avoids shell interpolation — no injection risk
+  return execFileSync('qwed', ['verify', query], { encoding: 'utf8' });
 }
 
 // Verify NPV calculation
@@ -278,12 +271,11 @@ console.log(result);
 
 ```typescript
 import { generateText } from 'ai';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
-function verifyTransfer(amount: number, country: string): boolean {
-  const result = execSync(
-    `qwed verify "Is $${amount} transfer to ${country} compliant?"`
-  ).toString();
+function verifyTransfer(amount: number): boolean {
+  const query = `Is $${amount} transfer compliant?`;
+  const result = execFileSync('qwed', ['verify', query], { encoding: 'utf8' });
   return result.includes("VERIFIED");
 }
 
@@ -295,7 +287,7 @@ const { text } = await generateText({
       description: "Execute a wire transfer after verification",
       parameters: { /* ... */ },
       execute: async (params) => {
-        if (!verifyTransfer(params.amount, params.country)) {
+        if (!verifyTransfer(params.amount)) {
           throw new Error(`Blocked: Transfer failed verification`);
         }
         return executeTransfer(params);
@@ -367,9 +359,6 @@ Create a `ucp.json` in your project root:
 Build a checkout verification system:
 
 ```python
-from qwed_sdk import QWEDLocal
-from qwed_core import DiagnosticStatus
-
 def verify_checkout(user_intent, agent_calculation):
     """
     Exercise: Implement checkout verification
@@ -379,10 +368,8 @@ def verify_checkout(user_intent, agent_calculation):
         agent_calculation: {"final_price": 12000}  # Bug!
     
     Returns:
-        DiagnosticResult with status and agent_message
+        dict with status and reason
     """
-    client = QWEDLocal(provider="openai")
-    
     # Your code here:
     # 1. Parse discount from user intent
     # 2. Calculate expected price
@@ -396,26 +383,18 @@ def verify_checkout(user_intent, agent_calculation):
 
 ```python
 def verify_checkout(user_intent, agent_calculation):
-    ucp = UCPIntegration()
-    
-    # Parse discount
     discount_str = user_intent["discount"]
     discount_rate = float(discount_str.replace("%", "")) / 100
     
-    # Calculate expected
-    original = user_intent["original_price"]
-    expected = original * (1 - discount_rate)
-    
-    # Compare
+    expected_price = user_intent["original_price"] * (1 - discount_rate)
     agent_price = agent_calculation["final_price"]
     
-    if abs(expected - agent_price) < 0.01:
-        return {"verified": True, "amount": expected}
+    if abs(expected_price - agent_price) < 0.01:
+        return {"status": "VERIFIED", "amount": expected_price}
     else:
         return {
-            "verified": False, 
-            "reason": f"Expected ${expected}, got ${agent_price}",
-            "blocked": True
+            "status": "BLOCKED",
+            "reason": f"Expected ${expected_price:.2f}, got ${agent_price:.2f}",
         }
 
 # Test
@@ -423,7 +402,7 @@ result = verify_checkout(
     {"original_price": 1500, "discount": "20%"},
     {"final_price": 12000}
 )
-# Output: {"verified": False, "reason": "Expected $1200.0, got $12000", "blocked": True}
+# Output: {"status": "BLOCKED", "reason": "Expected $1200.00, got $12000.00"}
 ```
 
 </details>

@@ -141,7 +141,7 @@ client = QWEDLocal(
 
 ```python
 from qwed_sdk import QWEDLocal
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 # Initialize client
 client = QWEDLocal(
@@ -207,7 +207,7 @@ def calculate_loan_payment(principal, rate, years):
 
 ```python
 from qwed_sdk import QWEDLocal
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 client = QWEDLocal(provider="openai", model="gpt-4o-mini")
 
@@ -243,7 +243,7 @@ except ValueError as e:
 **See:** [examples/financial_calculator.py](examples/financial_calculator.py)
 
 ```python
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 class FinancialCalculator:
     def __init__(self):
@@ -271,7 +271,7 @@ class FinancialCalculator:
 ### Pattern 1: Try Alternate Translation Paths, Then Stop
 
 ```python
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 def verify_with_alternate_paths(query: str):
     """Try alternate translation providers, but fail closed if proof is not established."""
@@ -292,7 +292,7 @@ def verify_with_alternate_paths(query: str):
 ### Pattern 2: Human Escalation
 
 ```python
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 def verify_or_escalate(query: str):
     """Verify, or send to human if fails."""
@@ -314,7 +314,7 @@ def verify_or_escalate(query: str):
 ### Pattern 3: Quarantine Unsupported Results
 
 ```python
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 def verify_or_quarantine(query: str):
     """Do not return a guessed value when verification fails."""
@@ -386,7 +386,7 @@ results = await batch_verify(hundred_queries)
 
 ```python
 from qwed_sdk import QWEDLocal
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 class DosageCalculator:
     def __init__(self):
@@ -410,7 +410,7 @@ class DosageCalculator:
 **See:** [examples/ecommerce_pricing.py](examples/ecommerce_pricing.py)
 
 ```python
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 def calculate_final_price(base_price: float, discount_pct: float, tax_rate: float):
     query = f"""
@@ -432,7 +432,7 @@ def calculate_final_price(base_price: float, discount_pct: float, tax_rate: floa
 ### Example 3: Code Review Assistant
 
 ```python
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 def verify_code_safety(code: str) -> dict:
     """Check if code is safe to execute."""
@@ -476,7 +476,7 @@ print(calculate_tip(100, 20))  # Should: 20.0
 <summary>Solution</summary>
 
 ```python
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 def calculate_tip(bill: float, tip_percent: float) -> float:
     query = f"Calculate {tip_percent}% tip on ${bill}"

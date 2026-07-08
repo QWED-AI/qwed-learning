@@ -10,7 +10,7 @@ Real-world use case: Personal finance chatbot
 """
 
 from qwed_sdk import QWEDLocal
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 import logging
 from typing import Dict, Optional
 from datetime import datetime
