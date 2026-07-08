@@ -485,6 +485,8 @@ class QWEDVerificationLayer:
 
 > **"QWED is the checkpoint at every door. The Brain proposes, QWED verifies, the Hands execute."**
 
+> **Diagnostics ≠ Explainability (Principle 9):** QWED checkpoints produce deterministic diagnostics — did the plan pass logic verification? Did the step output match expectations? These are not explanations of the agent's reasoning. The Brain's chain-of-thought is not a substitute for a verified checkpoint result.
+
 ---
 
 ## 13.6: Lab: Build a Governed Agent Pipeline

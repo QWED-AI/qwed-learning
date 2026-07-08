@@ -71,6 +71,8 @@ Teach your AI to detect implicit bias. Use `client.verify_logic()` with counterf
 ### Lesson 6: Structuring Legal Reasoning (IRACGuard)
 Enforce predictable outputs by requiring the AI's reasoning to follow the IRAC (Issue, Rule, Application, Conclusion) structure. The `ProcessVerifier` in `qwed_new.guards.process_guard` validates structured reasoning paths.
 
+> **Diagnostics ≠ Explainability (Principle 9):** The `ProcessVerifier` validates that reasoning follows IRAC structure — this is a diagnostic check of structural compliance, not an explanation of the model's internal reasoning. A memo that passes IRAC structure verification may still contain incorrect legal analysis.
+
 ### Lesson 7: Architecture Compliance (SACProcessor)
 Learn how to map chunks to specific legal contexts securely before passing them to the AI for evaluation.
 

@@ -158,6 +158,8 @@ Your pipeline should publish two kinds of artifacts:
 | `verification.sarif` | Structured findings for GitHub code scanning |
 | `verification-report.json` | Full policy results, receipts, or audit metadata |
 
+> **Diagnostics ≠ Explainability (Principle 9):** CI/CD verification artifacts (`verification.sarif`, `verification-report.json`) contain deterministic diagnostics — status codes, constraint IDs, and proof references. They must never be replaced or supplemented by an LLM's free-text explanation of why the pipeline might have failed. A persuasive explanation of a failed gate is still a failed gate.
+
 ---
 
 ## 9.3: Branch Protection

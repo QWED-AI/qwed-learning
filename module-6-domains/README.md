@@ -596,6 +596,8 @@ print(f"⏰ Timestamp: {receipt.timestamp}")
 ⏰ Timestamp: 2026-01-19T01:30:00Z
 ```
 
+> **Diagnostics ≠ Explainability (Principle 9):** A `VerificationReceipt` is a diagnostic record — it captures what was checked and what was found. It is not an explanation of why the LLM suggested a particular action. Never let a downstream gate treat "good explainability" as a substitute for deterministic proof.
+
 ### Enterprise Pattern: Cross-Guard
 
 When a single check isn't enough, use Cross-Guard for **multi-layer verification**:

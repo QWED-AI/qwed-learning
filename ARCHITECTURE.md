@@ -70,6 +70,23 @@ Every `DiagnosticResult` has three layers:
 └─────────────────────────────────────────────┘
 ```
 
+```mermaid
+graph LR
+    subgraph "Layer 1: agent_message"
+        A1["Verification succeeded"] --> A2["Downstream agent<br/>reads and acts"]
+    end
+    subgraph "Layer 2: developer_fields"
+        B1["{'method': 'symbolic',<br/>'value': '2*x',<br/>'constraint_id': '...'}"] --> B2["Engineer / audit<br/>inspects evidence"]
+    end
+    subgraph "Layer 3: proof_ref"
+        C1["sha256:abcd..."] --> C2["Downstream gate<br/>replays proof"]
+    end
+
+    style A1 fill:#e3f2fd
+    style B1 fill:#fff3e0
+    style C1 fill:#e8f5e9
+```
+
 ### Layer Separation — Diagnostics ≠ Explainability
 
 QWED keeps three concerns structurally separate (Principle 9):

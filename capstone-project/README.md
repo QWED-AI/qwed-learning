@@ -161,6 +161,8 @@ def log_receipt(input_data, result):
 - [ ] Agent corrects wrong interest calculation
 - [ ] `audit_log.jsonl` contains append-only verification records
 
+> **Diagnostics ≠ Explainability (Principle 9):** The `audit_log.jsonl` file stores verification records — structured diagnostics with status, proof_ref, and developer_fields. It must not be diluted with free-form LLM explanations. If a downstream auditor reads "BLOCKED" with `proof_ref: None`, no amount of accompanying narrative converts that into an approved transaction.
+
 ---
 
 ## Learning Outcomes
