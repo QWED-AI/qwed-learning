@@ -75,7 +75,7 @@ Card: 4532-1234-5678-9010
 """)
 
 # Check what was masked
-print(result.evidence['pii_masked'])
+print(result.developer_fields.get('pii_masked'))
 # {
 #   'pii_detected': 5,
 #   'types': ['PERSON', 'EMAIL_ADDRESS', 'US_SSN', 'PHONE_NUMBER', 'CREDIT_CARD']
@@ -85,6 +85,8 @@ print(result.evidence['pii_masked'])
 ### Healthcare Example
 
 ```python
+from qwed_core import DiagnosticStatus
+
 class HIPAACompliantBot:
     def __init__(self):
         self.client = QWEDLocal(
@@ -108,9 +110,11 @@ class HIPAACompliantBot:
         result = self.client.verify_math(query)
         
         # Log audit trail (no PII in logs!)
-        logger.info(f"Dosage calculated. PII masked: {result.evidence.get('pii_masked')}")
+        logger.info(f"Dosage calculated. PII masked: {result.developer_fields.get('pii_masked')}")
         
-        return result.value
+        if result.status == DiagnosticStatus.VERIFIED:
+            return result.developer_fields.get("value")
+        raise ValueError(f"Cannot verify dosage: {result.agent_message}")
 ```
 
 ### Supported PII Types
@@ -312,11 +316,11 @@ def comprehensive_verification(user_query: str, generated_sql: str, llm_explanat
     
     # 1. Verify SQL syntax
     sql_result = client.verify_sql(generated_sql)
-    results['sql_valid'] = sql_result.verified
+    results['sql_verified'] = sql_result.status == DiagnosticStatus.VERIFIED
     
     # 2. Verify any math in explanation
     math_result = client.verify_math(llm_explanation)
-    results['math_correct'] = math_result.verified
+    results['math_verified'] = math_result.status == DiagnosticStatus.VERIFIED
     
     # 3. Verify logic of approach
     logic_result = client.verify_logic(f"""
@@ -324,13 +328,13 @@ def comprehensive_verification(user_query: str, generated_sql: str, llm_explanat
     SQL generates: {generated_sql}
     Is this logical approach sound?
     """)
-    results['logic_sound'] = logic_result.verified
+    results['logic_verified'] = logic_result.status == DiagnosticStatus.VERIFIED
     
     # All must pass
     results['overall'] = all([
-        results['sql_valid'],
-        results['math_correct'],
-        results['logic_sound']
+        results['sql_verified'],
+        results['math_verified'],
+        results['logic_verified']
     ])
     
     return results
@@ -359,10 +363,11 @@ def monitored_verify(query: str):
         # Log success
         logger.info({
             "query": query,
-            "verified": result.verified,
-            "status": "VERIFIED" if result.verified else "UNVERIFIABLE",
+            "status": result.status.value,
+            "proof_ref": result.proof_ref,
+            "is_authoritative": result.is_authoritative,
             "latency_ms": (time.time() - start_time) * 1000,
-            "method": result.evidence.get('method')
+            "method": result.developer_fields.get('method')
         })
         
         return result
@@ -403,7 +408,7 @@ def instrumented_verify(query: str):
     
     verifications_total.labels(
         engine='math',
-        verified=str(result.verified)
+        verified=str(result.is_verified)
     ).inc()
     
     return result
@@ -420,7 +425,7 @@ class VerificationTracker:
     
     def track(self, result):
         self.total += 1
-        if result.verified:
+        if result.is_verified:
             self.verified += 1
         else:
             self.failed += 1
@@ -519,32 +524,31 @@ system blocks or returns an explicit non-pass state when deterministic verificat
 unavailable.
 
 ```python
+from qwed_core import DiagnosticStatus
+
 def verify_with_fail_closed_handling(query: str):
     """Try deterministic verification, then return an explicit non-pass state."""
 
     try:
         result = client.verify_math(query)
-        if result.verified:
+        if result.status == DiagnosticStatus.VERIFIED:
             return {
-                "value": result.value,
+                "value": result.developer_fields.get("value"),
                 "status": "VERIFIED",
-                "method": "verified",
+                "proof_ref": result.proof_ref,
             }
     except Exception as exc:
         logger.error("Verification infrastructure failure: %s", exc)
         return {
             "value": None,
-            "status": "UNVERIFIABLE",
-            "method": "blocked",
+            "status": "BLOCKED",
             "message": "Verification infrastructure failure",
-            "error": str(exc),
         }
 
     return {
         "value": None,
-        "status": "UNVERIFIABLE",
-        "method": "blocked",
-        "message": "No deterministic proof was established",
+        "status": result.status.value,
+        "message": result.agent_message,
     }
 ```
 

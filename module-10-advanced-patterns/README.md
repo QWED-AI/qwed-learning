@@ -57,9 +57,8 @@ result = client.verify_fact(
     context=context
 )
 
-if not result.verified:
-    print(f"🚫 Hallucination Detected: {result.reason}")
-    # Reason: "Contradiction found. Claim says 2022, Context says 2024."
+if not result.is_verified:
+    print(f"🚫 Hallucination Detected: {result.agent_message}")
 ```
 
 ### Enterprise Use Case: Citation Verification
@@ -71,7 +70,7 @@ def verify_citations(answer, sources):
     for sentence in answer.split("."):
         # Verify each sentence against the provided sources
         verification = client.verify_fact(claim=sentence, context=sources)
-        if not verification.verified:
+        if not verification.is_verified:
             flag_sentence(sentence)
 ```
 
@@ -124,7 +123,7 @@ result = verifier.verify_content(
     policy="Block structuring attempts"
 )
 
-if result.verified:
+if result.is_verified:
     print("✅ Consensus Reached: Suspicious")
 else:
     print("⚠️ Disagreement: Human Review Needed")

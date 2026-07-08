@@ -184,13 +184,13 @@ payment_token = {
 # The Verifier checks Money, State, and Structure
 result = verifier.verify_checkout(payment_token)
 
-if result.verified:
+if result.is_verified:
     # Safe to proceed
     process_payment(payment_token)
     print(f"✅ Payment verified")
 else:
     # Block the transaction
-    print(f"🚫 Verification failed: {result.error}")
+    print(f"🚫 Verification failed: {result.agent_message}")
     # Error: "Money Guard: Total mismatch..."
 ```
 
@@ -274,7 +274,7 @@ const result = await verifier.verifyNPV({
   llmOutput: "$180.42"
 });
 
-if (result.verified) {
+if (result.status === "VERIFIED") {
   console.log(`✅ Correct: ${result.computedValue}`);
 } else {
   console.log(`❌ Error: Expected ${result.computedValue}, got ${result.llmValue}`);
@@ -404,7 +404,7 @@ def verify_checkout(user_intent, agent_calculation):
         agent_calculation: {"final_price": 12000}  # Bug!
     
     Returns:
-        VerificationResult with pass/fail and reason
+        DiagnosticResult with status and agent_message
     """
     ucp = UCPIntegration()
     

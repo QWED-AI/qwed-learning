@@ -10,6 +10,7 @@ Real-world use case: Personal finance chatbot
 """
 
 from qwed_sdk import QWEDLocal
+from qwed_core import DiagnosticStatus
 import logging
 from typing import Dict, Optional
 from datetime import datetime
@@ -69,7 +70,6 @@ class FinancialAssistant:
             "max_dti": 43,
             "annual_income": annual_income,
             "loan_amount": loan_amount,
-            "verified": True
         }
     
     def _validate_inputs(self, income: float, loan: float, rate: float, years: int) -> Dict:
@@ -116,11 +116,12 @@ class FinancialAssistant:
         try:
             result = self.client.verify_math(query)
             
-            if result.verified:
-                logger.info(f"✅ Verified monthly payment: ${result.value:.2f}")
-                return result.value
+            if result.status == DiagnosticStatus.VERIFIED:
+                value = result.developer_fields.get("value")
+                logger.info(f"✅ Verified monthly payment: ${value:.2f}")
+                return value
             else:
-                logger.error(f"❌ Payment calculation failed: {result.error}")
+                logger.error(f"❌ Payment calculation failed: {result.agent_message}")
                 return None
                 
         except Exception as e:

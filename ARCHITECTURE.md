@@ -1,24 +1,24 @@
 # Architecture Diagrams
 
-Visual guides to the current QWED trust-boundary model.
+Visual guides to the QWED trust-boundary model.
 
 ---
 
 ## 1. Deterministic Verification Flow
 
-**How QWED should handle critical claims:**
+**How QWED handles critical claims:**
 
 ```mermaid
 graph TB
     A["User Query"] --> B["LLM Translator<br/>Untrusted"]
     B --> C{"Can the claim be reduced<br/>to a supported deterministic form?"}
     C -->|Yes| D["DSL / Structured Claim<br/>SymPy / Z3 / AST / policy rules"]
-    C -->|No| E["Unsupported or heuristic path"]
+    C -->|No| E["Unsupported path"]
     D --> F["Deterministic Engine"]
     F --> G{"Proof result"}
-    G -->|Verified| H["Return VERIFIED result"]
-    G -->|Invalid| I["Return INVALID result"]
-    E --> J["Return UNVERIFIABLE<br/>or HUMAN_REVIEW_REQUIRED"]
+    G -->|VERIFIED| H["Return DiagnosticResult(VERIFIED)<br/>with proof_ref"]
+    G -->|BLOCKED| I["Return DiagnosticResult(BLOCKED)<br/>proof_ref = None"]
+    E --> J["Return DiagnosticResult(UNVERIFIABLE)<br/>proof_ref = None"]
 
     style B fill:#ffc107
     style F fill:#4caf50
@@ -27,31 +27,64 @@ graph TB
     style J fill:#ff9800
 ```
 
-**Key insight:** the LLM may translate, summarize, or extract, but the trust decision belongs to the deterministic layer.
+**Key insight:** the LLM may translate, summarize, or extract, but the trust decision belongs to the deterministic layer. Every response carries a `proof_ref` — present only when `VERIFIED`.
 
 ---
 
-## 2. Result States Matter
+## 2. Result States — Three, Not Five
 
-QWED should keep these categories separate:
+QWED uses exactly three diagnostic states (Issue #204, `DiagnosticResult`):
 
-| State | Meaning |
-|------|---------|
-| `VERIFIED` | A supported deterministic check proved the claim |
-| `INVALID` | A supported deterministic check disproved the claim |
-| `UNVERIFIABLE` | The claim could not be proved with the available deterministic machinery |
-| `HEURISTIC` | A useful signal exists, but not a proof |
-| `SIMPLIFIED` | An expression was transformed, not proved |
+| State | Meaning | proof_ref | Authority |
+|-------|---------|-----------|-----------|
+| `VERIFIED` | A deterministic engine proved the claim | `sha256:...` (set) | Authoritative — admissible for control flow |
+| `UNVERIFIABLE` | The claim could not be proved with available deterministic machinery | `None` | Non-authoritative — must not drive control flow |
+| `BLOCKED` | Verification could not even be attempted (parse error, config failure, security violation) | `None` | Non-authoritative — must not drive control flow |
 
-Do not collapse these into a single "confidence" field.
+`HEURISTIC` and `SIMPLIFIED` are not states — they are optional metadata carried inside `developer_fields.advisory_checks`. A heuristic signal is useful information, but it is not a verification result. Do not assign it a status code.
 
-Note: `BLOCKED` and `HUMAN_REVIEW_REQUIRED` are handling dispositions, not proof states.
-Keep verification state (`VERIFIED`, `INVALID`, `UNVERIFIABLE`, `HEURISTIC`, `SIMPLIFIED`)
-separate from execution policy.
+**Authority contract (the mechanical rule):**
+- `proof_ref is not None` → authoritative, downstream gates MAY admit for control flow
+- `proof_ref is None` → non-authoritative, downstream gates MUST NOT admit for control flow
+
+No separate `authoritative` boolean needed. The presence of `proof_ref` **is** the authority bit.
 
 ---
 
-## 3. Domain Routing
+## 3. Three-Layer Diagnostic Result
+
+Every `DiagnosticResult` has three layers:
+
+```
+┌─────────────────────────────────────────────┐
+│  Layer 1: agent_message (str)               │
+│  Agent-safe diagnostic text, no internals   │
+├─────────────────────────────────────────────┤
+│  Layer 2: developer_fields (Dict[str, Any]) │
+│  Structured evidence, constraint_id,        │
+│  advisory_checks, engine metadata           │
+├─────────────────────────────────────────────┤
+│  Layer 3: proof_ref (Optional[str])         │
+│  sha256 hash of proof artifact             │
+│  PRESENT ↔ VERIFIED ↔ Authoritative        │
+└─────────────────────────────────────────────┘
+```
+
+### Layer Separation — Diagnostics ≠ Explainability
+
+QWED keeps three concerns structurally separate (Principle 9):
+
+| Layer | Audience | Content | Required? |
+|-------|----------|---------|-----------|
+| `agent_message` | Downstream agents / LLM consumers | Human-readable diagnostic: what happened, what to do next | Always |
+| `developer_fields` | Engineers, audit, compliance | Structured evidence: constraints checked, solver traces, policy violations | Always (may be empty) |
+| `proof_ref` | Downstream gates, replay, provenance | Cryptographic hash binding the verdict to the exact evidence that justified it | Only on `VERIFIED` |
+
+This separation prevents the agent from over-interpreting internals and prevents engineers from treating "good explainability" as proof.
+
+---
+
+## 4. Domain Routing
 
 ```mermaid
 graph LR
@@ -63,16 +96,18 @@ graph LR
     B -->|SQL structure / safety| F["SQL verifier"]
     B -->|Unsupported semantic task| G["Do not auto-approve"]
 
-    C --> H["VERIFIED / INVALID / SIMPLIFIED"]
-    D --> I["VERIFIED / INVALID"]
-    E --> J["VERIFIED / INVALID / BLOCKED"]
-    F --> K["VERIFIED / INVALID / BLOCKED"]
-    G --> L["UNVERIFIABLE / HUMAN_REVIEW_REQUIRED"]
+    C --> H["DiagnosticResult VERIFIED / UNVERIFIABLE / BLOCKED"]
+    D --> H
+    E --> H
+    F --> H
+    G --> H
 ```
+
+All domain engines return the same `DiagnosticResult` type. The difference is in `developer_fields`, not the status enum.
 
 ---
 
-## 4. Safe Error Handling
+## 5. Safe Error Handling — Fail Closed
 
 **Fail closed, not gracefully open:**
 
@@ -80,11 +115,11 @@ graph LR
 graph TD
     A["Critical query"] --> B["Try primary translation path"]
     B --> C{"Translation + verification succeeded?"}
-    C -->|Yes| D["Return VERIFIED / INVALID result"]
+    C -->|Yes| D["Return VERIFIED with proof_ref"]
     C -->|No| E["Try alternate translation path"]
     E --> F{"Verification succeeded?"}
     F -->|Yes| D
-    F -->|No| G["Mark request UNVERIFIABLE"]
+    F -->|No| G["Return UNVERIFIABLE or BLOCKED<br/>proof_ref = None"]
     G --> H["Log, alert, and preserve context"]
     H --> I["Block, quarantine, or route to human review"]
 
@@ -93,15 +128,16 @@ graph TD
     style I fill:#f44336
 ```
 
-What should **not** happen:
+What must **not** happen:
 
 - returning a conservative fallback value
 - lowering a confidence score and continuing
 - silently switching to unverified LLM output
+- treating `UNVERIFIABLE` as "verified with caveats"
 
 ---
 
-## 5. Audit and Provenance
+## 6. Audit and Provenance
 
 ```mermaid
 sequenceDiagram
@@ -112,45 +148,49 @@ sequenceDiagram
 
     User->>App: Critical request
     App->>QWED: Verify claim
-    QWED-->>App: VERIFIED / INVALID / UNVERIFIABLE
-    App->>Ledger: Record decision, evidence, and context
-    Ledger-->>App: Persisted audit trail
+    QWED-->>App: DiagnosticResult(VERIFIED, proof_ref="sha256:...")
+    App->>Ledger: Record status, proof_ref, developer_fields
+    Ledger-->>App: Persisted audit trail with replay capability
     App-->>User: Allowed, blocked, or escalated response
 ```
 
-Auditability is valuable, but auditability is not proof. A logged heuristic answer is still heuristic.
+The `proof_ref` makes the audit trail replayable — any downstream gate can independently verify that the evidence hash matches the verdict.
+
+Auditability is valuable, but auditability is not proof. A logged heuristic is still heuristic, even with a pretty audit trail.
 
 ---
 
-## 6. Agent and MCP Boundary
+## 7. Agent and MCP Boundary
 
 ```mermaid
 graph TB
     A["Agent request"] --> B["Tool / MCP boundary"]
     B --> C{"Can execution be verified<br/>or policy-checked deterministically?"}
-    C -->|Yes| D["Execute through verified gateway"]
-    C -->|No| E["Refuse or require human review"]
+    C -->|Yes| D["Execute through verified gateway<br/>→ DiagnosticResult with proof_ref"]
+    C -->|No| E["Refuse or require human review<br/>→ DiagnosticResult with proof_ref = None"]
 
-    D --> F["Record provenance + audit trail"]
+    D --> F["Record provenance + proof_ref"]
     E --> F
 ```
 
 Modern QWED education should teach that:
 
 - tool descriptions can be poisoned
-- execution provenance matters
+- execution provenance matters — `proof_ref` enables replay detection
 - replay and context binding matter
 - unsupported execution requests must fail closed
+- the same `DiagnosticResult` type spans all boundaries
 
 ---
 
-## 7. What This Architecture Is Not
+## 8. What This Architecture Is Not
 
-This repo should not teach:
+This curriculum should not teach:
 
 - "100% confidence" as the label for proof
 - "safe default" as a substitute for verification
 - "retry until something works" as a trust strategy
 - "observed output" as equivalent to "audited output"
+- `HEURISTIC` or `SIMPLIFIED` as verification status codes
 
-The curriculum should teach trust-boundary engineering, not just AI convenience patterns.
+The curriculum teaches trust-boundary engineering, not AI convenience patterns.

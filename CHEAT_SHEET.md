@@ -29,27 +29,27 @@ client = QWEDLocal(
 
 **Verified is not "high confidence."**
 
-QWED result states should be treated as categories, not a confidence ladder:
+QWED result states — exactly three, not a confidence ladder:
 
-- `VERIFIED`
-- `INVALID`
-- `UNVERIFIABLE`
-- `HEURISTIC`
-- `SIMPLIFIED`
+- `VERIFIED` — deterministically proven (proof_ref is set)
+- `UNVERIFIABLE` — could not be proved (proof_ref is None)
+- `BLOCKED` — verification could not be attempted (proof_ref is None)
 
-If a claim cannot be proved deterministically, do not silently continue with a guessed answer.
+If a claim cannot be proved deterministically, do not silently continue with a guessed answer. Non-VERIFIED results are non-authoritative for control flow.
 
 ---
 
 ## Basic Usage
 
 ```python
+from qwed_core import DiagnosticStatus
+
 result = client.verify_math("What is 2+2?")
 
-print(result.verified)  # True / False
-print(result.value)     # Verified answer when available
-print(result.error)     # Reason when verification fails
-print(result.evidence)  # Verification details
+print(result.status)              # DiagnosticStatus.VERIFIED / UNVERIFIABLE / BLOCKED
+print(result.agent_message)       # Human-readable diagnostic
+print(result.developer_fields)    # Structured evidence
+print(result.proof_ref)           # "sha256:..." when VERIFIED, None otherwise
 ```
 
 ---
@@ -71,47 +71,50 @@ print(result.evidence)  # Verification details
 ### Pattern 1: Verify Before Return
 
 ```python
+from qwed_core import DiagnosticStatus
+
 def calculate(query: str):
     result = client.verify_math(query)
-    if result.verified:
-        return result.value
-    raise ValueError(f"Verification failed: {result.error}")
+    if result.status == DiagnosticStatus.VERIFIED:
+        return result.developer_fields.get("value")
+    raise ValueError(f"Cannot verify: {result.agent_message}")
 ```
 
 ### Pattern 2: Block and Escalate
 
 ```python
+from qwed_core import DiagnosticStatus
+
 def calculate_or_escalate(query: str):
     result = client.verify_math(query)
-    if result.verified:
-        return result.value
+    if result.status == DiagnosticStatus.VERIFIED:
+        return result.developer_fields.get("value")
 
     create_review_task(
         query=query,
-        error=result.error,
-        status="HUMAN_REVIEW_REQUIRED",
+        status=result.status.value,
+        message=result.agent_message,
     )
-    raise ValueError("Verification failed; routed for human review")
+    raise ValueError(f"Verification failed: {result.agent_message}")
 ```
 
 ### Pattern 3: Quarantine Unsupported Results
 
 ```python
-import hashlib
+from qwed_core import DiagnosticStatus
 
 def calculate_or_quarantine(query: str):
     result = client.verify_math(query)
-    if result.verified:
-        return result.value
+    if result.status == DiagnosticStatus.VERIFIED:
+        return result.developer_fields.get("value")
 
-    query_hash = hashlib.sha256(query.encode("utf-8")).hexdigest()[:12]
     logger.error(
         "Blocking unverifiable result",
-        extra={"query_hash": query_hash, "status": "UNVERIFIABLE"},
+        extra={"status": result.status.value, "message": result.agent_message},
     )
     return {
-        "status": "UNVERIFIABLE",
-        "message": "No deterministic proof was established",
+        "status": result.status.value,
+        "message": result.agent_message,
     }
 ```
 
@@ -119,21 +122,25 @@ def calculate_or_quarantine(query: str):
 
 ## Understanding Results
 
-### VerificationResult Object
+### DiagnosticResult Object
 
 ```python
-result.verified   # bool: True only when the claim was proved
-result.value      # any: Verified answer when available
-result.error      # str | None: Failure reason
-result.evidence   # dict: How the result was checked
+result.status            # DiagnosticStatus: VERIFIED / UNVERIFIABLE / BLOCKED
+result.agent_message     # str: Human-readable diagnostic (always present)
+result.developer_fields  # dict: Structured developer evidence
+result.proof_ref         # str | None: "sha256:..." when VERIFIED, None otherwise
+result.is_verified       # True when status == VERIFIED (implies proof_ref is set)
+result.is_authoritative  # True when proof_ref is present (admissible for control flow)
+result.is_fail_closed    # True when UNVERIFIABLE or BLOCKED
 ```
 
-### Evidence Fields
+### Developer Fields
 
 ```python
-result.evidence["method"]          # symbolic, solver, parser, etc.
-result.evidence["symbolic_result"] # Raw symbolic output when available
-result.evidence["pii_masked"]      # PII detection info
+result.developer_fields.get("constraint_id")       # str | None
+result.developer_fields.get("method")              # symbolic, solver, parser, etc.
+result.developer_fields.get("advisory_checks", []) # list of AdvisoryCheck
+result.developer_fields.get("pii_masked")          # PII detection info
 ```
 
 ---
@@ -161,9 +168,10 @@ PII masking improves privacy, but it is not a proof of correctness.
 
 1. **Never trust LLMs to compute**. Use them to translate, not to decide trust.
 2. **Keep proof separate from confidence**. A guess is not verification.
-3. **Unknown must fail closed**. Unsupported, unverifiable, or heuristic states must not silently become trusted.
+3. **Unknown must fail closed**. Unsupported or unverifiable results must not silently become trusted.
 4. **Use caching carefully**. Cache deterministic results, not changing trust assumptions.
-5. **Preserve auditability**. Critical systems should log why something was verified, blocked, or escalated.
+5. **Preserve auditability**. Critical systems should log status, proof_ref, and developer_fields.
+6. **proof_ref is the authority bit**. Present = VERIFIED and admissible for control flow. Absent = non-authoritative.
 
 ---
 

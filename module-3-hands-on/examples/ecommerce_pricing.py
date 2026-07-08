@@ -20,6 +20,7 @@ import logging
 from typing import Dict
 
 from qwed_sdk import QWEDLocal
+from qwed_core import DiagnosticStatus
 
 
 logging.basicConfig(
@@ -133,14 +134,14 @@ class VerifiedPricingEngine:
         try:
             result = self.client.verify_math(query)
 
-            if not result.verified:
-                logger.error("Price calculation verification failed: %s", result.error)
+            if result.status != DiagnosticStatus.VERIFIED:
+                logger.error("Price calculation verification failed: %s", result.agent_message)
                 raise PricingError(
-                    f"Cannot verify pricing math. Error: {result.error}. "
+                    f"Cannot verify pricing math. Error: {result.agent_message}. "
                     "Manual calculation required."
                 )
 
-            final_price = round(result.value, 2)
+            final_price = round(result.developer_fields.get("value"), 2)
             subtotal = base_price * quantity
             discount_amount = subtotal * (valid_discount / 100)
             after_discount = subtotal - discount_amount
@@ -159,7 +160,7 @@ class VerifiedPricingEngine:
                 "discount_percent": valid_discount,
                 "discount_source": "database_verified",
                 "final_price": final_price,
-                "verified": True,
+                "status": "VERIFIED",
             }
             self.pricing_log.append(pricing_record)
 
@@ -175,8 +176,7 @@ class VerifiedPricingEngine:
                 "tax_rate": tax_rate,
                 "tax_amount": round(tax_amount, 2),
                 "final_price": final_price,
-                "verified": True,
-                "verification_status": "VERIFIED",
+                "status": "VERIFIED",
                 "discount_source": "Database-verified promotion",
             }
 
@@ -195,7 +195,7 @@ class VerifiedPricingEngine:
                 break
 
         if not applicable_tier:
-            return {"discount_percent": 0, "verified": True, "reason": "No tier"}
+            return {"discount_percent": 0, "status": "VERIFIED", "reason": "No tier"}
 
         query = f"""
         Verify bulk discount logic:
@@ -211,7 +211,7 @@ class VerifiedPricingEngine:
         return {
             "discount_percent": applicable_tier["discount_percent"],
             "tier_min_qty": applicable_tier["min_qty"],
-            "verified": result.verified,
+            "status": result.status.value,
             "quantity": quantity,
         }
 
@@ -270,7 +270,7 @@ if __name__ == "__main__":
         print(f"   Subtotal after discount: ${safe_result['after_discount']}")
         print(f"   Tax ({safe_result['tax_rate']}%): ${safe_result['tax_amount']}")
         print(f"   Final Price: ${safe_result['final_price']}")
-        print(f"   Verified: {'OK' if safe_result['verified'] else 'BLOCKED'}")
+        print(f"   Status: {safe_result['status']}")
         print("   ")
         print("   COMPANY OUTCOME: Revenue protected, customers trust pricing")
 
@@ -288,7 +288,7 @@ if __name__ == "__main__":
         print(f"\nQuantity: {qty} units")
         print(f"  Applied Discount: {bulk_result['discount_percent']}%")
         print(f"  Tier Minimum: {bulk_result['tier_min_qty']} units")
-        print(f"  Verified: {'OK' if bulk_result['verified'] else 'BLOCKED'}")
+        print(f"  Status: {bulk_result['status']}")
 
     print("\n" + "=" * 70)
     print("THE LESSON")
