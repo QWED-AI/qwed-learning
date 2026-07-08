@@ -26,52 +26,53 @@ We will solve this using **QWED-Legal**.
 ### Lesson 1: Precision Date Verification (DeadlineGuard)
 Learn to calculate rigid legal deadlines across different jurisdictions. "3 days" in New York is different from "3 days" in London due to bank holidays.
 
-**Example Implementation:**
+**Example Implementation (see `exercises/ex2_deadline_guard.py`):**
 ```python
-from qwed_sdk.guards import DeadlineGuard
+# The mock used in this course lives in exercises/ex2_deadline_guard.py
+from exercises.ex2_deadline_guard import MockDeadlineGuard
 
-guard = DeadlineGuard(jurisdiction="UK", include_bank_holidays=True)
-result = guard.verify_deadline(
-    start_date="2026-03-31",   # Tuesday before Easter week
-    duration_days=3, 
-    ai_calculated_end_date="2026-04-03" # AI ignores Good Friday bank holiday
+guard = MockDeadlineGuard()
+valid, msg = guard.verify(
+    start_date="2024-01-01",
+    days=3,
+    jurisdiction="UK",
+    expected_end_date="2024-01-04"
 )
-
-if not result["verified"]:
-    print(f"Unsupported legal claim blocked: {result['irac.issue']}")
+print(msg)  # Detects the holiday mismatch
 ```
 
 ### Lesson 2: Financial Risk Auditing (LiabilityGuard)
 Learn to audit indemnification clauses. If your company policy says *"Max Liability: $1M"*, your AI must flag a contract saying *"Liability limited to 3x contract value ($500k)"* as **SAFE** but *"Unlimited liability"* as **BLOCKED**.
 
-**Example Implementation:**
+**Core QWED approach:** Use `client.verify_logic()` with policy rules to audit liability caps deterministically:
+
 ```python
-from qwed_sdk.guards import LiabilityGuard
+from qwed_sdk import QWEDLocal
 
-guard = LiabilityGuard(max_liability_usd=1_000_000, block_unlimited=True)
-contract_clause = "The Vendor's total aggregate liability shall be unlimited."
-
-result = guard.verify_liability_clause(contract_clause)
-print(result["irac.conclusion"]) # Outputs: "Blocked: Unlimited liability detected."
+client = QWEDLocal(provider="openai")
+result = client.verify_logic(
+    "Liability cap of $500k is under $1M policy max. Is this compliant?"
+)
+print(result.agent_message)
 ```
 
 ### Lesson 3: Logic & Contradictions (ContradictionGuard)
-Use the Z3 Theorem Prover to formally prove logical inconsistencies in contracts. 
+Use the Z3 Theorem Prover (via `client.verify_logic()`) to formally prove logical inconsistencies in contracts. 
 *   *Clause A:* "Termination notice: 30 days."
 *   *Clause B:* "Termination notice: 90 days."
 *   **Result:** Logical Contradiction found.
 
 ### Lesson 4: The Fact Shield (CitationGuard)
-Prevent the *Avianca* problem. We will build a guard that verifies every legal citation against a trusted allow-list or regex pattern before it goes into a brief.
+Prevent the *Avianca* problem. Use `client.verify_fact()` to verify every legal citation against a trusted source list before it goes into a brief.
 
 ### Lesson 5: Bias & Counterfactual Testing (FairnessGuard)
-Teach your AI to detect implicit bias. If an AI generates a legal decision, `FairnessGuard` automatically swaps protected attributes (e.g., gender, race) and checks if the outcome changes. If it diverges, the decision is blocked.
+Teach your AI to detect implicit bias. Use `client.verify_logic()` with counterfactual prompts: swap protected attributes and check if the outcome changes deterministically.
 
 ### Lesson 6: Structuring Legal Reasoning (IRACGuard)
-Enforce predictable outputs by requiring the AI's Chain-of-Thought (CoT) to strictly follow the IRAC (Issue, Rule, Application, Conclusion) legal structure.
+Enforce predictable outputs by requiring the AI's reasoning to follow the IRAC (Issue, Rule, Application, Conclusion) structure. The `ProcessVerifier` in `qwed_new.guards.process_guard` validates structured reasoning paths.
 
 ### Lesson 7: Architecture Compliance (SACProcessor)
-Integrate the `SACProcessor` to manage context windows. Learn how to map chunks to specific legal contexts securely before passing them to the AI for evaluation.
+Learn how to map chunks to specific legal contexts securely before passing them to the AI for evaluation.
 
 ---
 

@@ -220,7 +220,7 @@ Determinism, symbolic reasoning, and verification foundations.
 Build your first verifier with QWED and production-style examples.
 
 ### [**Module 11: The Legal Auditor**](module-11-legal-auditor/) _(60 mins)_
-Build a deterministic AI paralegal with `qwed-legal`.
+Build a deterministic AI paralegal with `qwed_sdk.guards`.
 
 *(See "Track Your Progress" at the top for the full module list.)*
 

@@ -6,8 +6,8 @@ jurisdiction-specific holidays (e.g., UK Bank Holidays vs US Federal Holidays).
 """
 
 from datetime import date
-# In a real scenario, you'd import from qwed_legal
-# from qwed_legal.guards.deadline_guard import DeadlineGuard
+# Uses a mock for this exercise. In a real scenario, this would use
+# a DeadLineGuard from qwed_sdk.guards or qwed_new.guards.process_guard
 
 class MockDeadlineGuard:
     """Simulated DeadlineGuard for educational purpose"""
