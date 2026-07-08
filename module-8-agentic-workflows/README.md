@@ -64,31 +64,25 @@ graph LR
 ### Implementation with Open Responses
 
 ```python
-from qwed_finance.integrations import OpenResponsesIntegration
+from qwed_sdk import QWEDLocal
 
-# Create the interceptor
-integration = OpenResponsesIntegration()
+client = QWEDLocal(provider="openai")
 
-# Register tools with verification
-integration.register_tool(
-    name="transfer_money",
-    function=actual_transfer_function,
-    verifier=lambda params: guard.verify_transfer(
-        amount=params["amount"],
-        to_account=params["to_account"]
-    )
-)
+# In your agentic loop, verify before executing each tool call
+def verify_tool_call(tool_name: str, params: dict) -> bool:
+    """Verify a tool call before allowing execution."""
+    if tool_name == "transfer_money":
+        result = client.verify_math(
+            f"Transfer ${params['amount']} to {params['to_account']}"
+        )
+        return result.verified
+    return False
 
 # In your agentic loop
-async for event in client.responses.create_stream(...):
-    if event.type == "tool_call":
-        # QWED intercepts and verifies before execution
-        result = integration.verify_and_execute(event.tool_call)
-        
-        if result.blocked:
-            print(f"🚫 Blocked: {result.reason}")
-        else:
-            print(f"✅ Executed: {result.output}")
+if verify_tool_call("transfer_money", {"amount": 5000, "to_account": "ACC-123"}):
+    print("✅ Verified — executing")
+else:
+    print("🚫 Blocked — verification failed")
 ```
 
 ### Key Concept: Never Trust, Always Verify
@@ -165,12 +159,14 @@ Result: Customer charged 10x more!
 ### QWED Solution: UCP Integration (Code & Action)
 
 #### 1. Runtime Guard (Python)
-Use the `qwed-ucp` library to catch errors *before* the agent commits the transaction:
+Use `qwed_sdk` to verify transactions *before* the agent commits:
 
 ```python
-from qwed_ucp import UCPVerifier
+from qwed_sdk import QWEDLocal
+from qwed_sdk.guards import ExfiltrationGuard
 
-verifier = UCPVerifier()
+client = QWEDLocal(provider="openai")
+exfil_guard = ExfiltrationGuard()
 
 # Before checkout, verify everything
 payment_token = {
@@ -252,78 +248,48 @@ Many production agents run on Node.js:
 - Express.js backends
 - Deno deployments
 
-QWED provides a **TypeScript SDK** that wraps the Python core.
+QWED provides a **TypeScript SDK** (planned, `@qwed-ai/finance` TBD) that wraps the Python core.
 
-### Installation
+### Workaround for Node.js Agents
 
-```bash
-npm install @qwed-ai/finance
-```
-
-### Basic Usage
+Until the TypeScript SDK ships, Node.js agents can call the QWED Python CLI:
 
 ```typescript
-import { FinanceVerifier, ComplianceGuard } from '@qwed-ai/finance';
+import { execFileSync } from 'child_process';
+
+function verifyWithQWED(query: string): string {
+  // execFileSync avoids shell interpolation — no injection risk
+  return execFileSync('qwed', ['verify', query], { encoding: 'utf8' });
+}
 
 // Verify NPV calculation
-const verifier = new FinanceVerifier();
-
-const result = await verifier.verifyNPV({
-  cashflows: [-1000, 300, 400, 400, 300],
-  rate: 0.10,
-  llmOutput: "$180.42"
-});
-
-if (result.status === "VERIFIED") {
-  console.log(`✅ Correct: ${result.computedValue}`);
-} else {
-  console.log(`❌ Error: Expected ${result.computedValue}, got ${result.llmValue}`);
-}
-```
-
-### Compliance Verification
-
-```typescript
-import { ComplianceGuard } from '@qwed-ai/finance';
-
-const guard = new ComplianceGuard();
-
-// Verify AML flagging
-const result = await guard.verifyAMLFlag({
-  amount: 15000,
-  countryCode: "US",
-  llmFlagged: true
-});
-
-console.log(`Compliant: ${result.compliant}`);
-// Compliant: true (correctly flagged transaction over $10k)
+const result = verifyWithQWED("Calculate NPV of [-1000, 300, 400, 400, 300] at 10%");
+console.log(result);
 ```
 
 ### Integration with Vercel AI SDK
 
 ```typescript
 import { generateText } from 'ai';
-import { ComplianceGuard } from '@qwed-ai/finance';
+import { execFileSync } from 'child_process';
 
-const guard = new ComplianceGuard();
+function verifyTransfer(amount: number): boolean {
+  const query = `Is $${amount} transfer compliant?`;
+  const result = execFileSync('qwed', ['verify', query], { encoding: 'utf8' });
+  return result.includes("VERIFIED");
+}
 
-const { text, toolCalls } = await generateText({
+const { text } = await generateText({
   model: yourModel,
   prompt: "Process this wire transfer of $50,000 to Germany",
   tools: {
     wire_transfer: {
+      description: "Execute a wire transfer after verification",
+      parameters: { /* ... */ },
       execute: async (params) => {
-        // Verify before executing
-        const verification = await guard.verifyAMLFlag({
-          amount: params.amount,
-          countryCode: params.country,
-          llmFlagged: params.flagged
-        });
-        
-        if (!verification.compliant) {
-          throw new Error(`Blocked: ${verification.reason}`);
+        if (!verifyTransfer(params.amount)) {
+          throw new Error(`Blocked: Transfer failed verification`);
         }
-        
         return executeTransfer(params);
       }
     }
@@ -393,8 +359,6 @@ Create a `ucp.json` in your project root:
 Build a checkout verification system:
 
 ```python
-from qwed_finance.integrations import UCPIntegration
-
 def verify_checkout(user_intent, agent_calculation):
     """
     Exercise: Implement checkout verification
@@ -404,10 +368,8 @@ def verify_checkout(user_intent, agent_calculation):
         agent_calculation: {"final_price": 12000}  # Bug!
     
     Returns:
-        DiagnosticResult with status and agent_message
+        dict with status and reason
     """
-    ucp = UCPIntegration()
-    
     # Your code here:
     # 1. Parse discount from user intent
     # 2. Calculate expected price
@@ -421,26 +383,18 @@ def verify_checkout(user_intent, agent_calculation):
 
 ```python
 def verify_checkout(user_intent, agent_calculation):
-    ucp = UCPIntegration()
-    
-    # Parse discount
     discount_str = user_intent["discount"]
     discount_rate = float(discount_str.replace("%", "")) / 100
     
-    # Calculate expected
-    original = user_intent["original_price"]
-    expected = original * (1 - discount_rate)
-    
-    # Compare
+    expected_price = user_intent["original_price"] * (1 - discount_rate)
     agent_price = agent_calculation["final_price"]
     
-    if abs(expected - agent_price) < 0.01:
-        return {"verified": True, "amount": expected}
+    if abs(expected_price - agent_price) < 0.01:
+        return {"status": "VERIFIED", "amount": expected_price}
     else:
         return {
-            "verified": False, 
-            "reason": f"Expected ${expected}, got ${agent_price}",
-            "blocked": True
+            "status": "BLOCKED",
+            "reason": f"Expected ${expected_price:.2f}, got ${agent_price:.2f}",
         }
 
 # Test
@@ -448,7 +402,7 @@ result = verify_checkout(
     {"original_price": 1500, "discount": "20%"},
     {"final_price": 12000}
 )
-# Output: {"verified": False, "reason": "Expected $1200.0, got $12000", "blocked": True}
+# Output: {"status": "BLOCKED", "reason": "Expected $1200.00, got $12000.00"}
 ```
 
 </details>
@@ -459,9 +413,9 @@ result = verify_checkout(
 
 | Pattern | Use Case | Integration |
 |---------|----------|-------------|
-| **Interceptor** | Tool call verification | OpenResponsesIntegration |
-| **UCP** | E-commerce safety | UCPIntegration |
-| **TypeScript** | Node.js agents | @qwed-ai/finance |
+| **Interceptor** | Tool call verification | QWEDLocal |
+| **UCP** | E-commerce safety | QWEDLocal + ExfiltrationGuard |
+| **TypeScript** | Node.js agents | Planned (@qwed-ai/finance TBD) |
 
 ---
 
@@ -540,14 +494,11 @@ response = verified_engine.query("What are the payment terms?")
 
 ### Turn Claude into a Banking Compliance Officer
 
-Using `qwed-mcp`, you can install QWED verification **directly into Claude Desktop**. The current MCP surface is execution-oriented: instead of many fixed `verify_*` tools, Claude receives a deterministic execution tool and can run small Python verification programs through it.
-
-> 🔒 **Security note:** Treat execution-oriented MCP verification as a sandboxed trust boundary. Production deployments should enforce CPU and memory limits, timeouts, strict file-system and network controls, least-privilege execution, audited script review, and input validation before any verification program is allowed to run.
-
-### Step 1: Install MCP Server
+You can install QWED verification **directly into Claude Desktop** via MCP. The current MCP surface uses the `qwed` CLI as its tool interface:
 
 ```bash
-pip install qwed-mcp
+# The qwed CLI ships with the pip install — no separate package needed
+pip install qwed
 ```
 
 ### Step 2: Configure Claude Desktop
@@ -559,7 +510,7 @@ Add to your `claude_desktop_config.json`:
   "mcpServers": {
     "qwed": {
       "command": "uvx",
-      "args": ["qwed-mcp"]
+      "args": ["qwed"]
     }
   }
 }

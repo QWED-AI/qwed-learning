@@ -14,7 +14,7 @@ import logging
 from typing import Dict, Optional
 
 from qwed_sdk import QWEDLocal
-from qwed_core import DiagnosticResult, DiagnosticStatus
+from qwed_new.core import DiagnosticResult, DiagnosticStatus
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

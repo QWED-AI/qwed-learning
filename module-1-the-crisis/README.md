@@ -100,23 +100,20 @@ The model saw the word **premium** and assumed addition. In this domain, the pre
 
 ### Current MCP-shaped verification example
 
-This is an **illustrative integration pattern**, not a copy-paste runnable snippet from
-this repository. `qwed-mcp` is installed separately (for example, `pip install qwed-mcp`),
-and `qwed_finance` here represents a package-backed verifier surface that may live outside
-the learning repo.
+This is an **illustrative integration pattern**. The `qwed` CLI ships with `pip install qwed` and provides a verification interface that any MCP host (e.g., Claude Desktop) can call:
 
 ```python
-from qwed_mcp import execute_python_code
+from qwed_sdk import QWEDLocal
 
-result = execute_python_code(
-    code="""
-from qwed_finance import verify_banking_compliance
-
-result = verify_banking_compliance(
-    scenario="Senior Citizen Loan approval",
-    llm_output="Base 7% + Premium 0.5% = 7.5%",
+client = QWEDLocal(
+    provider="openai",
+    model="gpt-4o-mini"
 )
-print(result)
+
+result = client.verify(
+    "Senior Citizen Loan approval: Base 7% + Premium 0.5% = 7.5%"
+)
+print(result.agent_message)
 """
 )
 

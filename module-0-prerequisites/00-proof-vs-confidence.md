@@ -84,7 +84,7 @@ All QWED operations return a `DiagnosticResult` with three layers. The trust mod
 ### Example 1: Verified
 
 ```python
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 query = "Solve x^2 - 4 = 0"
 result = client.verify_math(query)
@@ -99,7 +99,7 @@ The claim is in a supported symbolic domain, and the engine can prove it. The `p
 ### Example 2: Blocked
 
 ```python
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 query = "x + x"
 result = client.verify_math(query)
@@ -114,7 +114,7 @@ The engine could not parse the query as a verifiable claim. No proof artifact ex
 ### Example 3: Unverifiable
 
 ```python
-from qwed_core import DiagnosticStatus
+from qwed_new.core import DiagnosticStatus
 
 query = "Which startup strategy is safest in 2027?"
 result = client.verify(query)

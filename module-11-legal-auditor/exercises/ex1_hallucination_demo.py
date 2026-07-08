@@ -1,7 +1,7 @@
 """
 Exercise 1: Hallucination Demo (The Crisis)
 
-This script demonstrates why 'qwed-legal' is necessary.
+This script demonstrates why deterministic verification (via `qwed_sdk`) is necessary.
 We simulate an LLM generating a legal brief with a hallucinated case citation.
 
 Goal: Understand that LLMs are probabilistic "Artists", not deterministic "Accountants".

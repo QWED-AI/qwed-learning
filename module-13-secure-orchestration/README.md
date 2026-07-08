@@ -447,10 +447,10 @@ class QWEDVerificationLayer:
         if step["action"] == "verify_math":
             result = self.qwed.verify(step.get("expression", ""))
             return {
-                "status": result.status.value,
-                "value": result.developer_fields.get("value"),
-                "proof_ref": result.proof_ref,
-                "agent_message": result.agent_message,
+                "status": "VERIFIED" if result.verified else "BLOCKED",
+                "value": result.value,
+                "proof_ref": None,
+                "agent_message": result.error or "",
             }
         
         if step["action"] == "verify_fact":
@@ -458,9 +458,9 @@ class QWEDVerificationLayer:
                 f"Is this true: {step['claim']}? Context: {step.get('context', '')}"
             )
             return {
-                "status": result.status.value,
-                "proof_ref": result.proof_ref,
-                "agent_message": result.agent_message,
+                "status": "VERIFIED" if result.verified else "BLOCKED",
+                "proof_ref": None,
+                "agent_message": result.error or "",
             }
         
         return {
