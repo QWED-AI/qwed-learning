@@ -490,7 +490,7 @@ response = verified_engine.query("What are the payment terms?")
 
 ## 8.6: The Compliance Officer (MCP Demo)
 
-> ⚠️ **v4.0.0 Security Advisory:** MCP tool descriptions can be **poisoned** with hidden instructions that trick the LLM. Always scan tool definitions with `MCPPoisonGuard` before loading them. See [Module 12: Agentic Security Guards](../module-12-agentic-security/README.md#124-mcppoisonguard-tool-definition-scanning) for details.
+> ⚠️ **Security Advisory:** MCP tool descriptions can be **poisoned** with hidden instructions that trick the LLM. Always scan tool definitions with `MCPPoisonGuard` before loading them. See [Module 12: Agentic Security Guards](../module-12-agentic-security/README.md#124-mcppoisonguard-tool-definition-scanning) for details.
 
 ### Turn Claude into a Banking Compliance Officer
 

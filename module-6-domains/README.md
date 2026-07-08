@@ -743,12 +743,16 @@ def verify_deadlines(contract_text):
 | **Legal** | Logic, dates | Logic + Math |
 | **Code** | Security, secrets | Code Engine |
 | **Data** | Statistics, SQL | Stats + SQL |
+| **Infrastructure** | IAM, Networks, Cost, Artifacts | `qwed-infra` guards |
 
 ---
 
 ## ➡️ Next Steps
 
 Congratulations! You've completed the core QWED Learning Curriculum.
+
+**Continue to Infrastructure Verification:**
+The `qwed-infra` package extends QWED's deterministic fail-closed philosophy to IaC — verifying IAM policies, network topologies, cost estimates, and release artifacts. See [Module 14: Infrastructure Verification](../module-14-infrastructure-verification/README.md).
 
 **What's Next?**
 - ⭐ [Star the QWED repo](https://github.com/QWED-AI/qwed-verification)

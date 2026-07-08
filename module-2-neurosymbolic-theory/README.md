@@ -277,9 +277,9 @@ verified = (llm_answer == symbolic_result)  # False!
 
 ---
 
-## 🛠️ 2.5 The 8 Verification Engines
+## 🛠️ 2.5 The Verification Engines
 
-QWED routes queries to specialized symbolic engines:
+QWED routes queries to specialized symbolic engines (11+ engines in the current 5.2.0 ecosystem):
 
 ### **Engine 1: Math Verifier** 🧮
 

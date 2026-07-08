@@ -6,8 +6,6 @@
 📊 **Level:** Advanced  
 🎯 **Goal:** Design and build production-grade multi-agent systems using the Two-Layer Architecture pattern — separating planning from execution, isolating credentials, and integrating QWED verification at every handoff point.
 
-🆕 *New in QWED v4.0.1*
-
 ---
 
 ## 🧠 What You'll Learn

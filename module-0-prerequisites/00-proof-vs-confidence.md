@@ -156,4 +156,6 @@ If you remember only one thing from this course, remember this:
 
 Now continue to the formal-methods primer with the right mental model.
 
+> **Optional:** After completing the core course, continue to [Module 14: Infrastructure Verification](../module-14-infrastructure-verification/README.md) to see how `InfraDiagnosticResult` applies the same three-state model to IaC verification — where `proof_ref` is the literal proof that trust requires evidence.
+
 -> [Continue to formal methods for developers](01-formal-methods-intro.md)

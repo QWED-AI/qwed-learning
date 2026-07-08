@@ -86,6 +86,38 @@ This separation prevents the agent from over-interpreting internals and prevents
 
 ## 4. Domain Routing
 
+The current ecosystem provides **11+ verification engines** across math, logic, code, data, and image domains, plus **7+ agent security guards** for runtime protection:
+
+### Verification Engines
+
+| # | Engine | Technology | Domain |
+|---|--------|-----------|--------|
+| 1 | **Math** | SymPy | Symbolic arithmetic, calculus, algebra |
+| 2 | **Logic** | Z3 | SAT solving, constraint satisfaction |
+| 3 | **Code** | AST analysis | Python security, code structure |
+| 4 | **SQL** | SQLGlot | SQL syntax, structure, safety |
+| 5 | **Stats** | DataFrame sandbox | Statistical properties, distributions |
+| 6 | **Facts (Exact)** | String matching | Exact fact lookups, ground truth |
+| 7 | **Fact Checker** | RAG/NLI | Document-grounded claim verification |
+| 8 | **Image** | Vision models | Image content verification |
+| 9 | **Consensus** | Multi-model | Cross-model agreement |
+| 10 | **Reasoning** | Optimization | Logic optimization, vacuity detection |
+| 11 | **Process** | IRAC/Milestone | Process determinism, compliance |
+| 12+ | **Schema**, **Graph**, **DSL Logic** | Various | Schema conformance, knowledge graph facts, domain-specific DSL |
+
+### Agent Security Guards
+
+| # | Guard | Purpose |
+|---|-------|---------|
+| 1 | **SystemGuard** | Shell command verification |
+| 2 | **ConfigGuard** | Secrets scanning in config |
+| 3 | **RAGGuard** | RAG retrieval mismatch prevention |
+| 4 | **MCPPoisonGuard** | MCP tool definition poisoning detection |
+| 5 | **ExfiltrationGuard** | Runtime data exfiltration prevention |
+| 6 | **SelfInitiatedCoTGuard** | S-CoT logic path verification |
+| 7 | **ProcessVerifier** | Deterministic process validation (IRAC) |
+| 8 | **StartupHookGuard** | Environment integrity / startup hook detection |
+
 ```mermaid
 graph LR
     A["User Query"] --> B{"Claim class"}
@@ -94,13 +126,25 @@ graph LR
     B -->|Logic / constraints| D["Logic verifier"]
     B -->|Code structure / policy| E["Code verifier"]
     B -->|SQL structure / safety| F["SQL verifier"]
-    B -->|Unsupported semantic task| G["Do not auto-approve"]
+    B -->|Stats / distributions| G["Stats verifier"]
+    B -->|Fact lookup| H["Facts verifier"]
+    B -->|RAG / document| I["Fact Checker"]
+    B -->|Image / vision| J["Image verifier"]
+    B -->|Cross-model| K["Consensus"]
+    B -->|Optimization| L["Reasoning"]
+    B -->|Unsupported semantic task| M["Do not auto-approve"]
 
-    C --> H["DiagnosticResult VERIFIED / UNVERIFIABLE / BLOCKED"]
-    D --> H
-    E --> H
-    F --> H
-    G --> H
+    C --> N["DiagnosticResult VERIFIED / UNVERIFIABLE / BLOCKED"]
+    D --> N
+    E --> N
+    F --> N
+    G --> N
+    H --> N
+    I --> N
+    J --> N
+    K --> N
+    L --> N
+    M --> N
 ```
 
 All domain engines return the same `DiagnosticResult` type. The difference is in `developer_fields`, not the status enum.

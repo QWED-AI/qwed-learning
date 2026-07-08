@@ -252,7 +252,7 @@ derivative = sp.diff(x**2, x)  # Always: 2*x (proven)
 
 ---
 
-## Agentic Security (v4.0.0)
+## Agentic Security Guards
 
 ### RAGGuard
 
