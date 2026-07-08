@@ -148,16 +148,6 @@ That principle matters more than any single engine, API, or integration detail.
 
 ---
 
-## Before You Continue
-
-If you remember only one thing from this course, remember this:
-
-> **Confidence is a guess about correctness. Verification is evidence of correctness.**
-
-Now continue to the formal-methods primer with the right mental model.
-
----
-
 ## Principle 9: Diagnostics ≠ Explainability
 
 A `DiagnosticResult` tells you what was checked and what was found. It does not tell you why an LLM chose a particular response. These are separate concerns:
@@ -182,6 +172,14 @@ If a downstream agent treats "the LLM explained its reasoning" as equivalent to 
 > **"A good explanation of a wrong answer is still a wrong answer."**
 
 ---
+
+## Before You Continue
+
+If you remember only one thing from this course, remember this:
+
+> **Confidence is a guess about correctness. Verification is evidence of correctness.**
+
+Now continue to the formal-methods primer with the right mental model.
 
 > **Optional:** After completing the core course, continue to [Module 14: Infrastructure Verification](../module-14-infrastructure-verification/README.md) to see how `InfraDiagnosticResult` applies the same three-state model to IaC verification — where `proof_ref` is the literal proof that trust requires evidence.
 

@@ -172,7 +172,7 @@ PII masking improves privacy, but it is not a proof of correctness.
 4. **Use caching carefully**. Cache deterministic results, not changing trust assumptions.
 5. **Preserve auditability**. Critical systems should log status, proof_ref, and developer_fields.
 6. **proof_ref is the authority bit**. Present = VERIFIED and admissible for control flow. Absent = non-authoritative.
-7. **Diagnostics ≠ Explainability**. A `DiagnosticResult` tells you what was checked and what was found — never override it with an LLM's chain-of-thought.
+7. **Diagnostics ≠ Explainability** *(Principle 9)*. A `DiagnosticResult` tells you what was checked and what was found — never override it with an LLM's chain-of-thought.
 
 ---
 

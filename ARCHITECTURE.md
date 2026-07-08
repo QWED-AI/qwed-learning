@@ -70,6 +70,16 @@ Every `DiagnosticResult` has three layers:
 └─────────────────────────────────────────────┘
 ```
 
+### Layer Separation — Diagnostics ≠ Explainability
+
+QWED keeps three concerns structurally separate (Principle 9):
+
+| Layer | Audience | Content | Required? |
+|-------|----------|---------|-----------|
+| `agent_message` | Downstream agents / LLM consumers | Human-readable diagnostic: what happened, what to do next | Always |
+| `developer_fields` | Engineers, audit, compliance | Structured evidence: constraints checked, solver traces, policy violations | Always (may be empty) |
+| `proof_ref` | Downstream gates, replay, provenance | Cryptographic hash binding the verdict to the exact evidence that justified it | Only on `VERIFIED` |
+
 ```mermaid
 graph LR
     subgraph "Layer 1: agent_message"
@@ -86,16 +96,6 @@ graph LR
     style B1 fill:#fff3e0
     style C1 fill:#e8f5e9
 ```
-
-### Layer Separation — Diagnostics ≠ Explainability
-
-QWED keeps three concerns structurally separate (Principle 9):
-
-| Layer | Audience | Content | Required? |
-|-------|----------|---------|-----------|
-| `agent_message` | Downstream agents / LLM consumers | Human-readable diagnostic: what happened, what to do next | Always |
-| `developer_fields` | Engineers, audit, compliance | Structured evidence: constraints checked, solver traces, policy violations | Always (may be empty) |
-| `proof_ref` | Downstream gates, replay, provenance | Cryptographic hash binding the verdict to the exact evidence that justified it | Only on `VERIFIED` |
 
 This separation prevents the agent from over-interpreting internals and prevents engineers from treating "good explainability" as proof.
 
