@@ -57,6 +57,36 @@ LLM: "Neil Armstrong, in 1969." ❌ (Sounds plausible, completely false)
 
 ---
 
+### Diagnostic
+
+**Scary Definition:** Information about what was checked and what was found during verification.
+
+**Simple Meaning:** Tells you the result of a check — not *why* the AI chose a response.
+
+**Real-World Analogy:**
+- **Check Engine Light** — Tells you something is wrong, not why the mechanic thinks it's wrong
+- **Test Score** — Shows the result, not the student's thought process
+- **Receipt** — Lists what was purchased, not why the customer chose it
+
+**Key Distinction:** Diagnostics are deterministic outputs from verification engines. They answer "what happened," not "why did the model say that."
+
+---
+
+### Explainability
+
+**Scary Definition:** Methods and techniques that describe how an AI model arrived at a particular output.
+
+**Simple Meaning:** Why the AI chose a particular response — chain-of-thought, attention weights, rationale.
+
+**Real-World Analogy:**
+- **Student Showing Work** — "First I added, then I multiplied..."
+- **Chef Explaining Recipe Choices** — "I used basil because..."
+- **Detective's Reasoning** — "The clue led me to conclude..."
+
+**Why the Distinction Matters:** An LLM's explanation can be fluent, persuasive, and wrong — just like its original answer. Explainability is useful for debugging but is not verification.
+
+---
+
 ## Technical Terms (Simplified)
 
 ### AST (Abstract Syntax Tree)
@@ -396,6 +426,36 @@ else:
 
 ---
 
+### Layer 1 (agent_message)
+
+**Simple Meaning:** The human-readable diagnostic layer. Safe for downstream agents. Always present.
+
+**What It Contains:** Status descriptions ("Verification succeeded", "Proof not established"), actionable guidance ("Retry with a more specific query").
+
+**Key Rule:** Never contains model internals, confidence scores, or chain-of-thought text.
+
+---
+
+### Layer 2 (developer_fields)
+
+**Simple Meaning:** The structured evidence layer. Contains constraint IDs, solver traces, and engine metadata.
+
+**What It Contains:** `constraint_id`, `method` (symbolic, solver, parser, etc.), `advisory_checks`, `pii_masked`, and engine-specific evidence.
+
+**Key Rule:** Always present (may be empty). For engineers and audit — not for downstream agents.
+
+---
+
+### Layer 3 (proof_ref)
+
+**Simple Meaning:** The cryptographic proof layer. A `sha256` hash that binds the verdict to the evidence that justified it.
+
+**When Present:** Only when `status == VERIFIED`.
+
+**Key Rule:** Presence = authoritative. Absence = non-authoritative. This is the single bit that determines whether a result may drive control flow.
+
+---
+
 ## Quick Reference Table
 
 | Term | Translation | Emoji |
@@ -403,6 +463,8 @@ else:
 | Deterministic | Always same answer | 🧮 |
 | Probabilistic | Maybe right | 🎲 |
 | Hallucination | Unsupported claim presented as fact | 🤥 |
+| Diagnostic | What was checked and found (not why) | 🔍 |
+| Explainability | Why the model chose a response | 💬 |
 | Symbolic | Math proof | ✅ |
 | LLM-as-Judge | AI checks AI | 🤔 |
 | Verification | Proof of correctness | 🛡️ |
@@ -412,6 +474,9 @@ else:
 | proof_ref | Cryptographic proof fingerprint | 🔏 |
 | advisory_checks | Non-authoritative signals (not verdicts) | 💡 |
 | constraint_id | Unique constraint/rule identifier | 🏷️ |
+| Layer 1 (agent_message) | Human-readable diagnostic, agent-safe | 📢 |
+| Layer 2 (developer_fields) | Structured evidence for engineers | 🔧 |
+| Layer 3 (proof_ref) | Cryptographic proof, authority bit | 🔐 |
 
 ---
 

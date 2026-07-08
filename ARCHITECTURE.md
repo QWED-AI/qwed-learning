@@ -80,6 +80,23 @@ QWED keeps three concerns structurally separate (Principle 9):
 | `developer_fields` | Engineers, audit, compliance | Structured evidence: constraints checked, solver traces, policy violations | Always (may be empty) |
 | `proof_ref` | Downstream gates, replay, provenance | Cryptographic hash binding the verdict to the exact evidence that justified it | Only on `VERIFIED` |
 
+```mermaid
+graph LR
+    subgraph "Layer 1: agent_message"
+        A1["Verification succeeded"] --> A2["Downstream agent<br/>reads and acts"]
+    end
+    subgraph "Layer 2: developer_fields"
+        B1["{'method': 'symbolic',<br/>'value': '2*x',<br/>'constraint_id': '...'}"] --> B2["Engineer / audit<br/>inspects evidence"]
+    end
+    subgraph "Layer 3: proof_ref"
+        C1["sha256:abcd..."] --> C2["Downstream gate<br/>replays proof"]
+    end
+
+    style A1 fill:#e3f2fd
+    style B1 fill:#fff3e0
+    style C1 fill:#e8f5e9
+```
+
 This separation prevents the agent from over-interpreting internals and prevents engineers from treating "good explainability" as proof.
 
 ---

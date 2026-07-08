@@ -170,6 +170,8 @@ class DiagnosticResult:
     is_authoritative: bool     # True when proof_ref is present
 ```
 
+> **Diagnostics ≠ Explainability (Principle 9):** Structured diagnostic output — status, `proof_ref`, and `developer_fields` — must never be overridden, softened, or replaced by an LLM's explanation or chain-of-thought reasoning. Diagnostics answer *what* was checked and what was found. Explainability answers *why* the model chose a particular response. These are separate concerns with separate data structures.
+
 ### Try Different Problems
 
 ```python

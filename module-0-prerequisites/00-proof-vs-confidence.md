@@ -148,6 +148,31 @@ That principle matters more than any single engine, API, or integration detail.
 
 ---
 
+## Principle 9: Diagnostics ≠ Explainability
+
+A `DiagnosticResult` tells you what was checked and what was found. It does not tell you why an LLM chose a particular response. These are separate concerns:
+
+| Concept | Purpose | Example |
+|---------|---------|---------|
+| **Diagnostics** | What was checked, what was found | `status: BLOCKED`, `proof_ref: None`, `agent_message: "Parse error"` |
+| **Explainability** | Why the model gave that answer | Chain-of-thought, attention weights, rationale |
+
+QWED enforces this separation through three structural layers:
+
+- **Layer 1 (`agent_message`):** Agent-safe diagnostic text. No model internals.
+- **Layer 2 (`developer_fields`):** Structured evidence for engineers. No confidence scores.
+- **Layer 3 (`proof_ref`):** Cryptographic proof binding. Present only on `VERIFIED`.
+
+### Why This Matters
+
+If a downstream agent treats "the LLM explained its reasoning" as equivalent to "the claim was verified," the trust boundary is broken. An LLM's explanation can be fluent, persuasive, and wrong — just like its original answer.
+
+**Rule of thumb:** Diagnostic output must never be overridden, softened, or replaced by an LLM's explanation or chain-of-thought reasoning. If `status` is `UNVERIFIABLE`, no amount of explainability makes it `VERIFIED`.
+
+> **"A good explanation of a wrong answer is still a wrong answer."**
+
+---
+
 ## Before You Continue
 
 If you remember only one thing from this course, remember this:
