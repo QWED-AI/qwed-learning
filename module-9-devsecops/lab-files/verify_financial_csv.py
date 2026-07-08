@@ -14,7 +14,7 @@ import json
 from pathlib import Path
 
 
-TESTED_QWED_VERSION = "5.1.0"
+TESTED_QWED_VERSION = "5.2.0"
 
 
 def verify_transactions(rows: list[dict[str, str]]) -> list[dict[str, str]]:

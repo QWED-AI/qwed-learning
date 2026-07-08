@@ -230,7 +230,7 @@ if result.is_vacuous:
 
 ## 📝 Summary
 
-You have now mastered all **11 Verification Engines**:
+You have now mastered the **11 core Verification Engines** covered in this curriculum (the full 5.2.0 ecosystem includes 12+ engines plus 7+ security guards):
 
 1.  **Math** (SymPy)
 2.  **Logic** (Z3)
@@ -243,6 +243,8 @@ You have now mastered all **11 Verification Engines**:
 9.  **Consensus** (Multi-Model) — *Module 10*
 10. **Reasoning** (Optimization/Vacuity) — *Module 10*
 11. **Process Determinism** (IRAC/Milestone) — *Module 12*
+
+Additional engines available in 5.2.0: **Schema**, **Graph Fact**, **DSL Logic**.
 
 ---
 

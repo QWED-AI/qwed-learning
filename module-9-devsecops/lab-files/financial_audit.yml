@@ -16,7 +16,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install verifier
-        run: pip install qwed-verification==5.1.0
+        run: pip install qwed-verification>=5.2.0
 
       - name: Run finance verification script
         run: python lab-files/verify_financial_csv.py --input lab-files/rates_update.csv --fail-on-error

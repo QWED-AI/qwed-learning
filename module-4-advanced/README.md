@@ -256,10 +256,9 @@ verified_result = qwed_tool.run(
 
 ---
 
-## 🦙 4.3 LlamaIndex Integration (Coming Soon)
+## 🦙 4.3 LlamaIndex Integration
 
 ```python
-# Future:
 from qwed_sdk.integrations.llamaindex import QWEDQueryEngine
 
 query_engine = QWEDQueryEngine(

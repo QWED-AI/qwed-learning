@@ -96,7 +96,7 @@ mkdir governed-banking-agent
 cd governed-banking-agent
 python -m venv .venv
 # Activate your venv here, then:
-pip install qwed-verification==5.1.0
+pip install qwed-verification>=5.2.0
 ```
 
 ### Step 3: Implementation Guide

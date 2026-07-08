@@ -4,9 +4,9 @@
 
 ⏱️ **Duration:** 60 minutes  
 📊 **Level:** Advanced  
-🎯 **Goal:** Master the v4.0.0 Agentic Security Guard subsystem — prevent prompt injection, data exfiltration, MCP tool poisoning, reasoning manipulation, and compliance violations in LLM-powered agents.
+🎯 **Goal:** Master the Agentic Security Guard subsystem — prevent prompt injection, data exfiltration, MCP tool poisoning, reasoning manipulation, and compliance violations in LLM-powered agents.
 
-🆕 *New in QWED v4.0.0 Sentinel Edition*
+🆕 *Introduced in QWED v5.2.0 — Agentic Security Guards*
 
 ---
 
