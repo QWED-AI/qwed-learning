@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="assets/logo.png" alt="QWED Logo" width="80" height="80">
+</div>
+
 # Master Trust-Boundary Verification for AI Systems
 
 **Free, open-source course on deterministic AI verification, fail-closed trust boundaries, and governed agent systems**
