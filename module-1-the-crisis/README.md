@@ -89,14 +89,14 @@ From a production audit:
 | Field | Value |
 |-------|-------|
 | Scenario | Senior citizen fixed deposit |
-| User query | "Calculate FD maturity for 65yo depositing 5L at 7% base + 0.50% senior premium" |
-| LLM answer | "Total rate: 7.50% (base + premium)" |
-| Correct answer | "Total rate: 6.50% (premium is a discount/benefit in this product context)" |
+| User query | "What total rate applies for 65yo depositing 5L at 7% base + 0.50% senior premium?" |
+| LLM answer | "Total rate: 6.50% (base rate less senior premium fee)" |
+| Correct answer | "Total rate: 7.50% (senior premium is an additive rate bonus on deposits)" |
 | Result | `BLOCKED` |
 
 ### What went wrong
 
-The model saw the word **premium** and assumed addition. In this domain, the premium represented a customer benefit.
+The model saw the word **premium** and read it in its insurance sense — a charge against the customer — and subtracted it. On a deposit, the senior premium is extra interest paid *to* the depositor, so it adds: `7.00 + 0.50 = 7.50`. Same truth as the [Module 9 lab](../module-9-devsecops/README.md#hands-on-lab-the-senior-citizen-trap), where the model fails the other way (multiplying instead of adding) — two failure modes, one arithmetic fact.
 
 ### Current MCP-shaped verification example
 
@@ -111,14 +111,14 @@ client = QWEDLocal(
 )
 
 result = client.verify(
-    "Senior Citizen Loan approval: Base 7% + Premium 0.5% = 7.5%"
+    "Applicable rate for 65yo FD: 7% base less 0.50% senior premium fee = 6.50%"
 )
 print(result.agent_message)
 """
 )
 
 # Expected outcome:
-# BLOCKED - Senior Citizen Premium applied incorrectly.
+# BLOCKED - Senior Citizen Premium subtracted instead of added.
 ```
 
 ### Lesson
