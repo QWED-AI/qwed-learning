@@ -89,7 +89,7 @@ From a production audit:
 | Field | Value |
 |-------|-------|
 | Scenario | Senior citizen fixed deposit |
-| User query | "Calculate FD maturity for 65yo depositing 5L at 7% base + 0.50% senior premium" |
+| User query | "What total rate applies for 65yo depositing 5L at 7% base + 0.50% senior premium?" |
 | LLM answer | "Total rate: 6.50% (base rate less senior premium fee)" |
 | Correct answer | "Total rate: 7.50% (senior premium is an additive rate bonus on deposits)" |
 | Result | `BLOCKED` |
@@ -111,7 +111,7 @@ client = QWEDLocal(
 )
 
 result = client.verify(
-    "FD maturation for 65yo: 5L at 7% base less 0.50% senior premium fee = 6.50% total"
+    "Applicable rate for 65yo FD: 7% base less 0.50% senior premium fee = 6.50%"
 )
 print(result.agent_message)
 """
