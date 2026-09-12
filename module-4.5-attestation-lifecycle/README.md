@@ -25,10 +25,11 @@ token = svc.sign_verdict(
     verdict_status="forwarded", engine="lab",
     sender_id="agent-A", receiver_id="agent-B",
     payload_hash=A2ACryptoService.payload_hash({"total": 150.0}),
+    session_id="sess-1",
 )
 ```
 
-The token binds five things: issuer, payload hash (`sub`), deployment, participants, and a unique `jti` (your `trace_id`). A signature over *less* than this is a souvenir, not an attestation.
+The token binds six things: issuer, payload hash (`sub`), deployment, participants, session, and a unique `jti` (your `trace_id`). A signature over *less* than this is a souvenir, not an attestation.
 
 > **Attack note.** Sign the same `trace_id` twice and the second call raises `ValueError`. Without that refusal, two contradictory tokens would share one `jti` — and whichever a consumer saw first would poison its replay registry against the other.
 
@@ -42,9 +43,18 @@ from qwed_a2a.security.crypto import AttestationContext
 ctx = AttestationContext(
     sender_agent_id="agent-A", receiver_agent_id="agent-B",
     payload={"total": 999.0},  # NOT what was signed
+    session_id="sess-1",
 )
 ok, _, err = svc.verify_attestation(token, ctx)
 assert not ok  # Attestation payload hash mismatch — detached attestation rejected
+
+# Same token, wrong session:
+stale = AttestationContext(
+    sender_agent_id="agent-A", receiver_agent_id="agent-B",
+    payload={"total": 150.0}, session_id="sess-2",
+)
+ok, _, err = svc.verify_attestation(token, stale)
+assert not ok  # Attestation session mismatch
 ```
 
 A stolen token replayed against a different payload, sender, receiver, or session dies here — *after* the signature checks out. If your verifier skips context binding, possession of any valid token equals impersonation of every agent.
@@ -58,7 +68,7 @@ A stolen token replayed against a different payload, sender, receiver, or sessio
 ```python
 ctx = AttestationContext(
     sender_agent_id="agent-A", receiver_agent_id="agent-B",
-    payload={"total": 150.0},
+    payload={"total": 150.0}, session_id="sess-1",
 )
 ok, claims, err = svc.verify_attestation(token, ctx)
 assert ok  # claims["qwed_a2a"]["verdict"] == "forwarded"
@@ -76,12 +86,20 @@ Signing and verifying track *separate* records, which is why the issuer above co
 
 ```python
 # Second signing with the same trace_id:
-svc.sign_verdict(trace_id="lab-001", ...)  # ValueError: duplicate trace_id
+svc.sign_verdict(
+    trace_id="lab-001",
+    verdict_status="forwarded",
+    engine="lab",
+    sender_id="agent-A",
+    receiver_id="agent-B",
+    payload_hash=A2ACryptoService.payload_hash({"total": 150.0}),
+    session_id="sess-1",
+)  # ValueError: duplicate trace_id
 # Second verification of the same token:
 ok, _, err = svc.verify_attestation(token, ctx)  # Replay detected: jti already seen
 ```
 
-Peer issuers sharing a trace ID never shadow each other (consumption keys are namespaced per issuer), and two workers sharing one `JtiRegistry` close the cross-worker window — try it in `lab/02_replay_lifecycle.py`.
+Peer issuers sharing a trace ID never shadow each other (consumption keys are namespaced per issuer). A `JtiRegistry` shared by service instances in one process closes the second instance's window — across processes you need an out-of-process store behind the same contract. Try both in `lab/02_replay_lifecycle.py`.
 
 > **Attack note.** Replay the verified token and read the denial. Then consider: without the split registry, the issuer could never self-verify (signing would burn its own slot), and without namespacing, one deployment's trace IDs would deny another's.
 

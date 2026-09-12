@@ -30,18 +30,35 @@ token = svc.sign_verdict(
     sender_id="agent-A",
     receiver_id="agent-B",
     payload_hash=A2ACryptoService.payload_hash(PAYLOAD),
+    session_id="sess-1",
 )
 print("minted:", token[:40], "...")
 
 detached = AttestationContext(
-    sender_agent_id="agent-A", receiver_agent_id="agent-B", payload={"total": 999.0}
+    sender_agent_id="agent-A",
+    receiver_agent_id="agent-B",
+    payload={"total": 999.0},
+    session_id="sess-1",
 )
 ok, _, err = svc.verify_attestation(token, detached)
 assert not ok, "detached token must not verify"
 print("detached denied:", err[:70])
 
+stale_session = AttestationContext(
+    sender_agent_id="agent-A",
+    receiver_agent_id="agent-B",
+    payload=PAYLOAD,
+    session_id="sess-2",
+)
+ok, _, err = svc.verify_attestation(token, stale_session)
+assert not ok, "wrong-session token must not verify"
+print("wrong session denied:", err[:70])
+
 ctx = AttestationContext(
-    sender_agent_id="agent-A", receiver_agent_id="agent-B", payload=PAYLOAD
+    sender_agent_id="agent-A",
+    receiver_agent_id="agent-B",
+    payload=PAYLOAD,
+    session_id="sess-1",
 )
 ok, claims, err = svc.verify_attestation(token, ctx)
 assert ok, err

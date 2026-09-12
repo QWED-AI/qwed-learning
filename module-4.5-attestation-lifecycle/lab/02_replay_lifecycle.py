@@ -25,9 +25,14 @@ from qwed_a2a.security.crypto import (
 )
 
 PAYLOAD = {"total": 150.0}
-CTX_KW = dict(sender_agent_id="agent-A", receiver_agent_id="agent-B", payload=PAYLOAD)
+ISSUER = "did:qwed:a2a:lab"
+CTX_KW = {
+    "sender_agent_id": "agent-A",
+    "receiver_agent_id": "agent-B",
+    "payload": PAYLOAD,
+}
 
-svc = A2ACryptoService(issuer_id="did:qwed:a2a:lab")
+svc = A2ACryptoService(issuer_id=ISSUER)
 
 
 def fresh_token(svc, trace_id):
@@ -56,11 +61,14 @@ ok, _, err = svc.verify_attestation(token, ctx)
 assert not ok and "Replay" in err, err
 print("replay denied:", err)
 
-# Cross-worker: a shared registry closes the second worker's window.
+# Cross-instance (same process): a shared registry closes the second
+# instance's window. Cross-PROCESS workers need an out-of-process store
+# implementing the ReplayRegistry contract — an in-memory registry cannot
+# cross a process boundary.
 shared = JtiRegistry(ttl_seconds=300)
-w1 = A2ACryptoService(issuer_id="did:qwed:a2a:lab", jti_registry=shared)
+w1 = A2ACryptoService(issuer_id=ISSUER, jti_registry=shared)
 w1._key_pair = svc._ensure_key_pair()
-w2 = A2ACryptoService(issuer_id="did:qwed:a2a:lab", jti_registry=shared)
+w2 = A2ACryptoService(issuer_id=ISSUER, jti_registry=shared)
 w2._key_pair = svc._key_pair
 token2 = fresh_token(svc, "lab-102")
 assert w1.verify_attestation(token2, AttestationContext(**CTX_KW))[0]
