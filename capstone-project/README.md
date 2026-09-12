@@ -115,6 +115,8 @@ def verify_transfer_request(beneficiary: str, amount_usd: float, policy: dict) -
     return {"decision": "APPROVED"}
 ```
 
+> This dict is a *workflow decision*, not a verification record: a real verifier decision carries `status`, `proof_ref`, and `developer_fields`, without which an audit log entry is not authoritative. Part 2 below shows the evidence-bound side.
+
 #### Part 2: Math Verification (30 mins)
 
 **Goal:** Ensure loan interest is calculated using a deterministic formula before quoting it.
