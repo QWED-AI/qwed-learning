@@ -76,9 +76,8 @@ For unsupported tasks, the correct result is often:
 
 - `UNVERIFIABLE`
 - `BLOCKED`
-- `HUMAN_REVIEW_REQUIRED`
 
-not a lower-confidence answer.
+(not a lower-confidence answer — and routing to `HUMAN_REVIEW_REQUIRED` is a downstream workflow disposition, not a verdict).
 
 ---
 
@@ -193,7 +192,7 @@ The correct pattern is:
 4. otherwise block, quarantine, or escalate
 
 ```text
-LLM candidate -> deterministic verifier -> VERIFIED / INVALID / UNVERIFIABLE
+LLM candidate -> deterministic verifier -> VERIFIED / BLOCKED / UNVERIFIABLE
 ```
 
 This is the trust-boundary mindset the rest of the course builds on.

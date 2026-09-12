@@ -160,7 +160,7 @@ With verification:
 
 **Not all tasks are verifiable** (creative writing isn't), but for **critical outputs** (money, medical, legal), verification is non-negotiable.
 
-If a task cannot be verified, QWED should surface a non-pass state such as `UNVERIFIABLE` or `HUMAN_REVIEW_REQUIRED`, not a weaker confidence score.
+If a task cannot be verified, QWED should surface a non-pass verdict such as `UNVERIFIABLE` — routing to `HUMAN_REVIEW_REQUIRED` is then a downstream workflow disposition, not a weaker confidence score.
 
 ---
 

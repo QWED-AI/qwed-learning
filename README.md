@@ -140,7 +140,7 @@ Module 2 -> Module 1.5 -> Module 5 -> Module 10
 
 **QWED is the decision boundary**
 - Verifies supported claims with deterministic checks
-- Separates `VERIFIED`, `INVALID`, `UNVERIFIABLE`, and other non-pass states
+- Separates `VERIFIED`, `BLOCKED`, `UNVERIFIABLE`, and other non-pass states
 - Blocks or escalates when proof is unavailable
 
 **Visual Workflow:**

@@ -539,14 +539,14 @@ def verify_banking_compliance(claim: dict) -> dict:
 
     if senior_customer and adjustment_type != "discount":
         return {
-            "status": "BLOCKED",
+            "decision": "BLOCKED",
             "reason": "Senior citizen adjustment applied incorrectly",
             "details": "Senior products must apply a discount, not a premium",
         }
 
     final_rate = claim["base_rate_percent"] - claim["senior_adjustment_percent"]
     return {
-        "status": "APPROVED",
+        "decision": "APPROVED",
         "reason": "Structured banking rule verified",
         "details": {"final_rate_percent": final_rate},
     }
@@ -561,7 +561,7 @@ claim = {
 
 print(verify_banking_compliance(claim))
 # {
-#   "status": "BLOCKED",
+#   "decision": "BLOCKED",
 #   "reason": "Senior citizen adjustment applied incorrectly",
 #   "details": "Senior products must apply a discount, not a premium",
 # }
