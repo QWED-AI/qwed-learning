@@ -71,8 +71,8 @@ pip install 'qwed[pii]'
 # With LangChain integration
 pip install 'qwed[langchain]'
 
-# Everything
-pip install 'qwed[all]'
+# Everything (combine the extras you need — there is no qwed[all])
+pip install 'qwed[pii,langchain,llamaindex,server,symbolic]'
 ```
 
 ### Configuration Options

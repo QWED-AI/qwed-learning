@@ -230,21 +230,21 @@ if result.is_vacuous:
 
 ## 📝 Summary
 
-You have now mastered the **11 core Verification Engines** covered in this curriculum (the full 5.2.0 ecosystem includes 12+ engines plus 7+ security guards):
+You have now worked through the engine chapters of this curriculum. The full 7.2.0 ecosystem holds **13 engines** — Math, Logic, SQL, Schema, Stats, Symbolic, Fact, Image, Graph, Code, SecureCodeExecutor, Consensus, Reasoning — plus **9 security guards** (Module 12), including process determinism (IRAC/Milestone). Canonical roster: [Domain Routing](../ARCHITECTURE.md#4-domain-routing).
 
 1.  **Math** (SymPy)
 2.  **Logic** (Z3)
 3.  **SQL** (SQLGlot)
-4.  **Facts** (Exact Match)
-5.  **Code** (AST)
-6.  **Image** (Vision)
-7.  **Stats** (DataFrame Sandbox)
-8.  **Fact Checker** (RAG/NLI) — *Module 10*
-9.  **Consensus** (Multi-Model) — *Module 10*
-10. **Reasoning** (Optimization/Vacuity) — *Module 10*
-11. **Process Determinism** (IRAC/Milestone) — *Module 12*
-
-Additional engines available in 5.2.0: **Schema**, **Graph Fact**, **DSL Logic**.
+4.  **Schema**
+5.  **Stats** (DataFrame Sandbox)
+6.  **Symbolic** (CrossHair)
+7.  **Facts** (Exact Match, RAG/NLI)
+8.  **Image** (Vision)
+9.  **Graph**
+10. **Code** (AST)
+11. **SecureCodeExecutor**
+12. **Consensus** (Multi-Model) — *Module 10*
+13. **Reasoning** (Optimization/Vacuity) — *Module 10*
 
 ---
 

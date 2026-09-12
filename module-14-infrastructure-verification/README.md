@@ -78,7 +78,7 @@ QWED-Infra mirrors the same deterministic fail-closed philosophy from the core c
 ## 14.2: The Four Guards
 
 ```bash
-pip install "qwed-infra>=0.2.0"
+pip install "qwed-infra==0.3.0"
 ```
 
 QWED-Infra provides four deterministic guards, each covering a different IaC trust boundary:
@@ -110,10 +110,10 @@ The `to_diagnostic()` converter produces an `InfraDiagnosticResult` — the same
 
 ### Version Compatibility
 
-These examples use `qwed-infra>=0.2.0`:
+These examples use `qwed-infra>=0.3.0`:
 
 ```bash
-pip install "qwed-infra>=0.2.0"
+pip install "qwed-infra==0.3.0"
 ```
 
 ---
@@ -488,7 +488,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install qwed-infra
-        run: pip install "qwed-infra>=0.2.0"
+        run: pip install "qwed-infra==0.3.0"
 
       - name: Verify IAM policies
         run: python ci/verify_iam.py

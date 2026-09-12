@@ -258,9 +258,9 @@ QWED replaces neural network opinions with **mathematical proof**.
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### The 8 Specialized Engines
+### The 8 core engines (of 13 — full roster in [Domain Routing](../ARCHITECTURE.md#4-domain-routing))
 
-QWED doesn't use one tool for everything. It uses **specialized solvers**:
+QWED doesn't use one tool for everything. It uses **specialized solvers** — these eight do most of the work, and Module 10 covers advanced Consensus and Reasoning patterns:
 
 | Engine | Solver | Domain |
 |--------|--------|--------|
