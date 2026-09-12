@@ -342,7 +342,7 @@ derivative = sp.diff(x**2, x)  # Always: 2*x (proven)
 
 ---
 
-## Diagnostic Architecture (v5.2.0)
+## Diagnostic Architecture (introduced in v5.2.0, current in v7.2.0)
 
 ### DiagnosticResult
 

@@ -203,7 +203,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Run QWED Commerce Auditor
-        uses: QWED-AI/qwed-ucp@v0.2.0
+        uses: QWED-AI/qwed-ucp@v0.3.0
         with:
           transaction-file: 'logs/transactions.json'
 ```

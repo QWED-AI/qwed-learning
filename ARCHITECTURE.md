@@ -103,7 +103,7 @@ This separation prevents the agent from over-interpreting internals and prevents
 
 ## 4. Domain Routing
 
-The current ecosystem provides **11+ verification engines** across math, logic, code, data, and image domains, plus **7+ agent security guards** for runtime protection:
+The current ecosystem provides **13 verification engines** across math, logic, code, data, and image domains, plus **9 agent security guards** for runtime protection:
 
 ### Verification Engines
 
@@ -114,13 +114,14 @@ The current ecosystem provides **11+ verification engines** across math, logic, 
 | 3 | **Code** | AST analysis | Python security, code structure |
 | 4 | **SQL** | SQLGlot | SQL syntax, structure, safety |
 | 5 | **Stats** | DataFrame sandbox | Statistical properties, distributions |
-| 6 | **Facts (Exact)** | String matching | Exact fact lookups, ground truth |
-| 7 | **Fact Checker** | RAG/NLI | Document-grounded claim verification |
-| 8 | **Image** | Vision models | Image content verification |
-| 9 | **Consensus** | Multi-model | Cross-model agreement |
-| 10 | **Reasoning** | Optimization | Logic optimization, vacuity detection |
-| 11 | **Process** | IRAC/Milestone | Process determinism, compliance |
-| 12+ | **Schema**, **Graph**, **DSL Logic** | Various | Schema conformance, knowledge graph facts, domain-specific DSL |
+| 6 | **Fact** | Exact match + RAG/NLI | Exact fact lookups, document-grounded claims |
+| 7 | **Image** | Vision models | Image content verification |
+| 8 | **Graph** | Knowledge graph facts | Graph-grounded fact verification |
+| 9 | **Symbolic** | CrossHair + DSL Logic | Formal Python verification, domain logic |
+| 10 | **SecureCodeExecutor** | Sandboxed execution | Safe code execution |
+| 11 | **Consensus** | Multi-model | Cross-model agreement |
+| 12 | **Reasoning** | Optimization | Logic optimization, vacuity detection |
+| 13 | **Schema** | Conformance | Schema conformance |
 
 ### Agent Security Guards
 
@@ -134,6 +135,7 @@ The current ecosystem provides **11+ verification engines** across math, logic, 
 | 6 | **SelfInitiatedCoTGuard** | S-CoT logic path verification |
 | 7 | **ProcessVerifier** | Deterministic process validation (IRAC) |
 | 8 | **StartupHookGuard** | Environment integrity / startup hook detection |
+| 9 | **SovereigntyGuard** | Agent sovereignty boundary enforcement |
 
 ```mermaid
 graph LR
