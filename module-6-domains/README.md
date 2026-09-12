@@ -623,7 +623,7 @@ result = guard.verify_swift_with_sanctions(
 
 print(f"SWIFT Valid: {result.swift_result.valid}")
 print(f"Sanctions Clear: {result.sanctions_result.cleared}")
-print(f"Overall: {'🚫 BLOCKED' if not result.cleared else '✅ APPROVED'}")
+print(f"Overall: {'🚫 BLOCKED' if not result.cleared else '✅ CLEARED'}")
 ```
 
 **Output:**

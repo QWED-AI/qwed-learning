@@ -109,11 +109,13 @@ pip install "qwed==7.2.0"
 # interceptor.py
 def verify_transfer_request(beneficiary: str, amount_usd: float, policy: dict) -> dict:
     if beneficiary in policy["blocked_beneficiaries"]:
-        return {"status": "BLOCKED", "reason": "beneficiary_on_blocklist"}
+        return {"decision": "BLOCKED", "reason": "beneficiary_on_blocklist"}
     if amount_usd > policy["max_amount_usd"]:
-        return {"status": "BLOCKED", "reason": "amount_limit_exceeded"}
-    return {"status": "APPROVED"}
+        return {"decision": "BLOCKED", "reason": "amount_limit_exceeded"}
+    return {"decision": "APPROVED"}
 ```
+
+> This dict is a *workflow decision*, not a verification record: a real verifier decision carries `status`, `proof_ref`, and `developer_fields`, without which an audit log entry is not authoritative. Part 2 below shows the evidence-bound side.
 
 #### Part 2: Math Verification (30 mins)
 

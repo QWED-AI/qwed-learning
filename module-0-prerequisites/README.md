@@ -132,12 +132,12 @@ When QWED cannot establish proof, the answer should not silently degrade into:
 - a lower confidence answer
 - a default value that looks safe
 
-The right outcomes are:
+The right outcomes are verdicts first, workflow dispositions second:
 
 - `BLOCKED`
 - `UNVERIFIABLE`
-- `QUARANTINED`
-- `HUMAN_REVIEW_REQUIRED`
+
+with downstream dispositions such as `QUARANTINED` or `HUMAN_REVIEW_REQUIRED` decided by the operator — never emitted as verdicts.
 
 This is what makes QWED a trust-boundary system rather than just another AI helper.
 
