@@ -238,7 +238,7 @@ You have now worked through the engine chapters of this curriculum. The full 7.2
 4.  **Schema**
 5.  **Stats** (DataFrame Sandbox)
 6.  **Symbolic** (CrossHair)
-7.  **Facts** (Exact Match, RAG/NLI)
+7.  **Fact** (Exact Match, RAG/NLI)
 8.  **Image** (Vision)
 9.  **Graph**
 10. **Code** (AST)
