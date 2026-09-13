@@ -27,7 +27,9 @@ jobs:
         # Exact pins (bumped together with the course pins they verify — the
         # pins gate fails when these go stale). Integration extras are needed
         # because import resolution must cover the framework lessons too.
-        run: pip install "qwed[langchain,llamaindex,crewai]==7.2.0" qwed-a2a==0.3.0 qwed-infra==0.3.0
+        # --only-binary: all three packages ship wheels, so no setup-script
+        # execution is possible here.
+        run: 'pip install --only-binary :all: "qwed[langchain,llamaindex,crewai]==7.2.0" qwed-a2a==0.3.0 qwed-infra==0.3.0'
 
       - name: Check course-vs-code drift
         run: python scripts/check_course_drift.py

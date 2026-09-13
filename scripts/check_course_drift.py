@@ -41,12 +41,16 @@ IMPORT_SCOPE = list(PIN_SCOPE)
 
 EXCLUDE_DIRS = {".git", ".github", "node_modules", ".venv", "test_venv", "__pycache__"}
 
-PIN_COMMAND_RE = re.compile(r"pip install\s+((?:\"[^\"]*\"|'[^']*'|\S+)(?:\s+(?:\"[^\"]*\"|'[^']*'|\S+))*)")
 PIN_SPEC_RE = re.compile(
     r"(qwed[a-z0-9_-]*)(?:\[[^\]]*\])?\s*(==|>=)\s*"
-    r"([0-9][0-9A-Za-z.\-]*)"
+    r"([\d][\dA-Za-z.\-]*)"
 )
 TAG_RE = re.compile(r"(QWED-AI/[A-Za-z0-9_.\-]+)@(v\d+\.\d+\.\d+[^\s\"'`]*)")
+
+
+def _clean_tag_ref(ref: str) -> str:
+    """Strip trailing Markdown punctuation (``.``/``,``/``)``) from a tag."""
+    return ref.rstrip(".,;:)]}")
 VOCAB_RE = re.compile(r"\b(INVALID|APPROVED|QUARANTINED)\b")
 VOCAB_CONTEXT_RE = re.compile(r"workflow|disposition", re.IGNORECASE)
 FROM_IMPORT_RE = re.compile(r"from\s+(qwed[a-z0-9_.]*)\s+import\s+([^\n#]+)")
@@ -62,10 +66,10 @@ _FINAL_RANK = 4
 def _suffix_key(suffix: str) -> tuple:
     text = suffix.strip().lstrip("-_.")
     if not text:
-        return (_FINAL_RANK,)
+        return (_FINAL_RANK, (), "")
     match = re.match(r"([a-zA-Z]+)([0-9.]*)", text)
     if not match:
-        return (_FINAL_RANK, text)
+        return (_FINAL_RANK, (), text)
     word, nums = match.group(1).lower(), match.group(2)
     rank = _SUFFIX_ORDER.get(word, _FINAL_RANK)
     num_tuple = tuple(int(piece) for piece in nums.split(".") if piece.isdigit()) or (0,)
@@ -75,14 +79,21 @@ def _suffix_key(suffix: str) -> tuple:
 def _version_key(version: str) -> tuple:
     """Crash-free comparable key for release version strings.
 
-    Compares numeric release segments first, then PEP 440 suffix rank, so
-    valid-but-unusual metadata can never raise TypeError inside the check.
+    Numeric release segments first, then PEP 440 suffix rank. Parsed with
+    plain string ops (no regex backtracking surface) so valid-but-unusual
+    metadata can never stall or crash the check.
     """
-    match = re.match(r"^[vV]?([0-9]+(?:\.[0-9]+)*)(.*)$", version.strip())
-    if not match:
-        return ((), (_FINAL_RANK, version.strip()))
-    numbers = tuple(int(piece) for piece in match.group(1).split("."))
-    return (numbers, _suffix_key(match.group(2)))
+    text = version.strip()
+    if text[:1] in ("v", "V"):
+        text = text[1:]
+    end = 0
+    while end < len(text) and (text[end].isdigit() or text[end] == "."):
+        end += 1
+    core, suffix = text[:end].rstrip("."), text[end:]
+    numbers = tuple(int(piece) for piece in core.split(".") if piece)
+    if not numbers:
+        return ((), (_FINAL_RANK, (), text))
+    return (numbers, _suffix_key(suffix))
 
 
 def _pypi_latest(package: str) -> str:
@@ -99,15 +110,46 @@ def _pypi_latest(package: str) -> str:
 def _pin_specs(text: str) -> list[tuple[str, str, str]]:
     """Yield (package, operator, version) for every qwed spec in pip commands.
 
-    Scans the whole install command so later packages in multi-package
-    installs (e.g. ``pip install qwed==7.2.0 qwed-a2a==0.3.0``) are checked
-    too — matching only the first package would let a stale later pin pass.
+    Matches are bounded to a single logical shell command (backslash
+    continuations joined, everything else line-local), so later Markdown
+    prose can never be swallowed into a command match.
     """
     specs = []
-    for command in PIN_COMMAND_RE.finditer(text):
-        for spec in PIN_SPEC_RE.finditer(command.group(1)):
+    continued = ""
+    for raw_line in text.splitlines():
+        line = (continued + " " + raw_line.strip()) if continued else raw_line
+        continued = ""
+        if line.rstrip().endswith("\\"):
+            continued = line.rstrip()[:-1]
+            continue
+        marker = line.find("pip install")
+        if marker < 0:
+            continue
+        for spec in PIN_SPEC_RE.finditer(line[marker:]):
             specs.append((spec.group(1), spec.group(2), spec.group(3)))
     return specs
+
+
+def _check_pin(location: str, package: str, operator: str, pinned: str,
+               failures: list[str]) -> None:
+    """Exact pins must equal latest; >= pins must name an existing version."""
+    try:
+        latest = _pypi_latest(package)
+    except RuntimeError as exc:
+        failures.append(f"pins: {exc}")
+        return
+    # An exact pin older than latest is stale course, not safety.
+    if operator == "==":
+        if _version_key(pinned) != _version_key(latest):
+            failures.append(
+                f"pins: {location} pins {package}=={pinned} "
+                f"but latest release is {latest}"
+            )
+    elif _version_key(pinned) > _version_key(latest):
+        failures.append(
+            f"pins: {location} requires {package}>={pinned} "
+            f"but latest release is {latest}"
+        )
 
 
 def check_pins(failures: list[str]) -> None:
@@ -116,26 +158,9 @@ def check_pins(failures: list[str]) -> None:
             failures.append(f"pins: expected course file missing: {readme.relative_to(ROOT)}")
             continue
         text = readme.read_text(encoding="utf-8")
+        location = readme.relative_to(ROOT).as_posix()
         for package, operator, pinned in _pin_specs(text):
-            try:
-                latest = _pypi_latest(package)
-            except RuntimeError as exc:
-                failures.append(f"pins: {exc}")
-                continue
-            # Exact pins must track the current release; minimum-version
-            # (>=) pins must name a version that exists (i.e. <= latest).
-            # An exact pin older than latest is stale course, not safety.
-            if operator == "==":
-                if _version_key(pinned) != _version_key(latest):
-                    failures.append(
-                        f"pins: {readme.relative_to(ROOT)} pins {package}=={pinned} "
-                        f"but latest release is {latest}"
-                    )
-            elif _version_key(pinned) > _version_key(latest):
-                failures.append(
-                    f"pins: {readme.relative_to(ROOT)} requires {package}>={pinned} "
-                    f"but latest release is {latest}"
-                )
+            _check_pin(location, package, operator, pinned, failures)
 
 
 def _github_tag_exists(repo: str, ref: str) -> bool:
@@ -160,7 +185,7 @@ def check_tags(failures: list[str]) -> None:
             continue
         text = readme.read_text(encoding="utf-8")
         for match in TAG_RE.finditer(text):
-            repo, ref = match.group(1), match.group(2)
+            repo, ref = match.group(1), _clean_tag_ref(match.group(2))
             try:
                 exists = _github_tag_exists(repo, ref)
             except RuntimeError as exc:
@@ -212,14 +237,15 @@ def _resolve_course_module(rel: str, module: str, names: list[str], failures: li
 
     An unresolvable module is only excused when every imported name carries
     its own module.symbol exception — a module-level pass would let a future
-    ``from <module> import UnknownSymbol`` through unnoticed.
+    ``from <module> import UnknownSymbol`` through unnoticed. Wildcards need
+    an explicit ``module.*`` exception; they never pass silently.
     """
     try:
         return importlib.import_module(module)
     except Exception:
         uncovered = [
             name for name in names
-            if name != "*" and (rel, f"{module}.{name}") not in import_allowlist
+            if (rel, f"{module}.{name}") not in import_allowlist
         ]
         if uncovered:
             failures.append(
