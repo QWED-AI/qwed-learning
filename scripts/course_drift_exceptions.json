@@ -1,0 +1,51 @@
+{
+  "vocabulary": [
+    {
+      "file": "GLOSSARY.md",
+      "token": "INVALID",
+      "reason": "The terminology-sweep record itself: documents INVALID as a removed state, not a verdict claim."
+    },
+    {
+      "file": "capstone-project/README.md",
+      "token": "APPROVED",
+      "reason": "Workflow-decision example dict; adjacent prose frames it as a workflow decision, not a verification record."
+    },
+    {
+      "file": "module-8-agentic-workflows/README.md",
+      "token": "APPROVED",
+      "reason": "Banking workflow-decision example dict, same framing as the capstone."
+    }
+  ],
+  "imports": [
+    {
+      "file": "module-6-domains/README.md",
+      "symbol": "qwed_sdk.guards.ISOGuard",
+      "reason": "Known drift: banking ISO 20022 lesson teaches a guard with no SDK counterpart. Content rewrite tracked separately."
+    },
+    {
+      "file": "module-6-domains/README.md",
+      "symbol": "qwed_sdk.guards.ComplianceGuard",
+      "reason": "Known drift: same as ISOGuard — no SDK counterpart. Content rewrite tracked separately."
+    },
+    {
+      "file": "module-6-domains/README.md",
+      "symbol": "qwed_sdk.guards.CrossGuard",
+      "reason": "Known drift: same as ISOGuard — no SDK counterpart. Content rewrite tracked separately."
+    },
+    {
+      "file": "module-6-domains/README.md",
+      "symbol": "qwed_sdk.audit",
+      "reason": "Known drift: no qwed_sdk.audit module exists. Receipt/audit lessons need a content rewrite, tracked separately."
+    },
+    {
+      "file": "module-6-domains/README.md",
+      "symbol": "qwed_sdk.audit.VerificationReceipt",
+      "reason": "Known drift: same as qwed_sdk.audit — no SDK counterpart. Content rewrite tracked separately."
+    },
+    {
+      "file": "module-6-domains/README.md",
+      "symbol": "qwed_sdk.audit.AuditLog",
+      "reason": "Known drift: same as qwed_sdk.audit — no SDK counterpart. Content rewrite tracked separately."
+    }
+  ]
+}
