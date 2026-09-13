@@ -40,6 +40,7 @@
 - [ ] [Module 2: The Theory](module-2-neurosymbolic-theory/README.md) _(45 min)_
 - [ ] [Module 3: Hands-On](module-3-hands-on/README.md) _(60 min)_
 - [ ] [Module 4: Advanced](module-4-advanced/README.md) _(45 min)_
+- [ ] [Module 4.5: Production Attestation Lifecycle](module-4.5-attestation-lifecycle/README.md) _(60 min)_
 - [ ] [Module 5: Verification Landscape](module-5-verification-landscape/README.md) _(45 min)_
 - [ ] [Module 6: Domains](module-6-domains/README.md) _(60 min)_
 - [ ] [Module 7: Context Engineering](module-7-context-engineering/README.md) _(60 min)_
@@ -266,7 +267,7 @@ By the end, you'll have:
 - [Join the community](https://github.com/QWED-AI/qwed-learning/discussions)
 - [Contribute](CONTRIBUTING.md)
 
-**Last Updated:** March 2026 | **13 Modules** | **Growing Community**
+**Last Updated:** September 2026 | **17 Modules** | **Growing Community**
 
 ---
 
