@@ -1,7 +1,7 @@
 """Lab 01 — sign a bound token, fail detached use, verify the true exchange.
 
 Run:  python lab/01_sign_bind_verify.py
-Needs: pip install "git+https://github.com/QWED-AI/qwed-a2a.git@aa125ad6f982f9ad10565e6a8e234bb2b277c959"
+Needs: pip install "qwed-a2a==0.3.0"
 """
 
 import os

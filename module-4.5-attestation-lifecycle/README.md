@@ -5,10 +5,10 @@
 So far you have verified claims with engines. This module covers what happens *around* the proof in production: how an attestation is minted, what binds it to one exchange, how replays die, and how a shipping decision consumes it. Every snippet below runs for real against `qwed-a2a` — no mocks stand in for the crypto path.
 
 ```bash
-pip install "git+https://github.com/QWED-AI/qwed-a2a.git@aa125ad6f982f9ad10565e6a8e234bb2b277c959"
+pip install "qwed-a2a==0.3.0"
 ```
 
-> Pinned to the commit that carries the behavior taught here. `qwed-a2a` 0.2.0 on PyPI predates it — install from source until the next release. Each lab also needs `QWED_A2A_DEPLOYMENT_ID` set (any stable string per deployment) and generates its own throwaway P-256 signing key, so nothing here touches real credentials.
+> Requires `qwed-a2a` 0.3.0 or later — the attestation behavior taught here (API-key auth, peer issuers, JTI issuance/consumption split) postdates 0.2.0. Each lab also needs `QWED_A2A_DEPLOYMENT_ID` set (any stable string per deployment) and generates its own throwaway P-256 signing key, so nothing here touches real credentials.
 
 Run any section standalone (`lab/01_sign_bind_verify.py`, `lab/02_replay_lifecycle.py`, `lab/03_consume_gate.py`) — each asserts its outcomes and prints what happened.
 

@@ -1,7 +1,7 @@
 """Lab 02 — replay dies at issuance, at consumption, and across workers.
 
 Run:  python lab/02_replay_lifecycle.py
-Needs: pip install "git+https://github.com/QWED-AI/qwed-a2a.git@aa125ad6f982f9ad10565e6a8e234bb2b277c959"
+Needs: pip install "qwed-a2a==0.3.0"
 """
 
 import os

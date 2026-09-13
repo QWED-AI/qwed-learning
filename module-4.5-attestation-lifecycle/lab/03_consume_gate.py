@@ -1,7 +1,7 @@
 """Lab 03 — consume attestations through a fail-closed shipping gate.
 
 Run:  python lab/03_consume_gate.py
-Needs: pip install "git+https://github.com/QWED-AI/qwed-a2a.git@aa125ad6f982f9ad10565e6a8e234bb2b277c959"
+Needs: pip install "qwed-a2a==0.3.0"
 """
 
 import os
