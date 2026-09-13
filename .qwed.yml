@@ -1,0 +1,15 @@
+# QWED Security repository policy: maintainer-approved suppressions.
+#
+# Both entries are reviewed false positives on scripts/check_course_drift.py
+# (course-vs-code drift CI, PR #25):
+#
+# - ast-importlib-import_module: importlib.import_module(module) resolves a
+#   course-referenced module name against installed packages for drift
+#   checking — the arg is a module path parsed from fenced code blocks, never
+#   executed, and import failure is the handled signal (records drift).
+# - taint-EXCEPTIONS-FILE-read-text-to-json-loads: json.loads() of a reviewed
+#   in-repo config file (scripts/course_drift_exceptions.json); json.loads is
+#   a pure data parser, never code execution.
+suppressions:
+  - pattern=ast-importlib-import_module path=scripts/check_course_drift.py reason=false-positive
+  - pattern=taint-EXCEPTIONS-FILE-read-text-to-json-loads path=scripts/check_course_drift.py reason=false-positive

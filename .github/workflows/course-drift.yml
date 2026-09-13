@@ -1,0 +1,36 @@
+name: 📚 Course Drift Check
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Least privilege: this workflow only reads the repo and reaches PyPI/GitHub APIs.
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    steps:
+      # Pinned to immutable SHAs (actions/checkout@v5, actions/setup-python@v7;
+      # both Node24, verified against their action.yml at these commits).
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.10'
+
+      - name: Install course packages
+        # Exact pins (bumped together with the course pins they verify — the
+        # pins gate fails when these go stale). Integration extras are needed
+        # because import resolution must cover the framework lessons too.
+        # --only-binary: all three packages ship wheels, so no setup-script
+        # execution is possible here.
+        run: 'pip install --only-binary :all: "qwed[langchain,llamaindex,crewai]==7.2.0" qwed-a2a==0.3.0 qwed-infra==0.3.0'
+
+      - name: Check course-vs-code drift
+        run: python scripts/check_course_drift.py

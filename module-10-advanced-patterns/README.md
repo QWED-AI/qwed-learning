@@ -111,16 +111,13 @@ graph TD
 ### Code Implementation
 
 ```python
-from qwed_sdk import ConsensusEngine
+from qwed_sdk import QWEDClient
 
-verifier = ConsensusEngine(
-    models=["gpt-4", "claude-3-5-sonnet", "llama-3-70b"],
-    threshold="unanimous"  # All must agree
-)
+client = QWEDClient(api_key="qwed_...", base_url="http://localhost:8000")
 
-result = verifier.verify_content(
+result = client.verify_consensus(
     "Is this transaction suspicious: Transfer $9,999 to 'Cash App'?",
-    policy="Block structuring attempts"
+    mode="maximum",  # demand full multi-engine consensus
 )
 
 if result.is_verified:
@@ -179,7 +176,7 @@ Or an answer can be "logically valid" but vacuous (`if False: do_anything()` is 
 Don't just ask "Is this portfolio valid?" Ask "What is the **optimal** portfolio?"
 
 ```python
-from qwed_sdk import LogicVerifier
+from qwed_new.core.logic_verifier import LogicVerifier
 
 verifier = LogicVerifier()
 
@@ -193,10 +190,10 @@ solution = verifier.verify_optimization(
         "risk < 5",
         "allocation <= 100"
     ],
-    objective="maximize(roi)"
+    objective="roi"
 )
 
-print(f"Optimal Allocation: {solution.model['allocation']}") 
+print(f"Optimal Allocation: {solution.developer_fields['model']['allocation']}")
 # -> 99.99 (Maximized within constraints)
 ```
 
