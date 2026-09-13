@@ -54,6 +54,7 @@ def _clean_tag_ref(ref: str) -> str:
 VOCAB_RE = re.compile(r"\b(INVALID|APPROVED|QUARANTINED)\b")
 VOCAB_CONTEXT_RE = re.compile(r"workflow|disposition", re.IGNORECASE)
 FROM_IMPORT_RE = re.compile(r"from\s+(qwed[a-z0-9_.]*)\s+import\s+([^\n#]+)")
+PLAIN_IMPORT_RE = re.compile(r"^\s*import\s+([a-z0-9_.]+(?:\s*,\s*[a-z0-9_.]+)*)", re.MULTILINE)
 FENCE_RE = re.compile(r"```python(.*?)```", re.DOTALL)
 
 
@@ -238,15 +239,18 @@ def _resolve_course_module(rel: str, module: str, names: list[str], failures: li
     An unresolvable module is only excused when every imported name carries
     its own module.symbol exception — a module-level pass would let a future
     ``from <module> import UnknownSymbol`` through unnoticed. Wildcards need
-    an explicit ``module.*`` exception; they never pass silently.
+    an explicit ``module.*`` exception; they never pass silently. A plain
+    ``import <module>`` names no symbols, so the module itself is the claim
+    and needs its own exception entry.
     """
     try:
         return importlib.import_module(module)
     except Exception:
-        uncovered = [
-            name for name in names
-            if (rel, f"{module}.{name}") not in import_allowlist
-        ]
+        uncovered = []
+        for name in names or ["<module>"]:
+            key = module if name == "<module>" else f"{module}.{name}"
+            if (rel, key) not in import_allowlist:
+                uncovered.append(name)
         if uncovered:
             failures.append(
                 f"imports: {rel} imports from unresolvable module {module!r} "
@@ -283,26 +287,36 @@ def _split_import_names(raw: str) -> list[str]:
 
 
 def _from_import_targets(block: str) -> list[tuple[str, list[str]]]:
-    """Yield (module, [names]) for course-relevant from-imports in a block.
+    """Yield (module, [names]) for course-relevant imports in a block.
 
-    AST first; on SyntaxError fall back to regex extraction so one sketch
-    error cannot smuggle drifted imports past the gate.
+    Covers ``from X import ...`` and plain ``import X`` (empty names means
+    "the module itself is the claim"). AST first; on SyntaxError fall back
+    to regex extraction so one sketch error cannot smuggle drifted imports
+    past the gate.
     """
     try:
         tree = ast.parse(block)
     except SyntaxError:
-        return [
+        targets = [
             (match.group(1), _split_import_names(match.group(2)))
             for match in FROM_IMPORT_RE.finditer(block)
             if match.group(1).startswith("qwed")
         ]
+        for match in PLAIN_IMPORT_RE.finditer(block):
+            for name in _split_import_names(match.group(1)):
+                if name.startswith("qwed"):
+                    targets.append((name, []))
+        return targets
     targets = []
     for node in ast.walk(tree):
-        if not isinstance(node, ast.ImportFrom):
-            continue
-        module = node.module or ""
-        if module.startswith("qwed"):
-            targets.append((module, [alias.name for alias in node.names]))
+        if isinstance(node, ast.ImportFrom):
+            module = node.module or ""
+            if module.startswith("qwed"):
+                targets.append((module, [alias.name for alias in node.names]))
+        elif isinstance(node, ast.Import):
+            for alias in node.names:
+                if alias.name.startswith("qwed"):
+                    targets.append((alias.name, []))
     return targets
 
 
