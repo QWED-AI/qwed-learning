@@ -54,7 +54,11 @@ def _clean_tag_ref(ref: str) -> str:
 VOCAB_RE = re.compile(r"\b(INVALID|APPROVED|QUARANTINED)\b")
 VOCAB_CONTEXT_RE = re.compile(r"workflow|disposition", re.IGNORECASE)
 FROM_IMPORT_RE = re.compile(r"from\s+(qwed[a-z0-9_.]*)\s+import\s+([^\n#]+)")
-PLAIN_IMPORT_RE = re.compile(r"^\s*import\s+([a-z0-9_.]+(?:\s*,\s*[a-z0-9_.]+)*)", re.MULTILINE)
+PLAIN_IMPORT_RE = re.compile(
+    r"^\s*import\s+([a-z0-9_.]+(?:\s+as\s+[a-z0-9_]+)?"
+    r"(?:\s*,\s*[a-z0-9_.]+(?:\s+as\s+[a-z0-9_]+)?)*)",
+    re.MULTILINE,
+)
 FENCE_RE = re.compile(r"```python(.*?)```", re.DOTALL)
 
 
@@ -286,27 +290,8 @@ def _split_import_names(raw: str) -> list[str]:
     return names
 
 
-def _from_import_targets(block: str) -> list[tuple[str, list[str]]]:
-    """Yield (module, [names]) for course-relevant imports in a block.
-
-    Covers ``from X import ...`` and plain ``import X`` (empty names means
-    "the module itself is the claim"). AST first; on SyntaxError fall back
-    to regex extraction so one sketch error cannot smuggle drifted imports
-    past the gate.
-    """
-    try:
-        tree = ast.parse(block)
-    except SyntaxError:
-        targets = [
-            (match.group(1), _split_import_names(match.group(2)))
-            for match in FROM_IMPORT_RE.finditer(block)
-            if match.group(1).startswith("qwed")
-        ]
-        for match in PLAIN_IMPORT_RE.finditer(block):
-            for name in _split_import_names(match.group(1)):
-                if name.startswith("qwed"):
-                    targets.append((name, []))
-        return targets
+def _ast_import_targets(tree: ast.AST) -> list[tuple[str, list[str]]]:
+    """Yield (module, [names]) for course-relevant imports in a syntax tree."""
     targets = []
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom):
@@ -318,6 +303,34 @@ def _from_import_targets(block: str) -> list[tuple[str, list[str]]]:
                 if alias.name.startswith("qwed"):
                     targets.append((alias.name, []))
     return targets
+
+
+def _fallback_import_targets(block: str) -> list[tuple[str, list[str]]]:
+    """Regex-extract imports from a syntax-broken block (same shape as AST)."""
+    targets = [
+        (match.group(1), _split_import_names(match.group(2)))
+        for match in FROM_IMPORT_RE.finditer(block)
+        if match.group(1).startswith("qwed")
+    ]
+    for match in PLAIN_IMPORT_RE.finditer(block):
+        for name in _split_import_names(match.group(1)):
+            if name.startswith("qwed"):
+                targets.append((name, []))
+    return targets
+
+
+def _from_import_targets(block: str) -> list[tuple[str, list[str]]]:
+    """Yield (module, [names]) for course-relevant imports in a block.
+
+    Covers ``from X import ...`` and plain ``import X`` (empty names means
+    "the module itself is the claim"). AST first; on SyntaxError fall back
+    to regex extraction so one sketch error cannot smuggle drifted imports
+    past the gate.
+    """
+    try:
+        return _ast_import_targets(ast.parse(block))
+    except SyntaxError:
+        return _fallback_import_targets(block)
 
 
 def check_imports(failures: list[str], import_allowlist: set[tuple[str, str]]) -> None:
