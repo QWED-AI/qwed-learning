@@ -106,7 +106,7 @@ jobs:
           python-version: "3.11"
 
       - name: Install verifier dependencies
-        run: pip install "qwed==7.2.0"
+        run: pip install "qwed==7.2.1"
 
       - name: Run deterministic verification
         run: python .github/scripts/verify_financial_csv.py --input tests/transactions.csv --format sarif --fail-on-error

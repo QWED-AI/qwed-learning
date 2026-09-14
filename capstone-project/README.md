@@ -96,7 +96,7 @@ mkdir governed-banking-agent
 cd governed-banking-agent
 python -m venv .venv
 # Activate your venv here, then:
-pip install "qwed==7.2.0"
+pip install "qwed==7.2.1"
 ```
 
 ### Step 3: Implementation Guide

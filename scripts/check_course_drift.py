@@ -40,10 +40,12 @@ PIN_SCOPE = sorted(ROOT.glob("module-*/README.md")) + [ROOT / "capstone-project"
 IMPORT_SCOPE = list(PIN_SCOPE)
 
 EXCLUDE_DIRS = {".git", ".github", "node_modules", ".venv", "test_venv", "__pycache__"}
+WORKFLOW_FILE = ROOT / ".github" / "workflows" / "course-drift.yml"
 
 PIN_SPEC_RE = re.compile(
     r"(qwed[a-z0-9_-]*)(?:\[[^\]]*\])?\s*(==|>=)\s*"
-    r"([\d][\dA-Za-z.\-]*)"
+    r"([\d][\dA-Za-z.\-]*)",
+    re.IGNORECASE,
 )
 TAG_RE = re.compile(r"(QWED-AI/[A-Za-z0-9_.\-]+)@(v\d+\.\d+\.\d+[^\s\"'`]*)")
 
@@ -101,6 +103,28 @@ def _version_key(version: str) -> tuple:
     return (numbers, _suffix_key(suffix))
 
 
+def _release_equal(first: tuple, second: tuple) -> bool:
+    """PEP 440 release equality: zero-pad, so 7.2 == 7.2.0."""
+    numbers_a, suffix_a = first
+    numbers_b, suffix_b = second
+    width = max(len(numbers_a), len(numbers_b))
+    return (
+        numbers_a + (0,) * (width - len(numbers_a))
+        == numbers_b + (0,) * (width - len(numbers_b))
+        and suffix_a == suffix_b
+    )
+
+
+def _release_greater(first: tuple, second: tuple) -> bool:
+    """PEP 440 release ordering with zero-padding (7.2 < 7.2.0 is False)."""
+    numbers_a, suffix_a = first
+    numbers_b, suffix_b = second
+    width = max(len(numbers_a), len(numbers_b))
+    padded_a = numbers_a + (0,) * (width - len(numbers_a))
+    padded_b = numbers_b + (0,) * (width - len(numbers_b))
+    return (padded_a, suffix_a) > (padded_b, suffix_b)
+
+
 def _pypi_latest(package: str) -> str:
     url = f"https://pypi.org/pypi/{package}/json"
     request = urllib.request.Request(url, headers={"Accept": "application/json"})
@@ -131,7 +155,9 @@ def _pin_specs(text: str) -> list[tuple[str, str, str]]:
         if marker < 0:
             continue
         for spec in PIN_SPEC_RE.finditer(line[marker:]):
-            specs.append((spec.group(1), spec.group(2), spec.group(3)))
+            # PyPI names are case-insensitive; normalize so QWED==... and
+            # qwed==... check the same distribution.
+            specs.append((spec.group(1).lower(), spec.group(2), spec.group(3)))
     return specs
 
 
@@ -144,13 +170,14 @@ def _check_pin(location: str, package: str, operator: str, pinned: str,
         failures.append(f"pins: {exc}")
         return
     # An exact pin older than latest is stale course, not safety.
+    # Comparisons are PEP 440 release-aware (7.2 == 7.2.0).
     if operator == "==":
-        if _version_key(pinned) != _version_key(latest):
+        if not _release_equal(_version_key(pinned), _version_key(latest)):
             failures.append(
                 f"pins: {location} pins {package}=={pinned} "
                 f"but latest release is {latest}"
             )
-    elif _version_key(pinned) > _version_key(latest):
+    elif _release_greater(_version_key(pinned), _version_key(latest)):
         failures.append(
             f"pins: {location} requires {package}>={pinned} "
             f"but latest release is {latest}"
@@ -305,14 +332,25 @@ def _ast_import_targets(tree: ast.AST) -> list[tuple[str, list[str]]]:
     return targets
 
 
+def _strip_code_comments(block: str) -> str:
+    """Remove `#` comments line-wise so commented-out imports never validate.
+
+    Import lines cannot contain a bare `#` inside a string (module paths
+    and imported names have no `#`), so splitting at the first `#` per
+    line is exact here — unlike a general Python comment stripper.
+    """
+    return "\n".join(line.split("#", 1)[0] for line in block.splitlines())
+
+
 def _fallback_import_targets(block: str) -> list[tuple[str, list[str]]]:
     """Regex-extract imports from a syntax-broken block (same shape as AST)."""
+    code = _strip_code_comments(block)
     targets = [
         (match.group(1), _split_import_names(match.group(2)))
-        for match in FROM_IMPORT_RE.finditer(block)
+        for match in FROM_IMPORT_RE.finditer(code)
         if match.group(1).startswith("qwed")
     ]
-    for match in PLAIN_IMPORT_RE.finditer(block):
+    for match in PLAIN_IMPORT_RE.finditer(code):
         for name in _split_import_names(match.group(1)):
             if name.startswith("qwed"):
                 targets.append((name, []))
@@ -366,8 +404,51 @@ def load_exceptions() -> tuple[set[tuple[str, str, str]], set[tuple[str, str]]]:
                 f"{EXCEPTIONS_FILE.name}: vocabulary entries need "
                 f"file/token/contains: {exc}"
             ) from exc
-    imports = {(entry["file"], entry["symbol"]) for entry in payload.get("imports", [])}
+    imports = set()
+    for entry in payload.get("imports", []):
+        try:
+            imports.add((entry["file"], entry["symbol"]))
+        except (KeyError, TypeError) as exc:
+            raise RuntimeError(
+                f"{EXCEPTIONS_FILE.name}: imports entries need "
+                f"file/symbol: {exc}"
+            ) from exc
     return vocab, imports
+
+
+def check_workflow_sync(failures: list[str]) -> None:
+    """The workflow must install exactly what the course pins.
+
+    Otherwise the import gate validates against a different version than
+    the docs teach: bumping a README pin without the workflow (or vice
+    versa) passes one gate while the other checks stale code.
+    """
+    try:
+        workflow_text = WORKFLOW_FILE.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        failures.append(f"workflow: expected workflow missing: {WORKFLOW_FILE.relative_to(ROOT)}")
+        return
+    workflow_versions = {}
+    for package, operator, pinned in _pin_specs(workflow_text):
+        if operator == "==":
+            workflow_versions[package] = pinned
+    course_versions: dict[str, set[str]] = {}
+    for readme in PIN_SCOPE:
+        if not readme.is_file():
+            continue
+        for package, operator, pinned in _pin_specs(readme.read_text(encoding="utf-8")):
+            if operator == "==":
+                course_versions.setdefault(package, set()).add(pinned)
+    for package, versions in sorted(course_versions.items()):
+        if len(versions) > 1:
+            failures.append(
+                f"workflow: course pins disagree on {package}: {sorted(versions)}"
+            )
+        elif package in workflow_versions and workflow_versions[package] not in versions:
+            failures.append(
+                f"workflow: installs {package}=={workflow_versions[package]} "
+                f"but the course pins {package}=={sorted(versions)[0]}"
+            )
 
 
 def main() -> int:
@@ -377,6 +458,7 @@ def main() -> int:
     check_tags(failures)
     check_vocab(failures, vocab_exceptions)
     check_imports(failures, import_allowlist)
+    check_workflow_sync(failures)
     if failures:
         print("COURSE DRIFT DETECTED — the course no longer matches the code:")
         for failure in failures:
