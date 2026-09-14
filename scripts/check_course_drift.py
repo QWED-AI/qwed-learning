@@ -2,20 +2,27 @@
 
 Fails loudly when the course text drifts from the implementations it teaches:
 
-  1. Stale pins   — every ``pip install qwed...==/>=X.Y.Z`` pin in
-     ``module-*/README.md`` and ``capstone-project/README.md`` must satisfy
-     ``X.Y.Z <= <latest release on PyPI>``.
+  1. Stale pins   — every ``pip install qwed...==X.Y.Z`` pin in
+     ``module-*/README.md`` and ``capstone-project/README.md`` must equal
+     the latest release on PyPI (``>=`` minimums must name an existing
+     version). Comparisons use real PEP 440 ordering.
   2. Dead tags    — every ``QWED-AI/<repo>@vX.Y.Z`` reference must resolve
      to a real tag.
   3. Banned vocab — ``INVALID`` / ``APPROVED`` / ``QUARANTINED`` may appear in
      course markdown only on lines that also mention workflow/disposition.
   4. Dead imports — every ``from qwed... import <name>`` in fenced Python
      blocks must resolve against the installed packages.
+  5. Workflow sync — the drift workflow must install exactly what the
+     course pins (no missing packages, no skew, no below-minimum).
 
-Stdlib only. Run locally with ``python scripts/check_course_drift.py`` after
-``pip install qwed qwed-a2a qwed-infra``; CI installs latest releases so new
-API removals are caught. Documented exceptions live in
+Run locally with ``python scripts/check_course_drift.py`` after
+``pip install qwed qwed-a2a qwed-infra``; CI installs the pinned releases.
+Documented exceptions live in
 ``scripts/course_drift_exceptions.json`` and are reviewed like code.
+
+Needs ``packaging`` (ships with pip/setuptools — present in every Python
+that can install the course packages) for PEP 440 comparison; everything
+else is stdlib.
 """
 
 from __future__ import annotations
@@ -29,6 +36,13 @@ import sys
 import urllib.request
 from pathlib import Path
 
+try:
+    from packaging.version import InvalidVersion, Version
+except ImportError as exc:
+    raise RuntimeError(
+        "check_course_drift needs the 'packaging' module (ships with pip)"
+    ) from exc
+
 ROOT = Path(__file__).resolve().parent.parent
 EXCEPTIONS_FILE = Path(__file__).resolve().parent / "course_drift_exceptions.json"
 
@@ -40,10 +54,12 @@ PIN_SCOPE = sorted(ROOT.glob("module-*/README.md")) + [ROOT / "capstone-project"
 IMPORT_SCOPE = list(PIN_SCOPE)
 
 EXCLUDE_DIRS = {".git", ".github", "node_modules", ".venv", "test_venv", "__pycache__"}
+WORKFLOW_FILE = ROOT / ".github" / "workflows" / "course-drift.yml"
 
 PIN_SPEC_RE = re.compile(
     r"(qwed[a-z0-9_-]*)(?:\[[^\]]*\])?\s*(==|>=)\s*"
-    r"([\d][\dA-Za-z.\-]*)"
+    r"([\d][\dA-Za-z.\-]*)",
+    re.IGNORECASE,
 )
 TAG_RE = re.compile(r"(QWED-AI/[A-Za-z0-9_.\-]+)@(v\d+\.\d+\.\d+[^\s\"'`]*)")
 
@@ -62,43 +78,16 @@ PLAIN_IMPORT_RE = re.compile(
 FENCE_RE = re.compile(r"```python(.*?)```", re.DOTALL)
 
 
-# PEP 440 pre/post-release ranking so suffixed versions order sanely
-# (dev < alpha < beta < rc < final < post) instead of crashing comparison.
-_SUFFIX_ORDER = {"dev": 0, "a": 1, "alpha": 1, "b": 2, "beta": 2, "rc": 3, "post": 5}
-_FINAL_RANK = 4
-
-
-def _suffix_key(suffix: str) -> tuple:
-    text = suffix.strip().lstrip("-_.")
-    if not text:
-        return (_FINAL_RANK, (), "")
-    match = re.match(r"([a-zA-Z]+)([0-9.]*)", text)
-    if not match:
-        return (_FINAL_RANK, (), text)
-    word, nums = match.group(1).lower(), match.group(2)
-    rank = _SUFFIX_ORDER.get(word, _FINAL_RANK)
-    num_tuple = tuple(int(piece) for piece in nums.split(".") if piece.isdigit()) or (0,)
-    return (rank, num_tuple, text)
-
-
-def _version_key(version: str) -> tuple:
-    """Crash-free comparable key for release version strings.
-
-    Numeric release segments first, then PEP 440 suffix rank. Parsed with
-    plain string ops (no regex backtracking surface) so valid-but-unusual
-    metadata can never stall or crash the check.
-    """
-    text = version.strip()
-    if text[:1] in ("v", "V"):
-        text = text[1:]
-    end = 0
-    while end < len(text) and (text[end].isdigit() or text[end] == "."):
-        end += 1
-    core, suffix = text[:end].rstrip("."), text[end:]
-    numbers = tuple(int(piece) for piece in core.split(".") if piece)
-    if not numbers:
-        return ((), (_FINAL_RANK, (), text))
-    return (numbers, _suffix_key(suffix))
+# Version comparison uses packaging.version.Version (real PEP 440:
+# zero-padding, pre/post/dev ordering, c/rc aliases) — hand-rolled
+# comparators kept disagreeing with the standard, so they were deleted.
+def _parse_version(raw: str, location: str, failures: list[str]):
+    """Parse a version string, recording loud drift on unparsable input."""
+    try:
+        return Version(raw)
+    except InvalidVersion:
+        failures.append(f"pins: {location} has unparsable version {raw!r}")
+        return None
 
 
 def _pypi_latest(package: str) -> str:
@@ -131,7 +120,9 @@ def _pin_specs(text: str) -> list[tuple[str, str, str]]:
         if marker < 0:
             continue
         for spec in PIN_SPEC_RE.finditer(line[marker:]):
-            specs.append((spec.group(1), spec.group(2), spec.group(3)))
+            # PyPI names are case-insensitive; normalize so QWED==... and
+            # qwed==... check the same distribution.
+            specs.append((spec.group(1).lower(), spec.group(2), spec.group(3)))
     return specs
 
 
@@ -143,14 +134,18 @@ def _check_pin(location: str, package: str, operator: str, pinned: str,
     except RuntimeError as exc:
         failures.append(f"pins: {exc}")
         return
+    wanted = _parse_version(pinned, location, failures)
+    current = _parse_version(latest, f"PyPI {package}", failures)
+    if wanted is None or current is None:
+        return
     # An exact pin older than latest is stale course, not safety.
     if operator == "==":
-        if _version_key(pinned) != _version_key(latest):
+        if wanted != current:
             failures.append(
                 f"pins: {location} pins {package}=={pinned} "
                 f"but latest release is {latest}"
             )
-    elif _version_key(pinned) > _version_key(latest):
+    elif wanted > current:
         failures.append(
             f"pins: {location} requires {package}>={pinned} "
             f"but latest release is {latest}"
@@ -305,14 +300,25 @@ def _ast_import_targets(tree: ast.AST) -> list[tuple[str, list[str]]]:
     return targets
 
 
+def _strip_code_comments(block: str) -> str:
+    """Remove `#` comments line-wise so commented-out imports never validate.
+
+    Import lines cannot contain a bare `#` inside a string (module paths
+    and imported names have no `#`), so splitting at the first `#` per
+    line is exact here — unlike a general Python comment stripper.
+    """
+    return "\n".join(line.split("#", 1)[0] for line in block.splitlines())
+
+
 def _fallback_import_targets(block: str) -> list[tuple[str, list[str]]]:
     """Regex-extract imports from a syntax-broken block (same shape as AST)."""
+    code = _strip_code_comments(block)
     targets = [
         (match.group(1), _split_import_names(match.group(2)))
-        for match in FROM_IMPORT_RE.finditer(block)
+        for match in FROM_IMPORT_RE.finditer(code)
         if match.group(1).startswith("qwed")
     ]
-    for match in PLAIN_IMPORT_RE.finditer(block):
+    for match in PLAIN_IMPORT_RE.finditer(code):
         for name in _split_import_names(match.group(1)):
             if name.startswith("qwed"):
                 targets.append((name, []))
@@ -366,8 +372,115 @@ def load_exceptions() -> tuple[set[tuple[str, str, str]], set[tuple[str, str]]]:
                 f"{EXCEPTIONS_FILE.name}: vocabulary entries need "
                 f"file/token/contains: {exc}"
             ) from exc
-    imports = {(entry["file"], entry["symbol"]) for entry in payload.get("imports", [])}
+    imports = set()
+    raw_imports = payload.get("imports", [])
+    if not isinstance(raw_imports, list):
+        raise RuntimeError(
+            f"{EXCEPTIONS_FILE.name}: 'imports' must be a list"
+        )
+    for entry in raw_imports:
+        if (
+            not isinstance(entry, dict)
+            or not isinstance(entry.get("file"), str)
+            or not isinstance(entry.get("symbol"), str)
+        ):
+            raise RuntimeError(
+                f"{EXCEPTIONS_FILE.name}: imports entries need "
+                f"string file/symbol fields, got {entry!r}"
+            )
+        imports.add((entry["file"], entry["symbol"]))
     return vocab, imports
+
+
+def _record_course_spec(package: str, operator: str, pinned: str, location: str,
+                      exact: dict, minimums: dict, failures: list[str]) -> None:
+    """Record one course pin: exact versions accumulate, minimums keep the max."""
+    parsed = _parse_version(pinned, location, failures)
+    if parsed is None:
+        return
+    if operator == "==":
+        exact.setdefault(package, set()).add(parsed)
+    else:
+        current = minimums.get(package)
+        if current is None or parsed > current:
+            minimums[package] = parsed
+
+
+def _collect_course_versions(failures: list[str]) -> tuple[dict[str, set], dict[str, object]]:
+    """Map each course-pinned package to its exact versions and top minimum.
+
+    Versions are parsed (canonical PEP 440); unparsable entries fail loudly
+    here so every later comparison is between real versions.
+    """
+    exact: dict[str, set] = {}
+    minimums: dict[str, object] = {}
+    for readme in PIN_SCOPE:
+        if not readme.is_file():
+            continue
+        location = readme.relative_to(ROOT).as_posix()
+        for package, operator, pinned in _pin_specs(readme.read_text(encoding="utf-8")):
+            _record_course_spec(package, operator, pinned, location, exact, minimums, failures)
+    return exact, minimums
+
+
+def _check_package_sync(package: str, versions: set, workflow_versions: dict,
+                         minimums: dict, failures: list[str]) -> None:
+    """One package: uniform pins if any, installed in workflow, above minimum.
+
+    Minimum-only packages (no exact pin) still require a workflow
+    installation at or above the documented floor.
+    """
+    course_version = min(versions) if versions else None
+    if versions and len(versions) > 1:
+        failures.append(
+            f"workflow: course pins disagree on {package}: "
+            f"{sorted(str(v) for v in versions)}"
+        )
+        return
+    if package not in workflow_versions:
+        detail = f"=={course_version}" if course_version is not None else f">={minimums[package]}"
+        failures.append(
+            f"workflow: course pins {package}{detail} "
+            f"but the workflow does not install it"
+        )
+        return
+    installed = workflow_versions[package]
+    if course_version is not None and installed != course_version:
+        failures.append(
+            f"workflow: installs {package}=={installed} "
+            f"but the course pins {package}=={course_version}"
+        )
+    minimum = minimums.get(package)
+    if minimum is not None and installed < minimum:
+        failures.append(
+            f"workflow: installs {package}=={installed} "
+            f"below the documented minimum {package}>={minimum}"
+        )
+
+
+def check_workflow_sync(failures: list[str]) -> None:
+    """The workflow must install exactly what the course pins.
+
+    Otherwise the import gate validates against a different version than
+    the docs teach: bumping a README pin without the workflow (or vice
+    versa) passes one gate while the other checks stale code.
+    """
+    try:
+        workflow_text = WORKFLOW_FILE.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        failures.append(f"workflow: expected workflow missing: {WORKFLOW_FILE.relative_to(ROOT)}")
+        return
+    workflow_versions = {}
+    location = WORKFLOW_FILE.relative_to(ROOT).as_posix()
+    for package, operator, pinned in _pin_specs(workflow_text):
+        if operator == "==":
+            parsed = _parse_version(pinned, location, failures)
+            if parsed is not None:
+                workflow_versions[package] = parsed
+    course_versions, minimums = _collect_course_versions(failures)
+    for package in sorted(course_versions.keys() | minimums.keys()):
+        _check_package_sync(package, course_versions.get(package, set()), workflow_versions,
+                             minimums, failures)
 
 
 def main() -> int:
@@ -377,6 +490,7 @@ def main() -> int:
     check_tags(failures)
     check_vocab(failures, vocab_exceptions)
     check_imports(failures, import_allowlist)
+    check_workflow_sync(failures)
     if failures:
         print("COURSE DRIFT DETECTED — the course no longer matches the code:")
         for failure in failures:

@@ -1,3 +1,4 @@
 cryptography
 requests
 PyJWT
+packaging==26.0  # course drift check (PEP 440 comparison)
