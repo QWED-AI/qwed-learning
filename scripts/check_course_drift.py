@@ -392,6 +392,20 @@ def load_exceptions() -> tuple[set[tuple[str, str, str]], set[tuple[str, str]]]:
     return vocab, imports
 
 
+def _record_course_spec(package: str, operator: str, pinned: str, location: str,
+                      exact: dict, minimums: dict, failures: list[str]) -> None:
+    """Record one course pin: exact versions accumulate, minimums keep the max."""
+    parsed = _parse_version(pinned, location, failures)
+    if parsed is None:
+        return
+    if operator == "==":
+        exact.setdefault(package, set()).add(parsed)
+    else:
+        current = minimums.get(package)
+        if current is None or parsed > current:
+            minimums[package] = parsed
+
+
 def _collect_course_versions(failures: list[str]) -> tuple[dict[str, set], dict[str, object]]:
     """Map each course-pinned package to its exact versions and top minimum.
 
@@ -405,43 +419,41 @@ def _collect_course_versions(failures: list[str]) -> tuple[dict[str, set], dict[
             continue
         location = readme.relative_to(ROOT).as_posix()
         for package, operator, pinned in _pin_specs(readme.read_text(encoding="utf-8")):
-            parsed = _parse_version(pinned, location, failures)
-            if parsed is None:
-                continue
-            if operator == "==":
-                exact.setdefault(package, set()).add(parsed)
-            else:
-                current = minimums.get(package)
-                if current is None or parsed > current:
-                    minimums[package] = parsed
+            _record_course_spec(package, operator, pinned, location, exact, minimums, failures)
     return exact, minimums
 
 
 def _check_package_sync(package: str, versions: set, workflow_versions: dict,
                          minimums: dict, failures: list[str]) -> None:
-    """One package: uniform course pins, installed in workflow, above minimum."""
-    if len(versions) > 1:
+    """One package: uniform pins if any, installed in workflow, above minimum.
+
+    Minimum-only packages (no exact pin) still require a workflow
+    installation at or above the documented floor.
+    """
+    course_version = min(versions) if versions else None
+    if versions and len(versions) > 1:
         failures.append(
             f"workflow: course pins disagree on {package}: "
             f"{sorted(str(v) for v in versions)}"
         )
         return
-    course_version = min(versions)
     if package not in workflow_versions:
+        detail = f"=={course_version}" if course_version is not None else f">={minimums[package]}"
         failures.append(
-            f"workflow: course pins {package}=={course_version} "
+            f"workflow: course pins {package}{detail} "
             f"but the workflow does not install it"
         )
         return
-    if workflow_versions[package] != course_version:
+    installed = workflow_versions[package]
+    if course_version is not None and installed != course_version:
         failures.append(
-            f"workflow: installs {package}=={workflow_versions[package]} "
+            f"workflow: installs {package}=={installed} "
             f"but the course pins {package}=={course_version}"
         )
     minimum = minimums.get(package)
-    if minimum is not None and workflow_versions[package] < minimum:
+    if minimum is not None and installed < minimum:
         failures.append(
-            f"workflow: installs {package}=={workflow_versions[package]} "
+            f"workflow: installs {package}=={installed} "
             f"below the documented minimum {package}>={minimum}"
         )
 
@@ -466,8 +478,8 @@ def check_workflow_sync(failures: list[str]) -> None:
             if parsed is not None:
                 workflow_versions[package] = parsed
     course_versions, minimums = _collect_course_versions(failures)
-    for package in sorted(course_versions):
-        _check_package_sync(package, course_versions[package], workflow_versions,
+    for package in sorted(course_versions.keys() | minimums.keys()):
+        _check_package_sync(package, course_versions.get(package, set()), workflow_versions,
                              minimums, failures)
 
 
