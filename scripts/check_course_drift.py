@@ -2,20 +2,27 @@
 
 Fails loudly when the course text drifts from the implementations it teaches:
 
-  1. Stale pins   — every ``pip install qwed...==/>=X.Y.Z`` pin in
-     ``module-*/README.md`` and ``capstone-project/README.md`` must satisfy
-     ``X.Y.Z <= <latest release on PyPI>``.
+  1. Stale pins   — every ``pip install qwed...==X.Y.Z`` pin in
+     ``module-*/README.md`` and ``capstone-project/README.md`` must equal
+     the latest release on PyPI (``>=`` minimums must name an existing
+     version). Comparisons use real PEP 440 ordering.
   2. Dead tags    — every ``QWED-AI/<repo>@vX.Y.Z`` reference must resolve
      to a real tag.
   3. Banned vocab — ``INVALID`` / ``APPROVED`` / ``QUARANTINED`` may appear in
      course markdown only on lines that also mention workflow/disposition.
   4. Dead imports — every ``from qwed... import <name>`` in fenced Python
      blocks must resolve against the installed packages.
+  5. Workflow sync — the drift workflow must install exactly what the
+     course pins (no missing packages, no skew, no below-minimum).
 
-Stdlib only. Run locally with ``python scripts/check_course_drift.py`` after
-``pip install qwed qwed-a2a qwed-infra``; CI installs latest releases so new
-API removals are caught. Documented exceptions live in
+Run locally with ``python scripts/check_course_drift.py`` after
+``pip install qwed qwed-a2a qwed-infra``; CI installs the pinned releases.
+Documented exceptions live in
 ``scripts/course_drift_exceptions.json`` and are reviewed like code.
+
+Needs ``packaging`` (ships with pip/setuptools — present in every Python
+that can install the course packages) for PEP 440 comparison; everything
+else is stdlib.
 """
 
 from __future__ import annotations
@@ -28,6 +35,13 @@ import re
 import sys
 import urllib.request
 from pathlib import Path
+
+try:
+    from packaging.version import InvalidVersion, Version
+except ImportError as exc:
+    raise RuntimeError(
+        "check_course_drift needs the 'packaging' module (ships with pip)"
+    ) from exc
 
 ROOT = Path(__file__).resolve().parent.parent
 EXCEPTIONS_FILE = Path(__file__).resolve().parent / "course_drift_exceptions.json"
@@ -64,65 +78,16 @@ PLAIN_IMPORT_RE = re.compile(
 FENCE_RE = re.compile(r"```python(.*?)```", re.DOTALL)
 
 
-# PEP 440 pre/post-release ranking so suffixed versions order sanely
-# (dev < alpha < beta < rc < final < post) instead of crashing comparison.
-_SUFFIX_ORDER = {"dev": 0, "a": 1, "alpha": 1, "b": 2, "beta": 2, "rc": 3, "post": 5}
-_FINAL_RANK = 4
-
-
-def _suffix_key(suffix: str) -> tuple:
-    text = suffix.strip().lstrip("-_.")
-    if not text:
-        return (_FINAL_RANK, (), "")
-    match = re.match(r"([a-zA-Z]+)([0-9.]*)", text)
-    if not match:
-        return (_FINAL_RANK, (), text)
-    word, nums = match.group(1).lower(), match.group(2)
-    rank = _SUFFIX_ORDER.get(word, _FINAL_RANK)
-    num_tuple = tuple(int(piece) for piece in nums.split(".") if piece.isdigit()) or (0,)
-    return (rank, num_tuple, text)
-
-
-def _version_key(version: str) -> tuple:
-    """Crash-free comparable key for release version strings.
-
-    Numeric release segments first, then PEP 440 suffix rank. Parsed with
-    plain string ops (no regex backtracking surface) so valid-but-unusual
-    metadata can never stall or crash the check.
-    """
-    text = version.strip()
-    if text[:1] in ("v", "V"):
-        text = text[1:]
-    end = 0
-    while end < len(text) and (text[end].isdigit() or text[end] == "."):
-        end += 1
-    core, suffix = text[:end].rstrip("."), text[end:]
-    numbers = tuple(int(piece) for piece in core.split(".") if piece)
-    if not numbers:
-        return ((), (_FINAL_RANK, (), text))
-    return (numbers, _suffix_key(suffix))
-
-
-def _release_equal(first: tuple, second: tuple) -> bool:
-    """PEP 440 release equality: zero-pad, so 7.2 == 7.2.0."""
-    numbers_a, suffix_a = first
-    numbers_b, suffix_b = second
-    width = max(len(numbers_a), len(numbers_b))
-    return (
-        numbers_a + (0,) * (width - len(numbers_a))
-        == numbers_b + (0,) * (width - len(numbers_b))
-        and suffix_a == suffix_b
-    )
-
-
-def _release_greater(first: tuple, second: tuple) -> bool:
-    """PEP 440 release ordering with zero-padding (7.2 < 7.2.0 is False)."""
-    numbers_a, suffix_a = first
-    numbers_b, suffix_b = second
-    width = max(len(numbers_a), len(numbers_b))
-    padded_a = numbers_a + (0,) * (width - len(numbers_a))
-    padded_b = numbers_b + (0,) * (width - len(numbers_b))
-    return (padded_a, suffix_a) > (padded_b, suffix_b)
+# Version comparison uses packaging.version.Version (real PEP 440:
+# zero-padding, pre/post/dev ordering, c/rc aliases) — hand-rolled
+# comparators kept disagreeing with the standard, so they were deleted.
+def _parse_version(raw: str, location: str, failures: list[str]):
+    """Parse a version string, recording loud drift on unparsable input."""
+    try:
+        return Version(raw)
+    except InvalidVersion:
+        failures.append(f"pins: {location} has unparsable version {raw!r}")
+        return None
 
 
 def _pypi_latest(package: str) -> str:
@@ -169,15 +134,18 @@ def _check_pin(location: str, package: str, operator: str, pinned: str,
     except RuntimeError as exc:
         failures.append(f"pins: {exc}")
         return
+    wanted = _parse_version(pinned, location, failures)
+    current = _parse_version(latest, f"PyPI {package}", failures)
+    if wanted is None or current is None:
+        return
     # An exact pin older than latest is stale course, not safety.
-    # Comparisons are PEP 440 release-aware (7.2 == 7.2.0).
     if operator == "==":
-        if not _release_equal(_version_key(pinned), _version_key(latest)):
+        if wanted != current:
             failures.append(
                 f"pins: {location} pins {package}=={pinned} "
                 f"but latest release is {latest}"
             )
-    elif _release_greater(_version_key(pinned), _version_key(latest)):
+    elif wanted > current:
         failures.append(
             f"pins: {location} requires {package}>={pinned} "
             f"but latest release is {latest}"
@@ -405,15 +373,77 @@ def load_exceptions() -> tuple[set[tuple[str, str, str]], set[tuple[str, str]]]:
                 f"file/token/contains: {exc}"
             ) from exc
     imports = set()
-    for entry in payload.get("imports", []):
-        try:
-            imports.add((entry["file"], entry["symbol"]))
-        except (KeyError, TypeError) as exc:
+    raw_imports = payload.get("imports", [])
+    if not isinstance(raw_imports, list):
+        raise RuntimeError(
+            f"{EXCEPTIONS_FILE.name}: 'imports' must be a list"
+        )
+    for entry in raw_imports:
+        if (
+            not isinstance(entry, dict)
+            or not isinstance(entry.get("file"), str)
+            or not isinstance(entry.get("symbol"), str)
+        ):
             raise RuntimeError(
                 f"{EXCEPTIONS_FILE.name}: imports entries need "
-                f"file/symbol: {exc}"
-            ) from exc
+                f"string file/symbol fields, got {entry!r}"
+            )
+        imports.add((entry["file"], entry["symbol"]))
     return vocab, imports
+
+
+def _collect_course_versions(failures: list[str]) -> tuple[dict[str, set], dict[str, object]]:
+    """Map each course-pinned package to its exact versions and top minimum.
+
+    Versions are parsed (canonical PEP 440); unparsable entries fail loudly
+    here so every later comparison is between real versions.
+    """
+    exact: dict[str, set] = {}
+    minimums: dict[str, object] = {}
+    for readme in PIN_SCOPE:
+        if not readme.is_file():
+            continue
+        location = readme.relative_to(ROOT).as_posix()
+        for package, operator, pinned in _pin_specs(readme.read_text(encoding="utf-8")):
+            parsed = _parse_version(pinned, location, failures)
+            if parsed is None:
+                continue
+            if operator == "==":
+                exact.setdefault(package, set()).add(parsed)
+            else:
+                current = minimums.get(package)
+                if current is None or parsed > current:
+                    minimums[package] = parsed
+    return exact, minimums
+
+
+def _check_package_sync(package: str, versions: set, workflow_versions: dict,
+                         minimums: dict, failures: list[str]) -> None:
+    """One package: uniform course pins, installed in workflow, above minimum."""
+    if len(versions) > 1:
+        failures.append(
+            f"workflow: course pins disagree on {package}: "
+            f"{sorted(str(v) for v in versions)}"
+        )
+        return
+    course_version = min(versions)
+    if package not in workflow_versions:
+        failures.append(
+            f"workflow: course pins {package}=={course_version} "
+            f"but the workflow does not install it"
+        )
+        return
+    if workflow_versions[package] != course_version:
+        failures.append(
+            f"workflow: installs {package}=={workflow_versions[package]} "
+            f"but the course pins {package}=={course_version}"
+        )
+    minimum = minimums.get(package)
+    if minimum is not None and workflow_versions[package] < minimum:
+        failures.append(
+            f"workflow: installs {package}=={workflow_versions[package]} "
+            f"below the documented minimum {package}>={minimum}"
+        )
 
 
 def check_workflow_sync(failures: list[str]) -> None:
@@ -429,26 +459,16 @@ def check_workflow_sync(failures: list[str]) -> None:
         failures.append(f"workflow: expected workflow missing: {WORKFLOW_FILE.relative_to(ROOT)}")
         return
     workflow_versions = {}
+    location = WORKFLOW_FILE.relative_to(ROOT).as_posix()
     for package, operator, pinned in _pin_specs(workflow_text):
         if operator == "==":
-            workflow_versions[package] = pinned
-    course_versions: dict[str, set[str]] = {}
-    for readme in PIN_SCOPE:
-        if not readme.is_file():
-            continue
-        for package, operator, pinned in _pin_specs(readme.read_text(encoding="utf-8")):
-            if operator == "==":
-                course_versions.setdefault(package, set()).add(pinned)
-    for package, versions in sorted(course_versions.items()):
-        if len(versions) > 1:
-            failures.append(
-                f"workflow: course pins disagree on {package}: {sorted(versions)}"
-            )
-        elif package in workflow_versions and workflow_versions[package] not in versions:
-            failures.append(
-                f"workflow: installs {package}=={workflow_versions[package]} "
-                f"but the course pins {package}=={sorted(versions)[0]}"
-            )
+            parsed = _parse_version(pinned, location, failures)
+            if parsed is not None:
+                workflow_versions[package] = parsed
+    course_versions, minimums = _collect_course_versions(failures)
+    for package in sorted(course_versions):
+        _check_package_sync(package, course_versions[package], workflow_versions,
+                             minimums, failures)
 
 
 def main() -> int:

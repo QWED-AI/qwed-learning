@@ -139,7 +139,7 @@ The sample script demonstrates a deterministic gate for:
 - AML threshold checks (`amount >= 10000` must be flagged)
 - additive rate calculations for the senior-citizen lab
 - the shipped rate CSV schema used in this repo
-- `qwed>=7.2.0` (tested against 7.2.0)
+- `qwed>=7.2.0` (tested against 7.2.1)
 
 #### Step 4: Push and Watch
 
