@@ -683,7 +683,7 @@ else:
 ## ➡️ Next Steps
 
 - ⭐ [Star qwed-infra](https://github.com/QWED-AI/qwed-infra)
-- 📖 [Read the docs](https://docs.qwedai.com)
+- 📖 [Read the docs](https://docs.qwedai.tech)
 - 🚀 [Capstone Project](../capstone-project/README.md)
 
 ---

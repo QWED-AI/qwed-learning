@@ -641,7 +641,7 @@ response = assistant.calculate("Calculate 30-year mortgage for $500,000 at 6.5%"
 ### Join Community
 - 💬 [GitHub Discussions](https://github.com/QWED-AI/qwed-learning/discussions)
 - 🐦 [@rahuldass29](https://x.com/rahuldass29)
-- 📧 rahul@qwedai.com
+- 📧 rahul@qwedai.tech
 
 ---
 
