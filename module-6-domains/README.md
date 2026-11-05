@@ -758,7 +758,7 @@ The `qwed-infra` package extends QWED's deterministic fail-closed philosophy to 
 
 **What's Next?**
 - ⭐ [Star the QWED repo](https://github.com/QWED-AI/qwed-verification)
-- 📖 [Read the docs](https://docs.qwedai.com)
+- 📖 [Read the docs](https://docs.qwedai.tech)
 - 💬 [Join discussions](https://github.com/QWED-AI/qwed-verification/discussions)
 - 🐦 [Follow updates](https://twitter.com/rahuldass29)
 

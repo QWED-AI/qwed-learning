@@ -171,7 +171,7 @@ fix: Correct compound interest formula in financial_calculator.py
 **Stuck or have questions?**
 
 - 💬 [GitHub Discussions](https://github.com/QWED-AI/qwed-learning/discussions)
-- 📧 Email: rahul@qwedai.com
+- 📧 Email: rahul@qwedai.tech
 - 🐦 Twitter: [@rahuldass29](https://x.com/rahuldass29)
 
 ---
