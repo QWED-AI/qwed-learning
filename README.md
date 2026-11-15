@@ -275,7 +275,7 @@ By the end, you'll have:
 
 CC0-1.0 - Public domain. Free to use, modify, and share.
 
-CC0 does not cover the QWED name and logo: [TRADEMARKS.md](TRADEMARKS.md) says how they may be used.
+CC0 does not waive trademark rights in the QWED name and logo: [TRADEMARKS.md](TRADEMARKS.md) says how they may be used.
 
 <div align="center">
 
