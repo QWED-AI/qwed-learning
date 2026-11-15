@@ -110,7 +110,7 @@ The `to_diagnostic()` converter produces an `InfraDiagnosticResult` — the same
 
 ### Version Compatibility
 
-These examples use `qwed-infra` 0.4.0. It is stricter than 0.3.0: each guard returns UNVERIFIABLE for input it does not model, instead of reading it in a way that could be wrong, so check the input formats below if you upgrade an older script.
+These examples use `qwed-infra` 0.4.0. It is stricter than 0.3.0: input a guard does not model fails closed instead of being read in a way that could be wrong. The status depends on the guard (IamGuard and NetworkGuard return UNVERIFIABLE; CostGuard blocks an unknown instance or volume type), so check the input formats below if you upgrade an older script.
 
 ```bash
 pip install "qwed-infra==0.4.0"
@@ -630,8 +630,9 @@ net_result = net_guard.verify_reachability(
 )
 net_diag = NetworkGuard.to_diagnostic(net_result)
 print(f"[{net_diag.status.value}] Network: {net_diag.agent_message}")
-# VERIFIED proves SSH is reachable from the internet; that exposure is the problem
-if net_result.reachable or not net_diag.is_verified:
+# Pass only when a security group is proven to block SSH. Block a reachable port,
+# an UNVERIFIABLE topology and no_route (a mistyped subnet id is also no_route)
+if net_result.failure_code != "sg_ingress_blocked":
     all_blocked.append("Network")
 
 # 3. Cost check
