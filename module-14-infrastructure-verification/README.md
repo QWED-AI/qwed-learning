@@ -78,7 +78,7 @@ QWED-Infra mirrors the same deterministic fail-closed philosophy from the core c
 ## 14.2: The Four Guards
 
 ```bash
-pip install "qwed-infra==0.3.0"
+pip install "qwed-infra==0.4.0"
 ```
 
 QWED-Infra provides four deterministic guards, each covering a different IaC trust boundary:
@@ -110,10 +110,10 @@ The `to_diagnostic()` converter produces an `InfraDiagnosticResult` — the same
 
 ### Version Compatibility
 
-These examples use `qwed-infra>=0.3.0`:
+These examples use `qwed-infra` 0.4.0. It is stricter than 0.3.0: each guard returns UNVERIFIABLE for input it does not model, instead of reading it in a way that could be wrong, so check the input formats below if you upgrade an older script.
 
 ```bash
-pip install "qwed-infra==0.3.0"
+pip install "qwed-infra==0.4.0"
 ```
 
 ---
@@ -169,8 +169,8 @@ print(result_outside.allowed)  # False — IP condition blocks it
 The `verify_least_privilege` method treats `Action: "*"` and `Resource: "*"` as a violation:
 
 ```python
-result = guard.verify_least_privilege(policy)
-if result.allowed:
+lp_result = guard.verify_least_privilege(policy)
+if lp_result.allowed:
     print("Policy is over-privileged — grants wildcard access")
 ```
 
@@ -185,12 +185,13 @@ print(diagnostic.agent_message)   # "IAM policy access: allowed"
 
 ### Fail-Closed Behavior
 
-If the policy contains an unknown condition operator, IamGuard denies access (fail-closed):
+If the policy uses a condition operator IamGuard cannot evaluate, it does not allow the request, and the result is UNVERIFIABLE rather than a proven deny (fail-closed):
 
 ```python
 # Unknown operator → denied
 result = guard.verify_access(bad_policy, ...)
-print(result.allowed)  # False — fail-closed
+print(result.allowed)  # False: fail-closed
+print(IamGuard.to_diagnostic(result).status)  # InfraDiagnosticStatus.UNVERIFIABLE
 ```
 
 ---
@@ -211,11 +212,8 @@ resources = {
     ],
     "route_tables": [
         {
-            "id": "rtb-public",
-            "routes": [
-                {"destination": "0.0.0.0/0", "target": "igw-12345"}
-            ],
-            "subnet_associations": ["subnet-public"]
+            "subnet_id": "subnet-public",
+            "routes": {"0.0.0.0/0": "igw-12345"}
         }
     ],
     "security_groups": {
@@ -224,6 +222,9 @@ resources = {
                 {"port": 443, "cidr": "0.0.0.0/0"},
                 {"port": 22, "cidr": "10.0.0.0/8"}
             ]
+        },
+        "sg-app": {
+            "ingress": [{"port": 5432, "cidr": "10.0.0.0/16"}]
         }
     }
 }
@@ -240,12 +241,12 @@ result = guard.verify_reachability(
 )
 print(result.reachable)  # True — HTTPS is open to the internet
 print(result.path)       # ["internet", "subnet-public"]
-print(result.reason)     # "Reachable: route found + security group allows ingress"
+print(result.reason)     # "Route exists and Security Groups allow traffic"
 ```
 
 ### What Gets Blocked
 
-NetworkGuard fails closed on topologies it cannot model:
+NetworkGuard models only subnets (`id`, `security_groups`), route tables (`subnet_id`, and `routes` as a mapping from CIDR to an `igw-...` or `local` target), security groups and ingress rules (`port` or `from_port`/`to_port`, and `cidr`). Every subnet's security groups must be declared. It fails closed on anything else, such as protocol-scoped rules, prefix lists and these topologies:
 
 | Topology | Behavior |
 |----------|----------|
@@ -307,10 +308,10 @@ resources = {
 guard = CostGuard()
 result = guard.verify_budget(resources, budget_monthly="500")
 
-print(result.total_monthly_cost)  # e.g. "47.52"
+print(result.total_monthly_cost)  # "134.44"
 print(result.within_budget)       # True
-print(result.breakdown)           # {"web-server": "21.90", "db-server": "21.90", "web-data": "3.72"}
-print(result.reason)              # "Total $47.52 within budget of $500.00"
+print(result.breakdown)           # {"web-server": "22.7760", "db-server": "103.660", "vol-web-data": "8.00"}
+print(result.reason)              # "Estimated cost $134.44 is within budget $500.00"
 ```
 
 ### Unknown Types → Blocked
@@ -331,7 +332,7 @@ print(result.within_budget)       # False — fail-closed
 
 diagnostic = CostGuard.to_diagnostic(result)
 print(diagnostic.status)          # InfraDiagnosticStatus.BLOCKED
-print(diagnostic.agent_message)   # "Cost estimate incomplete -- unknown resource types"
+print(diagnostic.agent_message)   # starts with "Cost estimate incomplete"
 ```
 
 ### Budget Exceeded
@@ -488,7 +489,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install qwed-infra
-        run: pip install "qwed-infra==0.3.0"
+        run: pip install "qwed-infra==0.4.0"
 
       - name: Verify IAM policies
         run: python ci/verify_iam.py
@@ -570,9 +571,8 @@ terraform = {
         ],
         "route_tables": [
             {
-                "id": "rtb-main",
-                "routes": [{"destination": "0.0.0.0/0", "target": "igw-0001"}],
-                "subnet_associations": ["subnet-db"]
+                "subnet_id": "subnet-db",
+                "routes": {"0.0.0.0/0": "igw-0001"}
             }
         ],
         "security_groups": {
@@ -591,8 +591,8 @@ terraform = {
 budget_monthly = "500"
 
 # Your code here:
-# 1. Verify IAM — s3:* on * should over-privilege the policy
-# 2. Verify network — port 22 from 0.0.0.0/0 to a DB subnet is dangerous
+# 1. Verify IAM: s3:* on * lets anyone delete a production bucket
+# 2. Verify network: port 22 reachable from 0.0.0.0/0 on a DB subnet is dangerous
 # 3. Verify cost — p4d.24xlarge costs ~$23K/month, budget is $500
 ```
 
@@ -606,12 +606,17 @@ from qwed_infra import IamGuard, NetworkGuard, CostGuard
 
 all_blocked = []
 
-# 1. IAM check — detect over-privileged wildcard policy
+# 1. IAM check: can anyone delete a production bucket?
 iam_guard = IamGuard()
-iam_result = iam_guard.verify_least_privilege(terraform["iam_policy"])
+iam_result = iam_guard.verify_access(
+    terraform["iam_policy"],
+    action="s3:DeleteBucket",
+    resource="arn:aws:s3:::prod-data"
+)
 iam_diag = IamGuard.to_diagnostic(iam_result)
 print(f"[{iam_diag.status.value}] IAM: {iam_diag.agent_message}")
-if not iam_diag.is_verified:
+# VERIFIED proves the answer; an allowed delete is the problem
+if iam_result.allowed or not iam_diag.is_verified:
     all_blocked.append("IAM")
 
 # 2. Network check
@@ -625,7 +630,8 @@ net_result = net_guard.verify_reachability(
 )
 net_diag = NetworkGuard.to_diagnostic(net_result)
 print(f"[{net_diag.status.value}] Network: {net_diag.agent_message}")
-if not net_diag.is_verified:
+# VERIFIED proves SSH is reachable from the internet; that exposure is the problem
+if net_result.reachable or not net_diag.is_verified:
     all_blocked.append("Network")
 
 # 3. Cost check
@@ -648,8 +654,8 @@ else:
 
 **Expected output:**
 ```text
-[BLOCKED] IAM: IAM policy is over-privileged
-[BLOCKED] Network: Network reachability blocked
+[VERIFIED] IAM: IAM policy access: allowed
+[VERIFIED] Network: Network reachability verified
 [BLOCKED] Cost: Cost estimate exceeds budget
 
 🚫 PR BLOCKED by: IAM, Network, Cost
