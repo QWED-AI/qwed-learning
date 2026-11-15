@@ -192,7 +192,11 @@ Contributors will be:
 
 ## 📄 License
 
-By contributing, you agree that your contributions will be licensed under the CC0-1.0 License (same as the project).
+QWED Learning is dedicated to the public domain under [CC0 1.0](./LICENSE), and contributions are accepted on the same terms:
+
+- **Your contribution is dedicated to the public domain.** By submitting it, you dedicate it under CC0 1.0, as the rest of the course is, so anyone may use, change and share it without asking.
+- **Only submit what you have the right to dedicate:** your own work, or material that is already in the public domain or under CC0. Material under another licence, other Creative Commons licences included, cannot be accepted.
+- **The names are not dedicated.** CC0 does not waive trademark rights; see [TRADEMARKS.md](./TRADEMARKS.md) for using "QWED" and its logo.
 
 ---
 
